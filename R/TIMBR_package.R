@@ -100,6 +100,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
   TIMBR.sampler <- function(iterations, calc.null.ml=T, update.M=T, update.alpha=T){
     
     nglm.hyperparameters.ml <- function(MC, calc.partial.ml=T){
+      #compute hyperparameters for the normal-gamma linear model
       if (update.M){
         d <- ncol(MC)
         n.params <- p + d
