@@ -92,7 +92,7 @@ model.prior.crp.marginalized <- function(m, prior.alpha.a, prior.alpha.b, scale.
 #' @return list of input parameters, posterior samples, and marginal likelihoods
 #' 
 #' @examples
-#' data(mcv)
+#' data(mcv.data)
 #' TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
 #'
 #' @export

@@ -4,7 +4,7 @@
 #'
 #' @docType data
 #'
-#' @usage data(mcv)
+#' @usage data(mcv.data)
 #'
 #' @format A list of inputs formatted for use with TIMBR.
 #'
@@ -16,7 +16,7 @@
 #' @source MCV data from Kelada et al. (2012); recomputed diplotype state probabilities using similar methods
 #'
 #' @examples
-#' data(mcv)
+#' data(mcv.data)
 #' str(mcv.data)
 #' TIMBR.results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
 "mcv.data"

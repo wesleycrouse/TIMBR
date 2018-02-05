@@ -33,7 +33,7 @@ list of input parameters, posterior samples, and marginal likelihoods
 Posterior samples and Bayes Factors using the TIMBR model
 }
 \examples{
-data(mcv)
+data(mcv.data)
 TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
 
 }

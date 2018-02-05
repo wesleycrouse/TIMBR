@@ -9,13 +9,13 @@
 MCV data from Kelada et al. (2012); recomputed diplotype state probabilities using similar methods
 }
 \usage{
-data(mcv)
+data(mcv.data)
 }
 \description{
 Data for mean red blood cell volume (MCV) QTL idenfied in Kelada et al. (2012).
 }
 \examples{
-data(mcv)
+data(mcv.data)
 str(mcv.data)
 TIMBR.results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
 }
