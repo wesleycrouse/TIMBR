@@ -357,7 +357,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
         
         #combine likelihood with prior and scale to prevent underflow of all probabilities
         D.prob <- D.ln.ml + ln.P
-        D.prob <- exp(D.prob - rowMaxs(D.prob))
+        D.prob <- exp(D.prob - matrixStats::rowMaxs(D.prob))
         
         #sample assignment for each row of D from independent categorical distributions
         #probabilities are normalized by rmultinom
