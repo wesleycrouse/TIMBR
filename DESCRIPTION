@@ -5,6 +5,6 @@ Version: 1.0
 Date: 2018-02-03
 Author: Wesley Crouse <wesleycrouse@gmail.com>
 Maintainer: Wesley Crouse <wesleycrouse@gmail.com>
-Description: Posterior samples and Bayes Factors using the TIMBR model
+Description: Posterior sampling and Bayes Factors using the TIMBR model
 License: GPL-3
 RoxygenNote: 6.0.1
