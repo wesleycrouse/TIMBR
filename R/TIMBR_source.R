@@ -83,7 +83,7 @@ model.prior.crp.marginalized <- function(m, prior.alpha.a, prior.alpha.b, scale.
 #' @param prior.D list of inputs for the prior distribution of strain diplotype states; see data(mcv.data) for an example
 #' @param prior.M list of inputs for the prior distribution of the allelic series model; see data(mcv.data) for examples
 #' @param prior.v.b shape parameter for the beta prime prior distribution on the variance component
-#' @param sample number of samples to draw from the full posterior
+#' @param samples number of samples to draw from the full posterior
 #' @param samples.ml number of samples to draw from the condtiional posterior (if necessary)
 #' @param Z design matrix for covariates; first column must be a vector of ones, which is the default
 #' @param W vector of replicates for each strain; one replicate per strain by default
