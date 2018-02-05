@@ -19,4 +19,4 @@
 #' data(mcv)
 #' str(mcv.data)
 #' TIMBR.results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
-"mcv"
+"mcv.data"
