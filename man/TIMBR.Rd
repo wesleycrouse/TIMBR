@@ -14,6 +14,8 @@ TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 1000,
 
 \item{prior.M}{list of inputs for the prior distribution of the allelic series model; see data(mcv.data) for examples}
 
+\item{prior.v.b}{shape parameter for the beta prime prior distribution on the variance component}
+
 \item{samples.ml}{number of samples to draw from the condtiional posterior (if necessary)}
 
 \item{Z}{design matrix for covariates; first column must be a vector of ones, which is the default}
@@ -21,8 +23,6 @@ TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 1000,
 \item{W}{vector of replicates for each strain; one replicate per strain by default}
 
 \item{verbose}{optionally report function progress}
-
-\item{prior.v.}{shape parameter for the beta prime prior distribution on the variance component}
 
 \item{sample}{number of samples to draw from the full posterior}
 }
