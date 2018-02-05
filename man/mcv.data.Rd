@@ -17,7 +17,6 @@ Data for mean red blood cell volume (MCV) QTL idenfied in Kelada et al. (2012).
 \examples{
 data(mcv.data)
 str(mcv.data)
-TIMBR.results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
 }
 \references{
 Kelada et al. (2012) G3 2:157-165
