@@ -27,7 +27,7 @@ TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 1000,
 \item{sample}{number of samples to draw from the full posterior}
 }
 \value{
-list of input parameters, posterior samples, and marginal likelihoods
+returns a list of input parameters, posterior samples, and the marginal likelihood
 }
 \description{
 Posterior samples and Bayes Factors using the TIMBR model

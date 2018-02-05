@@ -89,7 +89,7 @@ model.prior.crp.marginalized <- function(m, prior.alpha.a, prior.alpha.b, scale.
 #' @param W vector of replicates for each strain; one replicate per strain by default
 #' @param verbose optionally report function progress
 #'
-#' @return list of input parameters, posterior samples, and marginal likelihoods
+#' @return returns a list of input parameters, posterior samples, and the marginal likelihood
 #' 
 #' @examples
 #' data(mcv.data)
