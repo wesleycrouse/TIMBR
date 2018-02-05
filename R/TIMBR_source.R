@@ -92,8 +92,18 @@ model.prior.crp.marginalized <- function(m, prior.alpha.a, prior.alpha.b, scale.
 #' @return returns a list of input parameters, posterior samples, and the marginal likelihood
 #' 
 #' @examples
+#' #example data
 #' data(mcv.data)
-#' TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
+#' str(mcv.data)
+#' 
+#' #call TIMBR using CRP
+#' results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
+#' 
+#' #calculate the Bayes Factor
+#' results$ln.ml - results$ln.ml.null
+#' 
+#' #report posterior probabilities for the top allelic series models
+#' head(rev(sort(table(results$post.M))))/results$samples
 #'
 #' @export
 TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=1000, Z=NULL, W=NULL, verbose=T){

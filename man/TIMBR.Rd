@@ -33,7 +33,17 @@ returns a list of input parameters, posterior samples, and the marginal likeliho
 Posterior samples and Bayes Factors using the TIMBR model
 }
 \examples{
+#example data
 data(mcv.data)
-TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
+str(mcv.data)
+
+#call TIMBR using CRP
+results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
+
+#calculate the Bayes Factor
+results$ln.ml - results$ln.ml.null
+
+#report posterior probabilities for the top allelic series models
+head(rev(sort(table(results$post.M))))/results$samples
 
 }
