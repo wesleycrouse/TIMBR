@@ -1,9 +1,3 @@
-library(mvtnorm)
-library(matrixStats)
-library(gsl)
-library(numbers)
-library(VGAM)
-
 #' @keywords internal
 sumtozero.contrast <- function(k){
   u <- 1/((k-1)^(1/2))
@@ -24,11 +18,11 @@ model.rename <- function(m){
 #' @keywords internal
 ln.bell <- function(J){
   #exact calculation
-  ln.b <- log(bell(J))
+  ln.b <- log(numbers::bell(J))
   
   if (ln.b==Inf){
     #approximation to avoid overflow
-    lambertW.J <- lambertW(J)
+    lambertW.J <- VGAM::lambertW(J)
     ln.b <- -0.5*log(J) + (J+1/2)*(log(J)-log(lambertW.J)) + (J/lambertW.J - J - 1)
   }
   
@@ -53,7 +47,7 @@ beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5){
   a.U <- prior.v.b + 0.5*d
   b.U <- prior.v.a + 0.5*d
   
-  (-0.5*d)*log(2) - 0.5*d*log(pi) - 0.5*d*log(sigma.sq) - lbeta(0.5, prior.v.b) + lgamma(a.U) + log(hyperg_U(a.U, b.U, z.U))
+  (-0.5*d)*log(2) - 0.5*d*log(pi) - 0.5*d*log(sigma.sq) - lbeta(0.5, prior.v.b) + lgamma(a.U) + log(gsl::hyperg_U(a.U, b.U, z.U))
 }
 
 #' @keywords internal
@@ -224,7 +218,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
           #calculate prior for all possible assignments of current row of M
           if (model.type=="crp"){
             #analytic form for exchangeable prior
-            colsums.M <- colSums2(M)
+            colsums.M <- matrixStats::colSums2(M)
             M.ln.prior <- log(c(colsums.M, alpha)) - log(sum(colsums.M + alpha))
           } else if (model.type=="uniform"){
             #constant non-exchangeable prior
@@ -264,7 +258,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
                 missing.weighted.input <- sapply(M.space.key[M.ln.prior.null], function(x){prior.M.input[[x]]})
                 missing.weighted.input <- sapply(missing.weighted.input, function(x){ifelse(is.null(x), -Inf, x + prior.M.weight.ln)})
                 missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], model.prior.crp.marginalized, prior.alpha.a=prior.alpha.a, prior.alpha.b=prior.alpha.b) + prior.M.weight.ln.1minus
-                missing.mixture <- sapply(1:length(M.ln.prior.null), function(x){logSumExp(c(missing.weighted.input[x], missing.weighted.crp[x]))})
+                missing.mixture <- sapply(1:length(M.ln.prior.null), function(x){matrixStats::logSumExp(c(missing.weighted.input[x], missing.weighted.crp[x]))})
                 
                 #update hash table with mixture prior for new M
                 M.ln.prior[M.ln.prior.null] <- missing.mixture
@@ -276,7 +270,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
           
           #combine likelihoods with priors and scale by normalizing constant
           M.prob <- M.ln.ml + M.ln.prior
-          M.prob <- exp(M.prob - logSumExp(M.prob))
+          M.prob <- exp(M.prob - matrixStats::logSumExp(M.prob))
           
           #sample assignment for current row of M from categorical distribution
           M.indicator <- match(rmultinom(1,1,M.prob), x=1)
@@ -607,8 +601,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     p1 <- sum(dnorm(y, Zdelta + D%*%AMCbeta, sqrt(sigma.sq*W^(-1)), log=T))
     p4 <- log(sigma.sq)
     p5 <- beta.prior.marginalized(beta, sigma.sq, prior.v.b)
-    p7 <- logSumExp(dgamma(sigma.sq^(-1), 0.5*kappa.star, 0.5*psi.star, log=T))-log(samples.ml)
-    p8 <- logSumExp(sapply(1:samples.ml, function(x){dmvnorm(theta, m.star[[x]], V.star[[x]]*sigma.sq, log=T)}))-log(samples.ml)
+    p7 <- matrixStats::logSumExp(dgamma(sigma.sq^(-1), 0.5*kappa.star, 0.5*psi.star, log=T))-log(samples.ml)
+    p8 <- matrixStats::logSumExp(sapply(1:samples.ml, function(x){mvtnorm::dmvnorm(theta, m.star[[x]], V.star[[x]]*sigma.sq, log=T)}))-log(samples.ml)
     c <- -0.5*n*log(pi) + lgamma(0.5*kappa.star) - 0.5*sum(-log(W))
     
     if (!fixed.diplo){
@@ -617,7 +611,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
       
       D.ln.ml <- matrix(dnorm(rep((y - Zdelta), each=ncol.P), rep(AMCbeta, n), rep(sqrt(sigma.sq)*sqrt.W^(-1), each=ncol.P), log=T), n, ncol.P, byrow=T)
       D.ln.prob <- D.ln.ml + ln.P
-      D.ln.prob <-  D.ln.prob - rowLogSumExps(D.ln.prob)
+      D.ln.prob <-  D.ln.prob - matrixStats::rowLogSumExps(D.ln.prob)
       p9 <- sum(D.ln.prob[cbind(1:n, D.states)])
     } else {
       p2 <- 0
