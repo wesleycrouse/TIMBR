@@ -10,9 +10,9 @@ TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 1000,
 \arguments{
 \item{y}{vector of phenotype values for each strain}
 
-\item{prior.D}{list of inputs for the prior distribution of strain diplotype states; see data(mcv) for an example}
+\item{prior.D}{list of inputs for the prior distribution of strain diplotype states; see data(mcv.data) for an example}
 
-\item{prior.M}{list of inputs for the prior distribution of the allelic series model; see data(mcv) for examples}
+\item{prior.M}{list of inputs for the prior distribution of the allelic series model; see data(mcv.data) for examples}
 
 \item{samples.ml}{number of samples to draw from the condtiional posterior (if necessary)}
 
