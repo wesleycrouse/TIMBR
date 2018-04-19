@@ -27,7 +27,7 @@ TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 1000,
 \item{verbose}{optionally report function progress}
 }
 \value{
-returns a list of input parameters, posterior samples, and the marginal likelihood
+a list of input parameters, posterior samples, and the marginal likelihood
 }
 \description{
 Posterior samples and Bayes Factors using the TIMBR model
@@ -40,10 +40,10 @@ str(mcv.data)
 #call TIMBR using CRP
 results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
 
-#calculate the Bayes Factor
-results$ln.ml - results$ln.ml.null
+#report the Bayes Factor
+results$ln.BF
 
 #report posterior probabilities for the top allelic series models
-head(rev(sort(table(results$post.M))))/results$samples
+head(results$p.M.given.y)
 
 }

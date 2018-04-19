@@ -6,6 +6,6 @@ Date: 2018-02-03
 Author: Wesley Crouse <wesleycrouse@gmail.com>
 Maintainer: Wesley Crouse <wesleycrouse@gmail.com>
 Description: Posterior samples and Bayes Factors using the TIMBR model
-Imports: mvtnorm, matrixStats, gsl, numbers, VGAM
+Imports: ape, dplyr, gsl, matrixStats, mvtnorm, numbers, pbapply, VGAM
 License: GPL-3
 RoxygenNote: 6.0.1

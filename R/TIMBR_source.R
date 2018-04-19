@@ -10,7 +10,7 @@ sumtozero.contrast <- function(k){
 }
 
 #' @keywords internal
-model.rename <- function(m){
+m.rename <- function(m){
   unique.m <- unique(m)
   sapply(m, function(y){match(x=y, unique.m)-1})
 }
@@ -30,7 +30,7 @@ ln.bell <- function(J){
 }
 
 #' @keywords internal
-model.matrix.from.ID <- function(M.ID){
+M.matrix.from.ID <- function(M.ID){
   m <- as.numeric(unlist(strsplit(M.ID, ","))) + 1
   J <- length(m)
   M <- matrix(0, J, max(m))
@@ -39,7 +39,7 @@ model.matrix.from.ID <- function(M.ID){
 }
 
 #' @keywords internal
-beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5){
+ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5){
   d <- length(beta)
   
   #parameters for hypergeometric U
@@ -51,28 +51,16 @@ beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5){
 }
 
 #' @keywords internal
-model.prior.crp.marginalized <- function(m, prior.alpha.a, prior.alpha.b, scale.by.max=F){
+ln.m.prior.marginalized <- function(m, prior.alpha.a, prior.alpha.b){
+  J <- length(m)
   J.k <- table(m, dnn=NULL)
   K <- length(J.k)
-  J <- length(m)
-  sum.lgamma.J.k <- sum(lgamma(J.k))
   
-  C <- sum.lgamma.J.k + prior.alpha.a*log(prior.alpha.b) - lgamma(prior.alpha.a)
+  density.crp.concentration <- Vectorize(function(x){
+    exp(lgamma(x) - lgamma(x+J) + (prior.alpha.a+K-1)*log(x) - prior.alpha.b*x)
+  })
   
-  density.crp.concentration <- Vectorize(function(x, log=F, scale.by = 0, trans.domain = F){
-    if (trans.domain){x <- x/(1-x)}
-    density <- lgamma(x) - lgamma(x+J) + (prior.alpha.a+K-1)*log(x) - prior.alpha.b*x - scale.by
-    ifelse(log, density, exp(density))
-  }, vectorize.args = "x")
-  
-  if (scale.by.max){
-    max.ln.density <- optimize(density.crp.concentration, c(0,1), log=T, trans.domain=T, maximum=T)$objective
-    integral <- integrate(density.crp.concentration, lower=0, upper=Inf, scale.by=max.ln.density)
-    log(integral$value) + C + max.ln.density
-  } else {
-    integral <- integrate(density.crp.concentration, lower=0, upper=Inf)
-    log(integral$value) + C
-  }
+  log(integrate(density.crp.concentration, lower=0, upper=Inf)$value) + sum(lgamma(J.k)) + prior.alpha.a*log(prior.alpha.b) - lgamma(prior.alpha.a)
 }
 
 #' Tree-based Inference of Multiallelism via Bayesian Regression
@@ -89,7 +77,7 @@ model.prior.crp.marginalized <- function(m, prior.alpha.a, prior.alpha.b, scale.
 #' @param W vector of replicates for each strain; one replicate per strain by default
 #' @param verbose optionally report function progress
 #'
-#' @return returns a list of input parameters, posterior samples, and the marginal likelihood
+#' @return a list of input parameters, posterior samples, and the marginal likelihood
 #' 
 #' @examples
 #' #example data
@@ -99,11 +87,11 @@ model.prior.crp.marginalized <- function(m, prior.alpha.a, prior.alpha.b, scale.
 #' #call TIMBR using CRP
 #' results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
 #' 
-#' #calculate the Bayes Factor
-#' results$ln.ml - results$ln.ml.null
+#' #report the Bayes Factor
+#' results$ln.BF
 #' 
 #' #report posterior probabilities for the top allelic series models
-#' head(rev(sort(table(results$post.M))))/results$samples
+#' head(results$p.M.given.y)
 #'
 #' @export
 TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=1000, Z=NULL, W=NULL, verbose=T){
@@ -254,12 +242,12 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
               
               #compute unique names for new string IDs and update hash table
               if (length(M.space.key.null) != 0){
-                M.space.key[M.space.key.null] <- sapply(M.space.vec[M.space.key.null], function(x){paste(model.rename(x), collapse=",")})
+                M.space.key[M.space.key.null] <- sapply(M.space.vec[M.space.key.null], function(x){paste(m.rename(x), collapse=",")})
                 list2env(setNames(M.space.key[M.space.key.null], M.space.name[M.space.key.null]), envir = prior.M.names)
               }
             } else {
               #compute unique names for possible settings of M
-              M.space.key <- lapply(M.space.vec, function(x){paste(model.rename(x), collapse=",")})
+              M.space.key <- lapply(M.space.vec, function(x){paste(m.rename(x), collapse=",")})
             }
             
             #use the unique names to look up priors for possible settings of M using hash table
@@ -274,7 +262,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
                 #compute mixture prior for new M
                 missing.weighted.input <- sapply(M.space.key[M.ln.prior.null], function(x){prior.M.input[[x]]})
                 missing.weighted.input <- sapply(missing.weighted.input, function(x){ifelse(is.null(x), -Inf, x + prior.M.weight.ln)})
-                missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], model.prior.crp.marginalized, prior.alpha.a=prior.alpha.a, prior.alpha.b=prior.alpha.b) + prior.M.weight.ln.1minus
+                missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], ln.m.prior.marginalized, prior.alpha.a=prior.alpha.a, prior.alpha.b=prior.alpha.b) + prior.M.weight.ln.1minus
                 missing.mixture <- sapply(1:length(M.ln.prior.null), function(x){matrixStats::logSumExp(c(missing.weighted.input[x], missing.weighted.crp[x]))})
                 
                 #update hash table with mixture prior for new M
@@ -399,11 +387,11 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     
     #report unique names for posterior samples of M
     if (update.M==F){
-      post.M <- rep(paste(model.rename(post.M[1,]), collapse=","), iterations)
+      post.M <- rep(paste(m.rename(post.M[1,]), collapse=","), iterations)
     } else if (hash.names){
       post.M <- apply(post.M, 1, function(x){prior.M.names[[paste(x, collapse=",")]]})
     } else {
-      post.M <- apply(post.M, 1, function(x){paste(model.rename(x), collapse=",")})
+      post.M <- apply(post.M, 1, function(x){paste(m.rename(x), collapse=",")})
     }
     
     #calculate marginal posterior diplotype probabilities
@@ -482,7 +470,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
   
   if (model.type=="fixed"){
     alpha <- NA
-    M <- model.matrix.from.ID(prior.M$M.IDs)
+    M <- M.matrix.from.ID(prior.M$M.IDs)
     C <- sumtozero.contrast(ncol(M))
     MC <- M%*%C
     AMC <- A%*%MC
@@ -503,7 +491,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
   } else if (model.type=="list" | model.type=="mixture"){
     prior.M.hash <- new.env(hash = T)
     alpha <- NA
-    M <- model.matrix.from.ID(prior.M$M.IDs[which.max(prior.M$probs)])
+    M <- M.matrix.from.ID(prior.M$M.IDs[which.max(prior.M$probs)])
     
     if (model.type=="list"){
       list2env(setNames(as.list(log(prior.M$probs)), prior.M$M.IDs), envir = prior.M.hash)
@@ -551,7 +539,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
   #if posterior probability of null model is relatively high, use this to calculate marginal likelihood
   if (post.M.null>=0.01){
     if (model.type=="crp"){
-      ln.ml <- ln.ml.null + model.prior.crp.marginalized(rep(0,J), prior.alpha.a, prior.alpha.b) - log(post.M.null)
+      ln.ml <- ln.ml.null + ln.m.prior.marginalized(rep(0,J), prior.alpha.a, prior.alpha.b) - log(post.M.null)
     } else if (model.type=="fixed"){
       ln.ml <- ln.ml.null
     } else if (model.type=="uniform"){
@@ -569,7 +557,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
       samples.ml <- samples
     } else {
       #set M to the MAP and update dependent quantities
-      M <- model.matrix.from.ID(names(post.M.ranked)[1])
+      M <- M.matrix.from.ID(names(post.M.ranked)[1])
       M.list <- apply(M, 1, match, x=1)
       C <- contrast.list[[ncol(M)]]
       MC <- M%*%C
@@ -617,7 +605,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     
     p1 <- sum(dnorm(y, Zdelta + D%*%AMCbeta, sqrt(sigma.sq*W^(-1)), log=T))
     p4 <- log(sigma.sq)
-    p5 <- beta.prior.marginalized(beta, sigma.sq, prior.v.b)
+    p5 <- ln.beta.prior.marginalized(beta, sigma.sq, prior.v.b)
     p7 <- matrixStats::logSumExp(dgamma(sigma.sq^(-1), 0.5*kappa.star, 0.5*psi.star, log=T))-log(samples.ml)
     p8 <- matrixStats::logSumExp(sapply(1:samples.ml, function(x){mvtnorm::dmvnorm(theta, m.star[[x]], V.star[[x]]*sigma.sq, log=T)}))-log(samples.ml)
     c <- -0.5*n*log(pi) + lgamma(0.5*kappa.star) - 0.5*sum(-log(W))
@@ -636,7 +624,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     }
     
     if (model.type=="crp"){
-      p3 <- model.prior.crp.marginalized(apply(M, 1, match, x=1), prior.alpha.a, prior.alpha.b)
+      p3 <- ln.m.prior.marginalized(apply(M, 1, match, x=1), prior.alpha.a, prior.alpha.b)
       p6 <- log(post.M.ranked[1])
     } else if (model.type=="fixed"){
       p3 <- 0
@@ -653,9 +641,200 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     ln.ml <- p1 + p2 + p3 + p4 + p5 - p6 - p7 - p8 - p9 - c
   }
   
-  #return posterior samples and marginal likelihood
-  output <- list("y"=y, "prior.D"=prior.D, "prior.M"=prior.M, "prior.v.b"=prior.v.b, "samples"=samples, "samples.ml"=samples.ml, "Z"=Z, "W"=W)
-  output <- c(output, results[names(results) != "post.hyperparameters"])
-  output$ln.ml <- ln.ml
-  output
+  #return posterior samples and marginal likelihood, calculate Bayes Factor and posterior density of M
+  output <- list(y=y, prior.D=prior.D, prior.M=prior.M, prior.v.b=prior.v.b, samples=samples, samples.ml=samples.ml, Z=Z, W=W)
+  output <- c(output, results[names(results) != "post.hyperparameters"], ln.ml=ln.ml, ln.BF=results$ln.ml-results$ln.ml.null, p.M.given.y=rev(sort(table(results$post.M)))/samples)
+}
+
+#' @keywords internal
+stirling.first.unsigned <- function(J){
+  s <- diag(1, J)
+  
+  if (J>1){
+    for (n in 2:J){
+      for (k in 1:n){
+        s[n,k] <- ifelse(k == 1, (n-1)*s[n-1, k], (n-1)*s[n-1, k] + s[n-1, k-1])
+      }
+    }
+  }
+  
+  s[J,]
+}
+
+#' @keywords internal
+ln.K.prior.crp.marginalized <- function(K, J, a, b){
+  s <- stirling.first.unsigned(J)
+  
+  density.K.concentration <- Vectorize(function(x){
+    exp(K*log(x) + lgamma(x) - lgamma(x + J) + dgamma(x, a, b, log=T))
+  })
+  
+  log(integrate(density.K.concentration, lower=0, upper=Inf)$value) + log(s[K]) - log(sum(s)) + lfactorial(J)
+}
+
+#' Calculate hyperparameters for Chinese restaurant process with gamma prior distribution on the concentration parameter
+#'
+#' Uses optimization to find hyperparameters that approximately yield the specified prior probabilities. May not work well when J is large or target prior probabilities are extreme.
+#'
+#' @param J number of customers (haplotypes) to be partitioned
+#' @param p.1.target prior probability of 1 partition
+#' @param p.J.target prior probability of J partitions
+#'
+#' @return vector of c(shape, rate) hyperparamters for the gamma distribution
+#' 
+#' @examples
+#' calc.concentration.prior(8, 0.05, 0.001)
+#'
+#' @export
+calc.concentration.prior <- function(J, p.1.target, p.J.target){
+  distance <- function(c){
+    p1 <- exp(ln.K.prior.crp.marginalized(1, J, c[1], c[2]))
+    pJ <- exp(ln.K.prior.crp.marginalized(J, J, c[1], c[2]))
+    
+    (1/2)*log((p1-p.1.target)^2 + (pJ-p.J.target)^2)
+  }
+  
+  optim(c(1,1), distance)$par
+}
+
+#' Ewens's sampling formula with gamma prior distribution on the concentration parameter
+#'
+#' Sample allelic series (paritions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Branch lengths for specified trees must be in coalescent units for appropriate inference.
+#'
+#' @param samples number of samples
+#' @param J number of leaves (haplotypes) to be partitioned, superceded by trees argument if specified
+#' @param prior.alpha.a shape hyperparameter for the gamma distribution
+#' @param prior.alpha.a rate hyperparameter for the gamma distribution
+#' @param trees optional user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package
+#' @param verbose optionally report function progress
+#'
+#' @return list of allelic series IDs and probabilities, formatted as prior.M argument for TIMBR function
+#' 
+#' @examples
+#' #specifying hyperparameters using calc.concentration.prior
+#' hyperparam <- calc.concentration.prior(8, 0.05, 0.001)
+#' 
+#' #running the sampler without user-specified trees; compare with target prior probabilities
+#' prior.M <- ewenss.sampler(100000, 8, hyperparam[1], hyperparam[2])
+#' prior.M$probs[prior.M$M.IDs=="0,0,0,0,0,0,0,0"]
+#' prior.M$probs[prior.M$M.IDs=="0,1,2,3,4,5,6,7"]
+#' 
+#' #running the sampler with a user-specified tree; compare with tree structure
+#' trees <- ape::rcoal(8, LETTERS[1:8])
+#' ape::plot.phylo(trees)
+#' prior.M <- ewenss.sampler(100000, 8, hyperparam[1], hyperparam[2], trees)
+#' head(prior.M$M.IDs)
+#' head(prior.M$probs)
+#'
+#' @export
+ewenss.sampler <- function(samples, J, prior.alpha.a, prior.alpha.b, trees=NULL, verbose=T){
+  sample.M.ID.from.tree <- function(iter, tree=NULL){
+    #sample coalescent tree if tree is unspecified
+    if (is.null(tree)){
+      tree <- ape::rcoal(J, LETTERS[1:J])
+    }
+    
+    #store basis matrix V
+    V <- matrix(0, J, 2*J-1)
+    rownames(V) <- tree$tip.label
+    nodepaths <- ape::nodepath(tree)
+    V[cbind(unlist(lapply(1:J, function(i) rep(i, length(nodepaths[[i]])))), unlist(nodepaths))] <- 1
+    colSums.V <- matrixStats::colSums2(V)
+    
+    #store branch lengths l and total branch length L
+    l <- c(tree$edge.length, 0)
+    l <- l[order(c(tree$edge[,2], Position(function(x){x==J}, colSums.V)))]
+    L <- sum(tree$edge.length)
+    
+    #reorder V and l
+    order.colSums.V <- order(colSums.V)
+    l <- l[order.colSums.V]
+    V <- V[sort(rownames(V)), order.colSums.V]
+    
+    #sample the mutation rates for the poisson process
+    alpha <- rgamma(iter, prior.alpha.a, prior.alpha.b)
+    lambda <- alpha*L/2
+    
+    #calculate null probabilities and sample non-zero numbers of mutations from truncated poisson
+    p.null <- dpois(0, lambda)
+    theta <- rpois(iter, lambda + log(1 - runif(iter)*(1 - exp(-lambda)))) + 1
+    
+    #probabilistically assign mutations to branches in proportion to branch lengths
+    B <- rbind(sapply(theta, rmultinom, n=1, prob=l[-length(l)])>0, T)
+    
+    #collect allelic series
+    m <- apply(B, 2, function(y){paste(m.rename(apply(V[,y], 1, Position, f=function(x){x==1})), collapse=",")})
+    
+    #return allelic series and null probabilities
+    list(m, p.null)
+  }
+  
+  ###################
+  #optionally disable progress reporting
+  if (verbose){
+    print("Iterating Ewens's sampling formula")
+  } else {
+    pbapply::pboptions(type="none")
+  }
+  
+  #iterate Ewens's sampling formula, optionally using specified trees
+  if (is.null(trees)){
+    #sample allelic series from random coalescent trees
+    results <- pbapply::pbreplicate(samples, sample.M.ID.from.tree(1))
+  } else {
+    #set class to multiphylo if single tree is specified
+    if (class(trees)=="phylo"){
+      trees <- c(trees)
+    }
+    
+    #override user-specified J
+    J <- trees[[1]]$Nnode + 1
+    
+    #calculate required number of samples for each specified tree
+    n.trees <- length(trees)
+    iter <- rep(floor(samples/n.trees), n.trees)
+    remainder <- samples%%n.trees
+    if (remainder != 0){
+      iter[1:remainder] <- iter[1:remainder] + 1
+    }
+    
+    #sample allelic series from specified trees
+    results <- pbapply::pbsapply(1:n.trees, function(x){sample.M.ID.from.tree(iter[x], trees[[x]])})
+  }
+  
+  df <- data.frame(M.IDs=unlist(results[1,]), wt=(1-unlist(results[2,]))/samples, stringsAsFactors=F)
+  df <- dplyr::count(df, M.IDs, wt = wt)
+  df <- dplyr::add_row(df, M.IDs=paste(rep(0,J),collapse=","), n=1-sum(df$n))
+  df <- dplyr::arrange(df, dplyr::desc(n))
+  
+  list(model.type="list", M.IDs=df$M.IDs, probs=df$n, hash.names=T)
+}
+
+#' Create an additive genetic design matrix
+#'
+#' Returns the additive design matrix for the number of specified haplotypes, in the specified format.
+#'
+#' @param J number of haplotypes
+#' @param type format of the diplotype matrix, currently only supports "happy"
+#'
+#' @return matrix of (half) haplotype dosages corresponding to each diplotype state
+#' 
+#' @examples
+#' additive.design(8, "happy")
+#'
+#' @export
+additive.design <- function(J, type){
+  A <- diag(J)
+  
+  if (type=="happy"){
+    for (j in 2:J){
+      for (k in 1:(j-1)){
+        A <- rbind(A, 0)
+        A[nrow(A),k] <- 0.5
+        A[nrow(A),j] <- 0.5
+      }
+    }    
+  }
+  
+  A
 }
