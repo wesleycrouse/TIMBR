@@ -537,7 +537,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
   }
   
   #if posterior probability of null model is relatively high, use this to calculate marginal likelihood
-  if (post.M.null>=0.01){
+  if (names(post.M.ranked[1])==paste(rep(0, J), collapse=",") | post.M.null>=0.01){
     if (model.type=="crp"){
       ln.ml <- ln.ml.null + ln.m.prior.marginalized(rep(0,J), prior.alpha.a, prior.alpha.b) - log(post.M.null)
     } else if (model.type=="fixed"){
@@ -582,7 +582,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     m.star <- lapply(nglm.hyperparameters, function(x){x$m.star})
     V.star <- lapply(nglm.hyperparameters, function(x){x$V.star})
     
-    theta <- rowMeans(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
+    theta <- matrixStats::rowMeans2(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
     
     if (p > 0){
       delta <- theta[1:p]
