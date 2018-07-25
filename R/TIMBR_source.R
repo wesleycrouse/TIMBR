@@ -1,7 +1,7 @@
 #' @keywords internal
 sumtozero.contrast <- function(k){
-  u <- 1/((k-1)^(1/2))
-  v <- (-1+(k^(1/2)))*((k-1)^(-3/2))
+  u <- 1/((k-1)^(0.5))
+  v <- (-1+(k^(0.5)))*((k-1)^(-1.5))
   w <- (k-2)*v+u
   
   C <- matrix(-v,k-1,k-1)
@@ -51,16 +51,16 @@ ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5)
 }
 
 #' @keywords internal
-ln.m.prior.marginalized <- function(m, prior.alpha.a, prior.alpha.b){
+ln.m.prior.marginalized <- function(m, prior.alpha.shape, prior.alpha.rate){
   J <- length(m)
   J.k <- table(m, dnn=NULL)
   K <- length(J.k)
   
   density.crp.concentration <- Vectorize(function(x){
-    exp(lgamma(x) - lgamma(x+J) + (prior.alpha.a+K-1)*log(x) - prior.alpha.b*x)
+    exp(lgamma(x) - lgamma(x+J) + (prior.alpha.shape+K-1)*log(x) - prior.alpha.rate*x)
   })
   
-  log(integrate(density.crp.concentration, lower=0, upper=Inf)$value) + sum(lgamma(J.k)) + prior.alpha.a*log(prior.alpha.b) - lgamma(prior.alpha.a)
+  log(integrate(density.crp.concentration, lower=0, upper=Inf)$value) + sum(lgamma(J.k)) + prior.alpha.shape*log(prior.alpha.rate) - lgamma(prior.alpha.shape)
 }
 
 #' Tree-based Inference of Multiallelism via Bayesian Regression
@@ -144,13 +144,13 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
       ln.zeta <- log(zeta)
       
       #sample alpha conditional on eta
-      z <- (prior.alpha.a+k-1)/(J*(prior.alpha.b-ln.zeta))
+      z <- (prior.alpha.shape+k-1)/(J*(prior.alpha.rate-ln.zeta))
       pi <- z/(1+z)
       
       if (rbinom(1,1,pi)==1){
-        alpha <- rgamma(1, prior.alpha.a+k, (prior.alpha.b-ln.zeta))
+        alpha <- rgamma(1, prior.alpha.shape+k, (prior.alpha.rate-ln.zeta))
       } else {
-        alpha <- rgamma(1, prior.alpha.a+k-1, (prior.alpha.b-ln.zeta))
+        alpha <- rgamma(1, prior.alpha.shape+k-1, (prior.alpha.rate-ln.zeta))
       }
       
       alpha
@@ -262,7 +262,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
                 #compute mixture prior for new M
                 missing.weighted.input <- sapply(M.space.key[M.ln.prior.null], function(x){prior.M.input[[x]]})
                 missing.weighted.input <- sapply(missing.weighted.input, function(x){ifelse(is.null(x), -Inf, x + prior.M.weight.ln)})
-                missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], ln.m.prior.marginalized, prior.alpha.a=prior.alpha.a, prior.alpha.b=prior.alpha.b) + prior.M.weight.ln.1minus
+                missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], ln.m.prior.marginalized, prior.alpha.shape=prior.alpha.shape, prior.alpha.rate=prior.alpha.rate) + prior.M.weight.ln.1minus
                 missing.mixture <- sapply(1:length(M.ln.prior.null), function(x){matrixStats::logSumExp(c(missing.weighted.input[x], missing.weighted.crp[x]))})
                 
                 #update hash table with mixture prior for new M
@@ -481,9 +481,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
   }
   
   if (model.type=="crp"){
-    prior.alpha.a <- prior.M$prior.alpha.a
-    prior.alpha.b <- prior.M$prior.alpha.b
-    alpha <- prior.alpha.a/prior.alpha.b
+    prior.alpha.shape <- prior.M$prior.alpha.shape
+    prior.alpha.rate <- prior.M$prior.alpha.rate
+    alpha <- prior.alpha.shape/prior.alpha.rate
     M <- matrix(1, J, 1)
   } else if (model.type=="uniform"){
     alpha <- NA
@@ -498,8 +498,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     } else {
       prior.M.input <- new.env(hash = T)
       list2env(setNames(as.list(log(prior.M$probs)), prior.M$M.IDs), envir = prior.M.input)
-      prior.alpha.a <- prior.M$prior.alpha.a
-      prior.alpha.b <- prior.M$prior.alpha.b
+      prior.alpha.shape <- prior.M$prior.alpha.shape
+      prior.alpha.rate <- prior.M$prior.alpha.rate
       prior.M.weight.ln <- log(prior.M$weight)
       prior.M.weight.ln.1minus <- log(1-prior.M$weight)
     }
@@ -539,7 +539,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
   #if posterior probability of null model is relatively high, use this to calculate marginal likelihood
   if (names(post.M.ranked[1])==paste(rep(0, J), collapse=",") | post.M.null>=0.01){
     if (model.type=="crp"){
-      ln.ml <- ln.ml.null + ln.m.prior.marginalized(rep(0,J), prior.alpha.a, prior.alpha.b) - log(post.M.null)
+      ln.ml <- ln.ml.null + ln.m.prior.marginalized(rep(0,J), prior.alpha.shape, prior.alpha.rate) - log(post.M.null)
     } else if (model.type=="fixed"){
       ln.ml <- ln.ml.null
     } else if (model.type=="uniform"){
@@ -624,7 +624,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     }
     
     if (model.type=="crp"){
-      p3 <- ln.m.prior.marginalized(apply(M, 1, match, x=1), prior.alpha.a, prior.alpha.b)
+      p3 <- ln.m.prior.marginalized(apply(M, 1, match, x=1), prior.alpha.shape, prior.alpha.rate)
       p6 <- log(post.M.ranked[1])
     } else if (model.type=="fixed"){
       p3 <- 0
@@ -697,41 +697,48 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
   optim(c(1,1), distance)$par
 }
 
-#' Ewens's sampling formula with gamma prior distribution on the concentration parameter
+#' Ewens's sampling formula with optional gamma prior distribution on the concentration parameter
 #'
-#' Sample allelic series (paritions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Branch lengths for specified trees must be in coalescent units for appropriate inference.
+#' Sample allelic series (paritions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Total branch length(s) of specified tree(s) is ignored by default and must be in coalescent units for appropriate inference.
 #'
 #' @param samples number of samples
-#' @param J number of leaves (haplotypes) to be partitioned, superceded by trees argument if specified
-#' @param prior.alpha.a shape hyperparameter for the gamma distribution
-#' @param prior.alpha.a rate hyperparameter for the gamma distribution
+#' @param J number of leaves (haplotypes) to be partitioned, ignored if trees argument is specified
+#' @param prior.alpha prior type (fixed/gamma) for the concentration parameter, see examples for format
 #' @param trees optional user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package
+#' @param ignore.total.length option to ignore total branch length if trees is specified; TRUE by default
 #' @param verbose optionally report function progress
 #'
 #' @return list of allelic series IDs and probabilities, formatted as prior.M argument for TIMBR function
 #' 
 #' @examples
-#' #specifying hyperparameters using calc.concentration.prior
+#' #specifying hyperparameters for gamma prior using calc.concentration.prior
 #' hyperparam <- calc.concentration.prior(8, 0.05, 0.001)
+#' prior.alpha <- list(type="gamma", shape=hyperparam[1], rate=hyperparam[2])
 #' 
 #' #running the sampler without user-specified trees; compare with target prior probabilities
-#' prior.M <- ewenss.sampler(100000, 8, hyperparam[1], hyperparam[2])
+#' prior.M <- ewenss.sampler(100000, 8, prior.alpha)
 #' prior.M$probs[prior.M$M.IDs=="0,0,0,0,0,0,0,0"]
 #' prior.M$probs[prior.M$M.IDs=="0,1,2,3,4,5,6,7"]
 #' 
-#' #running the sampler with a user-specified tree; compare with tree structure
+#' #running the sampler with a user-specified tree and fixed concentration parameter; compare with tree structure
 #' trees <- ape::rcoal(8, LETTERS[1:8])
 #' ape::plot.phylo(trees)
-#' prior.M <- ewenss.sampler(100000, 8, hyperparam[1], hyperparam[2], trees)
+#' prior.alpha <- list(type="fixed", alpha=1)
+#' prior.M <- ewenss.sampler(100000, 8, prior.alpha, trees)
 #' head(prior.M$M.IDs)
 #' head(prior.M$probs)
 #'
 #' @export
-ewenss.sampler <- function(samples, J, prior.alpha.a, prior.alpha.b, trees=NULL, verbose=T){
+ewenss.sampler <- function(samples, J, prior.alpha, trees=NULL, ignore.total.length=T, verbose=T){
   sample.M.ID.from.tree <- function(iter, tree=NULL){
-    #sample coalescent tree if tree is unspecified
-    if (is.null(tree)){
-      tree <- ape::rcoal(J, LETTERS[1:J])
+    #sample coalescent tree if tree is unspecified; optionally sample total branch lengths
+    if (!is.null(tree) & ignore.total.length){
+      L <- replicate(iter, sum(sapply(2:J, function(x){x*rexp(1, x*(x-1)/2)})))
+    } else {
+      if (is.null(tree)){
+        tree <- ape::rcoal(J, LETTERS[1:J])
+      }
+      L <- sum(tree$edge.length)
     }
     
     #store basis matrix V
@@ -744,15 +751,16 @@ ewenss.sampler <- function(samples, J, prior.alpha.a, prior.alpha.b, trees=NULL,
     #store branch lengths l and total branch length L
     l <- c(tree$edge.length, 0)
     l <- l[order(c(tree$edge[,2], Position(function(x){x==J}, colSums.V)))]
-    L <- sum(tree$edge.length)
     
     #reorder V and l
     order.colSums.V <- order(colSums.V)
     l <- l[order.colSums.V]
     V <- V[sort(rownames(V)), order.colSums.V]
     
-    #sample the mutation rates for the poisson process
-    alpha <- rgamma(iter, prior.alpha.a, prior.alpha.b)
+    #optionally sample the mutation rates for the poisson process
+    if (prior.alpha$type=="gamma"){
+      alpha <- rgamma(iter, prior.alpha.shape, prior.alpha.rate)
+    }
     lambda <- alpha*L/2
     
     #calculate null probabilities and sample non-zero numbers of mutations from truncated poisson
@@ -770,17 +778,23 @@ ewenss.sampler <- function(samples, J, prior.alpha.a, prior.alpha.b, trees=NULL,
   }
   
   ###################
-  #optionally disable progress reporting
+  #optionally disable reporting
   if (verbose){
     print("Iterating Ewens's sampling formula")
-  } else {
-    pbapply::pboptions(type="none")
+  }
+  
+  #specify alpha or prior hyperparameters
+  if (prior.alpha$type=="gamma"){
+    prior.alpha.shape <- prior.alpha$shape
+    prior.alpha.rate <- prior.alpha$rate
+  } else if (prior.alpha$type=="fixed"){
+    alpha <- prior.alpha$alpha
   }
   
   #iterate Ewens's sampling formula, optionally using specified trees
   if (is.null(trees)){
     #sample allelic series from random coalescent trees
-    results <- pbapply::pbreplicate(samples, sample.M.ID.from.tree(1))
+    results <- replicate(samples, sample.M.ID.from.tree(1))
   } else {
     #set class to multiphylo if single tree is specified
     if (class(trees)=="phylo"){
@@ -799,7 +813,7 @@ ewenss.sampler <- function(samples, J, prior.alpha.a, prior.alpha.b, trees=NULL,
     }
     
     #sample allelic series from specified trees
-    results <- pbapply::pbsapply(1:n.trees, function(x){sample.M.ID.from.tree(iter[x], trees[[x]])})
+    results <- sapply(1:n.trees, function(x){sample.M.ID.from.tree(iter[x], trees[[x]])})
   }
   
   df <- data.frame(M.IDs=unlist(results[1,]), wt=(1-unlist(results[2,]))/samples, stringsAsFactors=F)

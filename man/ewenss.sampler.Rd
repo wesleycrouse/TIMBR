@@ -2,43 +2,45 @@
 % Please edit documentation in R/TIMBR_source.R
 \name{ewenss.sampler}
 \alias{ewenss.sampler}
-\title{Ewens's sampling formula with gamma prior distribution on the concentration parameter}
+\title{Ewens's sampling formula with optional gamma prior distribution on the concentration parameter}
 \usage{
-ewenss.sampler(samples, J, prior.alpha.a, prior.alpha.b, trees = NULL,
-  verbose = T)
+ewenss.sampler(samples, J, prior.alpha, trees = NULL,
+  ignore.total.length = T, verbose = T)
 }
 \arguments{
 \item{samples}{number of samples}
 
-\item{J}{number of leaves (haplotypes) to be partitioned, superceded by trees argument if specified}
+\item{J}{number of leaves (haplotypes) to be partitioned, ignored if trees argument is specified}
 
-\item{prior.alpha.a}{shape hyperparameter for the gamma distribution}
+\item{prior.alpha}{prior type (fixed/gamma) for the concentration parameter, see examples for format}
 
 \item{trees}{optional user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package}
 
-\item{verbose}{optionally report function progress}
+\item{ignore.total.length}{option to ignore total branch length if trees is specified; TRUE by default}
 
-\item{prior.alpha.a}{rate hyperparameter for the gamma distribution}
+\item{verbose}{optionally report function progress}
 }
 \value{
 list of allelic series IDs and probabilities, formatted as prior.M argument for TIMBR function
 }
 \description{
-Sample allelic series (paritions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Branch lengths for specified trees must be in coalescent units for appropriate inference.
+Sample allelic series (paritions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Total branch length(s) of specified tree(s) is ignored by default and must be in coalescent units for appropriate inference.
 }
 \examples{
-#specifying hyperparameters using calc.concentration.prior
+#specifying hyperparameters for gamma prior using calc.concentration.prior
 hyperparam <- calc.concentration.prior(8, 0.05, 0.001)
+prior.alpha <- list(type="gamma", shape=hyperparam[1], rate=hyperparam[2])
 
 #running the sampler without user-specified trees; compare with target prior probabilities
-prior.M <- ewenss.sampler(100000, 8, hyperparam[1], hyperparam[2])
+prior.M <- ewenss.sampler(100000, 8, prior.alpha)
 prior.M$probs[prior.M$M.IDs=="0,0,0,0,0,0,0,0"]
 prior.M$probs[prior.M$M.IDs=="0,1,2,3,4,5,6,7"]
 
-#running the sampler with a user-specified tree; compare with tree structure
+#running the sampler with a user-specified tree and fixed concentration parameter; compare with tree structure
 trees <- ape::rcoal(8, LETTERS[1:8])
 ape::plot.phylo(trees)
-prior.M <- ewenss.sampler(100000, 8, hyperparam[1], hyperparam[2], trees)
+prior.alpha <- list(type="fixed", alpha=1)
+prior.M <- ewenss.sampler(100000, 8, prior.alpha, trees)
 head(prior.M$M.IDs)
 head(prior.M$probs)
 
