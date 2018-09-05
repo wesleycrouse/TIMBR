@@ -224,7 +224,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
           if (model.type=="crp"){
             #analytic form for exchangeable prior
             colsums.M <- matrixStats::colSums2(M)
-            M.ln.prior <- log(c(colsums.M, alpha)) - log(sum(colsums.M + alpha))
+            M.ln.prior <- log(c(colsums.M, alpha))
           } else if (model.type=="uniform"){
             #constant non-exchangeable prior
             M.ln.prior <- rep(0, k+1)
