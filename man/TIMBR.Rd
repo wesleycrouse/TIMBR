@@ -46,4 +46,7 @@ results$ln.BF
 #report posterior probabilities for the top allelic series models
 head(results$p.M.given.y)
 
+#report mean posterior haplotype effects
+colMeans(results$post.hap.effect)
+
 }

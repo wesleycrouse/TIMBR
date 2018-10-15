@@ -92,6 +92,9 @@ ln.m.prior.marginalized <- function(m, prior.alpha.shape, prior.alpha.rate){
 #' 
 #' #report posterior probabilities for the top allelic series models
 #' head(results$p.M.given.y)
+#' 
+#' #report mean posterior haplotype effects
+#' colMeans(results$post.hap.effect)
 #'
 #' @export
 TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10000, Z=NULL, W=NULL, verbose=T){
@@ -636,7 +639,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     ln.ml <- p1 + p2 + p3 + p4 + p5 - p6 - p7 - p8 - p9 - c
   }
   
-  #return posterior samples and marginal likelihood, calculate Bayes Factor and posterior density of M
+  #return posterior samples, marginal densities, and marginal likelihood
   output <- list(y=y, prior.D=prior.D, prior.M=prior.M, prior.v.b=prior.v.b, samples=samples, samples.ml=samples.ml, Z=Z, W=W)
   output <- c(output, results[names(results) != "post.hyperparameters"], ln.ml=ln.ml, ln.BF=ln.ml-ln.ml.null, p.M.given.y=list(post.M.ranked), 
               post.v=list(results$post.phi.sq/(results$post.phi.sq + 1)), post.hap.effect=list(results$post.MCbeta+results$post.delta[,1]))
