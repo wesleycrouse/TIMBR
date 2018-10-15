@@ -1,12 +1,12 @@
 #' @keywords internal
-sumtozero.contrast <- function(K){
-  u <- 1/((K-1)^(0.5))
-  v <- (-1+(K^(0.5)))*((K-1)^(-1.5))
-  w <- (K-2)*v+u
+sumtozero.contrast <- function(k){
+  u <- 1/((k-1)^(0.5))
+  v <- (-1+(k^(0.5)))*((k-1)^(-1.5))
+  w <- (k-2)*v+u
   
-  C <- matrix(-v,K-1,K-1)
-  diag(C) <- rep(w,K-1)
-  rbind(C, rep(-u,K-1))
+  C <- matrix(-v,k-1,k-1)
+  diag(C) <- rep(w,k-1)
+  rbind(C, rep(-u,k-1))
 }
 
 #' @keywords internal
@@ -147,13 +147,13 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       ln.zeta <- log(zeta)
       
       #sample alpha conditional on eta
-      z <- (prior.alpha.shape+K-1)/(J*(prior.alpha.rate-ln.zeta))
+      z <- (prior.alpha.shape+k-1)/(J*(prior.alpha.rate-ln.zeta))
       pi <- z/(1+z)
       
       if (rbinom(1,1,pi)==1){
-        alpha <- rgamma(1, prior.alpha.shape+K, (prior.alpha.rate-ln.zeta))
+        alpha <- rgamma(1, prior.alpha.shape+k, (prior.alpha.rate-ln.zeta))
       } else {
-        alpha <- rgamma(1, prior.alpha.shape+K-1, (prior.alpha.rate-ln.zeta))
+        alpha <- rgamma(1, prior.alpha.shape+k-1, (prior.alpha.rate-ln.zeta))
       }
       
       alpha
@@ -177,8 +177,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     post.phi.sq <- rep(NA, iterations)
     post.sigma.sq <- rep(NA, iterations)
     post.alpha <- rep(NA, iterations)
-    post.K <- rep(NA, iterations)
     post.hyperparameters <- vector("list", iterations)
+    post.K <- rep(NA, iterations)
     
     #iterate sampler
     for (i in 1:iterations){
@@ -215,12 +215,12 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
           }
           
           M.list[j] <- NA
-          K <- ncol(M)
-          C <- contrast.list[[K]]
+          k <- ncol(M)
+          C <- contrast.list[[k]]
           
           #calculate t-distributed likelihood for all possible assignments of current row of M
-          MC.space <- lapply(1:K,function(x){M[j,x]<-1; M%*%C})
-          MC.space[[K+1]] <- cbind(M,c(rep(0,j-1),1,rep(0,J-j)))%*%contrast.list[[K+1]]
+          MC.space <- lapply(1:k,function(x){M[j,x]<-1; M%*%C})
+          MC.space[[k+1]] <- cbind(M,c(rep(0,j-1),1,rep(0,J-j)))%*%contrast.list[[k+1]]
           M.posteriors <- lapply(MC.space, nglm.hyperparameters.ml)
           M.ln.ml <- unlist(lapply(M.posteriors, function(x){x$partial.ln.ml}))
           
@@ -231,11 +231,11 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
             M.ln.prior <- log(c(colsums.M, alpha))
           } else if (model.type=="uniform"){
             #constant non-exchangeable prior
-            M.ln.prior <- rep(0, K+1)
+            M.ln.prior <- rep(0, k+1)
           } else if (model.type=="list" | model.type=="mixture"){
             #arbitrary non-exchangeable prior or a mixture of that prior with the CRP
             #requires looking up priors via hash table using a unique naming scheme for M
-            M.space.vec <- lapply(1:(K+1), function(x){M.list[j] <- x; M.list})
+            M.space.vec <- lapply(1:(k+1), function(x){M.list[j] <- x; M.list})
             
             #compute unique names for possible values of M
             if (hash.names){
@@ -289,13 +289,13 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
           if (M.indicator > ncol(M)){
             M <- cbind(M,0)
             M[j, M.indicator] <- 1
-            K <- K + 1
+            k <- k + 1
           } else {
             M[j, M.indicator] <- 1
           }
         }
         #update quantities that depend on M
-        C <- contrast.list[[K]]
+        C <- contrast.list[[k]]
         MC <- M%*%C
         AMC <- A%*%MC
         d <- ncol(C)
@@ -380,9 +380,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       post.phi.sq[i] <- phi.sq
       post.sigma.sq[i] <- sigma.sq
       post.alpha[i] <- alpha
-      post.K[i] <- K
       post.hyperparameters[[i]] <- M.posteriors[1:4]
       p.D.given.y <- p.D.given.y + D
+      post.K[i] <- k
     }
     
     #report unique names for posterior samples of M
@@ -404,7 +404,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     phi.sq <<- phi.sq
     
     #return posterior samples and hyperparameters
-    posterior.results <- list("post.M"=post.M, "post.MCbeta"=post.MCbeta, "post.delta"=post.delta, "post.sigma.sq"=post.sigma.sq, "post.phi.sq"=post.phi.sq, "p.D.given.y"=p.D.given.y, "post.hyperparameters"=post.hyperparameters, "post.K"=post.K)
+    posterior.results <- list("post.M"=post.M, "post.MCbeta"=post.MCbeta, "post.delta"=post.delta, "post.sigma.sq"=post.sigma.sq, "post.phi.sq"=post.phi.sq, "p.D.given.y"=p.D.given.y, "post.hyperparameters"=post.hyperparameters)
     
     if (update.alpha){
       posterior.results$post.alpha <-  post.alpha
