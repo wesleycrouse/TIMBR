@@ -4,8 +4,8 @@
 \alias{TIMBR}
 \title{Tree-based Inference of Multiallelism via Bayesian Regression}
 \usage{
-TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 1000,
-  samples.ml = 1000, Z = NULL, W = NULL, verbose = T)
+TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 10000,
+  samples.ml = 10000, Z = NULL, W = NULL, verbose = T)
 }
 \arguments{
 \item{y}{vector of phenotype values for each strain}
@@ -20,14 +20,14 @@ TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 1000,
 
 \item{samples.ml}{number of samples to draw from the condtiional posterior (if necessary)}
 
-\item{Z}{design matrix for covariates; first column must be a vector of ones, which is the default}
+\item{Z}{design matrix for intercept and covariates; first column must be a vector of ones, which is the default}
 
 \item{W}{vector of replicates for each strain; one replicate per strain by default}
 
 \item{verbose}{optionally report function progress}
 }
 \value{
-a list of input parameters, posterior samples, and the marginal likelihood
+a list of input parameters, posterior samples and marginal probabilities, and the marginal likelihood
 }
 \description{
 Posterior samples and Bayes Factors using the TIMBR model

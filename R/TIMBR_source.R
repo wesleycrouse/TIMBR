@@ -73,11 +73,11 @@ ln.m.prior.marginalized <- function(m, prior.alpha.shape, prior.alpha.rate){
 #' @param prior.v.b shape parameter for the beta prime prior distribution on the variance component
 #' @param samples number of samples to draw from the full posterior
 #' @param samples.ml number of samples to draw from the condtiional posterior (if necessary)
-#' @param Z design matrix for covariates; first column must be a vector of ones, which is the default
+#' @param Z design matrix for intercept and covariates; first column must be a vector of ones, which is the default
 #' @param W vector of replicates for each strain; one replicate per strain by default
 #' @param verbose optionally report function progress
 #'
-#' @return a list of input parameters, posterior samples, and the marginal likelihood
+#' @return a list of input parameters, posterior samples and marginal probabilities, and the marginal likelihood
 #' 
 #' @examples
 #' #example data
@@ -94,7 +94,7 @@ ln.m.prior.marginalized <- function(m, prior.alpha.shape, prior.alpha.rate){
 #' head(results$p.M.given.y)
 #'
 #' @export
-TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=1000, Z=NULL, W=NULL, verbose=T){
+TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10000, Z=NULL, W=NULL, verbose=T){
   
   TIMBR.sampler <- function(iterations, calc.null.ml=T, update.M=T, update.alpha=T){
     
@@ -168,7 +168,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     
     #create objects to store results
     post.M <- matrix(NA, iterations, J)
-    post.D <- matrix(0, n, ncol.P)
+    p.D.given.y <- matrix(0, n, ncol.P)
     post.MCbeta <- matrix(NA, iterations, J)
     post.delta <- matrix(NA, iterations, p)
     post.phi.sq <- rep(NA, iterations)
@@ -379,9 +379,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
       post.hyperparameters[[i]] <- M.posteriors[1:4]
       
       if (!fixed.diplo){
-        post.D <- post.D + D.prob
+        p.D.given.y <- p.D.given.y + D.prob
       } else {
-        post.D <- post.D + D
+        p.D.given.y <- p.D.given.y + D
       }
     }
     
@@ -395,7 +395,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     }
     
     #calculate marginal posterior diplotype probabilities
-    post.D <- post.D/iterations
+    p.D.given.y <- p.D.given.y/iterations
     
     #update variable state for potential reduced run of the sampler
     D <<- D
@@ -404,7 +404,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     phi.sq <<- phi.sq
     
     #return posterior samples and hyperparameters
-    posterior.results <- list("post.D"=post.D, "post.M"=post.M, "post.MCbeta"=post.MCbeta, "post.delta"=post.delta, "post.sigma.sq"=post.sigma.sq, "post.phi.sq"=post.phi.sq, "post.hyperparameters"=post.hyperparameters)
+    posterior.results <- list("p.D.given.y"=p.D.given.y, "post.M"=post.M, "post.MCbeta"=post.MCbeta, "post.delta"=post.delta, "post.sigma.sq"=post.sigma.sq, "post.phi.sq"=post.phi.sq, "post.hyperparameters"=post.hyperparameters)
     
     if (update.alpha){
       posterior.results$post.alpha <-  post.alpha
@@ -553,7 +553,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
       #these are given when the model.type is fixed
       nglm.hyperparameters <- results$post.hyperparameters
       post.phi.sq <- results$post.phi.sq
-      post.D <- results$post.D
+      p.D.given.y <- results$p.D.given.y
       samples.ml <- samples
     } else {
       #set M to the MAP and update dependent quantities
@@ -573,7 +573,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
       reduced.results <- TIMBR.sampler(samples.ml, update.M=F, calc.null.ml=F, update.alpha=F)
       nglm.hyperparameters <- reduced.results$post.hyperparameters
       post.phi.sq <- reduced.results$post.phi.sq
-      post.D <- reduced.results$post.D
+      p.D.given.y <- reduced.results$p.D.given.y
     }
     
     #set remaining variables to values with high posterior probability given M fixed at MAP
@@ -596,7 +596,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=1000, samples.ml=100
     
     if (!fixed.diplo){
       D <- matrix(0, n, ncol.P)
-      D[cbind(1:n, apply(post.D, 1, which.max))] <- 1
+      D[cbind(1:n, apply(p.D.given.y, 1, which.max))] <- 1
     }
     
     #calculate partial marginal likelihood at point of high posterior probability
@@ -712,7 +712,7 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
 #' 
 #' @examples
 #' #specifying hyperparameters for gamma prior using calc.concentration.prior
-#' hyperparam <- calc.concentration.prior(8, 0.05, 0.001)
+#' hyperparam <- calc.concentration.prior(8, 0.05, 0.01)
 #' prior.alpha <- list(type="gamma", shape=hyperparam[1], rate=hyperparam[2])
 #' 
 #' #running the sampler without user-specified trees; compare with target prior probabilities

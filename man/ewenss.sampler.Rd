@@ -28,7 +28,7 @@ Sample allelic series (paritions) from Ewen's sampling formula, optionally infor
 }
 \examples{
 #specifying hyperparameters for gamma prior using calc.concentration.prior
-hyperparam <- calc.concentration.prior(8, 0.05, 0.001)
+hyperparam <- calc.concentration.prior(8, 0.05, 0.01)
 prior.alpha <- list(type="gamma", shape=hyperparam[1], rate=hyperparam[2])
 
 #running the sampler without user-specified trees; compare with target prior probabilities
