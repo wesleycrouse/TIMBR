@@ -404,7 +404,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     phi.sq <<- phi.sq
     
     #return posterior samples and hyperparameters
-    posterior.results <- list("post.M"=post.M, "post.MCbeta"=post.MCbeta, "post.delta"=post.delta, "post.sigma.sq"=post.sigma.sq, "post.phi.sq"=post.phi.sq, "p.D.given.y"=p.D.given.y, "post.hyperparameters"=post.hyperparameters)
+    posterior.results <- list("post.M"=post.M, "post.MCbeta"=post.MCbeta, "post.delta"=post.delta, "post.sigma.sq"=post.sigma.sq, "post.phi.sq"=post.phi.sq, "p.D.given.y"=p.D.given.y, "post.hyperparameters"=post.hyperparameters, "post.K"=post.K)
     
     if (update.alpha){
       posterior.results$post.alpha <-  post.alpha
