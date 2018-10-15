@@ -559,14 +559,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       #set M to the MAP and update dependent quantities
       M <- M.matrix.from.ID(names(post.M.ranked)[1])
       M.list <- apply(M, 1, match, x=1)
-      
-      
       K <- ncol(M)
       C <- contrast.list[[K]]
-      
-      
-      
-      #C <- contrast.list[[ncol(M)]]
       MC <- M%*%C
       AMC <- A%*%MC
       d <- ncol(C)
