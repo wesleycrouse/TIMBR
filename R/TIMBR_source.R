@@ -646,7 +646,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   output <- list(y=y, prior.D=prior.D, prior.M=prior.M, prior.v.b=prior.v.b, samples=samples, samples.ml=samples.ml, Z=Z, W=W)
   output <- c(output, results[names(results) != "post.hyperparameters"], ln.ml=ln.ml, ln.BF=ln.ml-ln.ml.null, p.M.given.y=list(post.M.ranked), 
               post.v=list(results$post.phi.sq/(results$post.phi.sq + 1)), post.hap.effect=list(results$post.MCbeta+results$post.delta[,1]),
-              p.K.given.y=table(results$post.K)/samples)
+              p.K.given.y=list(table(results$post.K)/samples))
   output <- output[order(names(output))]
 }
 
