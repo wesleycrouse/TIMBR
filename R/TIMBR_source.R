@@ -638,7 +638,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   
   #return posterior samples and marginal likelihood, calculate Bayes Factor and posterior density of M
   output <- list(y=y, prior.D=prior.D, prior.M=prior.M, prior.v.b=prior.v.b, samples=samples, samples.ml=samples.ml, Z=Z, W=W)
-  output <- c(output, results[names(results) != "post.hyperparameters"], ln.ml=ln.ml, ln.BF=ln.ml-ln.ml.null, p.M.given.y=list(post.M.ranked), post.v=results$post.phi.sq/(results$post.phi.sq + 1))
+  output <- c(output, results[names(results) != "post.hyperparameters"], ln.ml=ln.ml, ln.BF=ln.ml-ln.ml.null, p.M.given.y=list(post.M.ranked), post.v=list(results$post.phi.sq/(results$post.phi.sq + 1)))
 }
 
 #' @keywords internal
