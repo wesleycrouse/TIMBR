@@ -27,7 +27,7 @@ TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 10000,
 \item{verbose}{optionally report function progress}
 }
 \value{
-a list of input parameters, posterior samples and marginal probabilities, and the marginal likelihood
+a list of input parameters, posterior samples and marginal densities, and the marginal likelihood
 }
 \description{
 Posterior samples and Bayes Factors using the TIMBR model
