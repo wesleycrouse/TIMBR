@@ -471,7 +471,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   if (model.type=="fixed"){
     alpha <- NA
     M <- M.matrix.from.ID(prior.M$M.IDs)
-    C <- sumtozero.contrast(ncol(M))
+    K <- ncol(M)
+    C <- sumtozero.contrast(K)
     MC <- M%*%C
     AMC <- A%*%MC
     d <- ncol(C)
