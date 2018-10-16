@@ -858,9 +858,9 @@ additive.design <- function(J, type){
   A
 }
 
-#' Plot Haplotype Effects
+#' Plot Haplotype Effects from TIMBR Output
 #'
-#' Plot posterior haplotype effect densities from TIMBR output
+#' Plots posterior haplotype effect densities from TIMBR output
 #'
 #' @param TIMBR.output result object from the TIMBR function
 #' @param file.name filename for the plot, saved in working directory
@@ -879,7 +879,7 @@ additive.design <- function(J, type){
 #' plot.hap.effects(results)
 #'
 #' @export
-plot.hap.effects <- function(TIMBR.output, file.name="plot.png"){
+TIMBR.plot <- function(TIMBR.output, file.name="plot.png"){
   densities <- apply(TIMBR.output$post.hap.effect, 2, density)
   J <- length(densities)
   
