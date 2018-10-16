@@ -4,15 +4,22 @@
 \alias{TIMBR.plot}
 \title{Plot Haplotype Effects from TIMBR Output}
 \usage{
-TIMBR.plot(TIMBR.output, file.name = "plot.png")
+TIMBR.plot(TIMBR.output, colors = NULL, file.path = NULL,
+  plot.width = 960, plot.height = 480)
 }
 \arguments{
-\item{TIMBR.output}{result object from the TIMBR function}
+\item{TIMBR.output}{results object from the TIMBR function}
 
-\item{file.name}{filename for the plot, saved in working directory}
+\item{colors}{an optional vector of colors for each haplotype density}
+
+\item{file.path}{an optional file path for saving the plot as a PNG}
+
+\item{plot.width}{PNG plot width}
+
+\item{plot.height}{PNG plot height}
 }
 \value{
-a PNG plot of posterior haplotype effect densities
+plot of the posterior haplotype effect densities
 }
 \description{
 Plots posterior haplotype effect densities from TIMBR output
@@ -26,6 +33,6 @@ str(mcv.data)
 results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
 
 #plot haplotype effects
-plot.hap.effects(results)
+TIMBR.plot(results)
 
 }

@@ -862,10 +862,13 @@ additive.design <- function(J, type){
 #'
 #' Plots posterior haplotype effect densities from TIMBR output
 #'
-#' @param TIMBR.output result object from the TIMBR function
-#' @param file.name filename for the plot, saved in working directory
+#' @param TIMBR.output results object from the TIMBR function
+#' @param colors an optional vector of colors for each haplotype density
+#' @param file.path an optional file path for saving the plot as a PNG
+#' @param plot.width PNG plot width
+#' @param plot.height PNG plot height
 #'
-#' @return a PNG plot of posterior haplotype effect densities
+#' @return plot of the posterior haplotype effect densities
 #' 
 #' @examples
 #' #example data
@@ -876,10 +879,10 @@ additive.design <- function(J, type){
 #' results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
 #' 
 #' #plot haplotype effects
-#' plot.hap.effects(results)
+#' TIMBR.plot(results)
 #'
 #' @export
-TIMBR.plot <- function(TIMBR.output, file.name="plot.png"){
+TIMBR.plot <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960, plot.height=480){
   densities <- apply(TIMBR.output$post.hap.effect, 2, density)
   J <- length(densities)
   
@@ -889,16 +892,20 @@ TIMBR.plot <- function(TIMBR.output, file.name="plot.png"){
   
   par(cex.axis=1.1, cex.lab=1.1, cex.main=1.2, cex.sub=1.1)
   
-  png(file.name, height=400, width=1000)
+  if (!is.null(file.path)){
+    png(file.path, height=plot.height, width=plot.width)
+  }
   
   plot(1, type="n", xlab="Phenotype", ylab="Haplotype", xlim=c(min.x, max.x), ylim=c(0, scale.y*J), axes=FALSE)
   Axis(side=2, at=scale.y*(0:(J-1)+0.5), labels=LETTERS[J:1], las=1, tick=F)
   Axis(side=1)
   
-  if (J==8){
-    colors <- c("#9000E0","#F00000","#00A000","#00A0F0","#1010F0","#F08080","#808080","#F0F000")
-  } else {
-    colors <- rep("#4D4D4D", J)
+  if (is.null(colors)){
+    if (J==8){
+      colors <- c("#9000E0","#F00000","#00A000","#00A0F0","#1010F0","#F08080","#808080","#F0F000")
+    } else {
+      colors <- rep("#4D4D4D", J)
+    }
   }
   
   for (i in 1:J){
@@ -906,5 +913,7 @@ TIMBR.plot <- function(TIMBR.output, file.name="plot.png"){
     polygon(densities[[(J+1)-i]], col=colors[i], lwd=1)
   }
   
-  dev.off()
+  if (!is.null(file.path)){
+    dev.off()
+  }
 }
