@@ -47,6 +47,6 @@ results$ln.BF
 head(results$p.M.given.y)
 
 #report mean posterior haplotype effects
-colMeans(results$post.hap.effect)
+colMeans(results$post.hap.effects)
 
 }

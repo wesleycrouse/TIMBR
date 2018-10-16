@@ -94,7 +94,7 @@ ln.m.prior.marginalized <- function(m, prior.alpha.shape, prior.alpha.rate){
 #' head(results$p.M.given.y)
 #' 
 #' #report mean posterior haplotype effects
-#' colMeans(results$post.hap.effect)
+#' colMeans(results$post.hap.effects)
 #'
 #' @export
 TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10000, Z=NULL, W=NULL, verbose=T){
@@ -645,7 +645,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   #return posterior samples, marginal densities, and marginal likelihood
   output <- list(y=y, prior.D=prior.D, prior.M=prior.M, prior.v.b=prior.v.b, samples=samples, samples.ml=samples.ml, Z=Z, W=W)
   output <- c(output, results[names(results) != "post.hyperparameters"], ln.ml=ln.ml, ln.BF=ln.ml-ln.ml.null, p.M.given.y=list(post.M.ranked), 
-              post.v=list(results$post.phi.sq/(results$post.phi.sq + 1)), post.hap.effect=list(results$post.MCbeta+results$post.delta[,1]),
+              post.v=list(results$post.phi.sq/(results$post.phi.sq + 1)), post.hap.effects=list(results$post.MCbeta+results$post.delta[,1]),
               p.K.given.y=list(table(results$post.K)/samples))
   output <- output[order(names(output))]
 }
@@ -855,4 +855,55 @@ additive.design <- function(J, type){
   }
   
   A
+}
+
+#' Plot Haplotype Effects
+#'
+#' Plot posterior haplotype effect densities from TIMBR output
+#'
+#' @param TIMBR.output result object from the TIMBR function
+#' @param file.name filename for the plot, saved in working directory
+#'
+#' @return a PNG plot of posterior haplotype effect densities
+#' 
+#' @examples
+#' #example data
+#' data(mcv.data)
+#' str(mcv.data)
+#' 
+#' #call TIMBR using CRP
+#' results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
+#' 
+#' #plot haplotype effects
+#' plot.hap.effects(results)
+#'
+#' @export
+plot.hap.effects <- function(TIMBR.output, file.name="plot.png"){
+  densities <- apply(TIMBR.output$post.hap.effect, 2, density)
+  J <- length(densities)
+  
+  scale.y <- max(sapply(densities, function(x){max(x$y)})) * 1.2
+  min.x <- min(sapply(densities, function(x){min(x$x)}))
+  max.x <- max(sapply(densities, function(x){max(x$x)}))
+  
+  par(cex.axis=1.1, cex.lab=1.1, cex.main=1.2, cex.sub=1.1)
+  
+  png(file.name, height=400, width=1000)
+  
+  plot(1, type="n", xlab="Phenotype", ylab="Haplotype", xlim=c(min.x, max.x), ylim=c(0, scale.y*J), axes=FALSE)
+  Axis(side=2, at=scale.y*(0:(J-1)+0.5), labels=LETTERS[J:1], las=1, tick=F)
+  Axis(side=1)
+  
+  if (J==8){
+    colors <- c("#9000E0","#F00000","#00A000","#00A0F0","#1010F0","#F08080","#808080","#F0F000")
+  } else {
+    colors <- rep("#4D4D4D", J)
+  }
+  
+  for (i in 1:J){
+    densities[[(J+1)-i]]$y <- densities[[(J+1)-i]]$y + (i-1)*scale.y
+    polygon(densities[[(J+1)-i]], col=colors[i], lwd=1)
+  }
+  
+  dev.off()
 }
