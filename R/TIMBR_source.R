@@ -944,7 +944,7 @@ TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F
   if (is.null(index)){
     J <- ncol(results$prior.D$A)
     
-    partitions.all <- setparts(J)
+    partitions.all <- partitions::setparts(J)
     colnames(partitions.all) <- apply(partitions.all, 2, function(x){paste(m.rename(x), collapse=",")})
     
     partitions.biallelic <- partitions.all[,apply(partitions.all, 2, max)==2] 
