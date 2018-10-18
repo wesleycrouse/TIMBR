@@ -947,9 +947,7 @@ TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F
     
     partitions.all <- partitions::setparts(J)
     colnames(partitions.all) <- apply(partitions.all, 2, function(x){paste(m.rename(x), collapse=",")})
-    
-    #partitions.biallelic <- partitions.all[,apply(partitions.all, 2, max)==2] 
-    #M0 <- apply(partitions.biallelic, 2, function(x){M <- matrix(0, length(x), 2); M[cbind(1:8, x)] <- 1; MMt <- tcrossprod(M); MMt[upper.tri(MMt)]})
+
     M1 <- apply(partitions.all, 2, function(x){M <- matrix(0, length(x), max(x)); M[cbind(1:8, x)] <- 1; MMt <- tcrossprod(M); MMt[upper.tri(MMt)]})
     M0 <- M1[,apply(partitions.all, 2, max)==2]
     
