@@ -917,3 +917,49 @@ TIMBR.plot <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960
     dev.off()
   }
 }
+
+#' Calculate Biallelic Consistency Scores from TIMBR Output
+#'
+#' Calculates consistency scores for all possible biallelic contrasts from TIMBR output
+#'
+#' @param TIMBR.output results object from the TIMBR function
+#' @param index a pre-calculated index, as supplied by return.index=T
+#' @param return.index an optional file path for saving the plot as a PN
+#'
+#' @return a named vector of consistency scores, or optionally a list that also contains the index
+#' 
+#' @examples
+#' #example data
+#' data(mcv.data)
+#' str(mcv.data)
+#' 
+#' #call TIMBR using CRP
+#' results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
+#' 
+#' #calculate biallelic consistency
+#' TIMBR.biallelic.consistency(results)
+#'
+#' @export
+TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F){
+  if (is.null(index)){
+    J <- ncol(results$prior.D$A)
+    
+    partitions.all <- setparts(J)
+    colnames(partitions.all) <- apply(partitions.all, 2, function(x){paste(m.rename(x), collapse=",")})
+    
+    partitions.biallelic <- partitions.all[,apply(partitions.all, 2, max)==2] 
+    
+    M0 <- apply(partitions.biallelic, 2, function(x){M <- matrix(0, length(x), 2); M[cbind(1:8, x)] <- 1; MMt <- tcrossprod(M); MMt[upper.tri(MMt)]})
+    M1 <- apply(partitions.all, 2, function(x){M <- matrix(0, length(x), max(x)); M[cbind(1:8, x)] <- 1; MMt <- tcrossprod(M); MMt[upper.tri(MMt)]})
+    
+    index <- apply(M1, 2, function(y){apply(M0, 2, function(x){match(-1, x-y, 0)==0})})
+  }
+  
+  biallelic.consistency <- (index[,names(results$p.M.given.y)]%*%results$p.M.given.y)[,]
+  
+  if (return.index){
+    list(biallelic.consistency=biallelic.consistency, index=index)
+  } else {
+    biallelic.consistency
+  }
+}
