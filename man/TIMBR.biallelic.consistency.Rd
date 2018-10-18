@@ -4,14 +4,17 @@
 \alias{TIMBR.biallelic.consistency}
 \title{Calculate Biallelic Consistency Scores from TIMBR Output}
 \usage{
-TIMBR.biallelic.consistency(TIMBR.output, index = NULL, return.index = F)
+TIMBR.biallelic.consistency(TIMBR.output, index = NULL, return.index = F,
+  sort = T)
 }
 \arguments{
 \item{TIMBR.output}{results object from the TIMBR function}
 
 \item{index}{a pre-calculated index, as supplied by return.index=T}
 
-\item{return.index}{an optional file path for saving the plot as a PN}
+\item{return.index}{optionally return the index used to compute the scores}
+
+\item{sort}{optionally disable sorting of the consistency scores}
 }
 \value{
 a named vector of consistency scores, or optionally a list that also contains the index
