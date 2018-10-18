@@ -924,7 +924,8 @@ TIMBR.plot <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960
 #'
 #' @param TIMBR.output results object from the TIMBR function
 #' @param index a pre-calculated index, as supplied by return.index=T
-#' @param return.index an optional file path for saving the plot as a PN
+#' @param return.index optionally return the index used to compute the scores
+#' @param sort optionally disable sorting of the consistency scores
 #'
 #' @return a named vector of consistency scores, or optionally a list that also contains the index
 #' 
@@ -940,7 +941,7 @@ TIMBR.plot <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960
 #' TIMBR.biallelic.consistency(results)
 #'
 #' @export
-TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F){
+TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F, sort=T){
   if (is.null(index)){
     J <- ncol(results$prior.D$A)
     
@@ -956,6 +957,10 @@ TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F
   }
   
   biallelic.consistency <- (index[,names(results$p.M.given.y)]%*%results$p.M.given.y)[,]
+  
+  if (sort){
+    biallelic.consistency <- rev(biallelic.consistency[order(biallelic.consistency)])
+  }
   
   if (return.index){
     list(biallelic.consistency=biallelic.consistency, index=index)
