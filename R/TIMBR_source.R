@@ -943,7 +943,7 @@ TIMBR.plot <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960
 #' @export
 TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F, sort=T){
   if (is.null(index)){
-    J <- ncol(results$prior.D$A)
+    J <- ncol(TIMBR.output$prior.D$A)
     
     partitions.all <- partitions::setparts(J)
     colnames(partitions.all) <- apply(partitions.all, 2, function(x){paste(m.rename(x), collapse=",")})
@@ -954,7 +954,7 @@ TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F
     index <- apply(M1, 2, function(y){apply(M0, 2, function(x){match(-1, x-y, 0)==0})})
   }
   
-  biallelic.consistency <- (index[,names(results$p.M.given.y)]%*%results$p.M.given.y)[,]
+  biallelic.consistency <- (index[,names(TIMBR.output$p.M.given.y)]%*%TIMBR.output$p.M.given.y)[,]
   
   if (sort){
     biallelic.consistency <- rev(biallelic.consistency[order(biallelic.consistency)])
