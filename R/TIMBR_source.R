@@ -30,17 +30,17 @@ ln.bell <- function(J){
 }
 
 #' @keywords internal
+m.from.M.ID <- function(M.ID){
+  as.numeric(unlist(strsplit(M.ID, ","))) + 1
+}
+
+#' @keywords internal
 M.matrix.from.ID <- function(M.ID){
   m <- m.from.M.ID(M.ID)
   J <- length(m)
   M <- matrix(0, J, max(m))
   M[cbind(1:J, m)] <- 1
   M
-}
-
-#' @keywords internal
-m.from.M.ID <- function(M.ID){
-  as.numeric(unlist(strsplit(M.ID, ","))) + 1
 }
 
 #' @keywords internal
@@ -948,15 +948,14 @@ TIMBR.plot <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960
 #' @export
 TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F, sort=T){
   if (is.null(index)){
-    J <- ncol(TIMBR.output$prior.D$A)
+    #J <- ncol(TIMBR.output$prior.D$A)
+    #partitions.all <- partitions::setparts(J)
+    #colnames(partitions.all) <- apply(partitions.all, 2, function(x){paste(m.rename(x), collapse=",")})
+    #M1 <- apply(partitions.all, 2, function(x){M <- matrix(0, length(x), max(x)); M[cbind(1:8, x)] <- 1; MMt <- tcrossprod(M); MMt[upper.tri(MMt)]})
+    #M0 <- M1[,apply(partitions.all, 2, max)==2]
+    #index <- apply(M1, 2, function(y){apply(M0, 2, function(x){match(-1, x-y, 0)==0})})
     
-    partitions.all <- partitions::setparts(J)
-    colnames(partitions.all) <- apply(partitions.all, 2, function(x){paste(m.rename(x), collapse=",")})
-
-    M1 <- apply(partitions.all, 2, function(x){M <- matrix(0, length(x), max(x)); M[cbind(1:8, x)] <- 1; MMt <- tcrossprod(M); MMt[upper.tri(MMt)]})
-    M0 <- M1[,apply(partitions.all, 2, max)==2]
-    
-    index <- apply(M1, 2, function(y){apply(M0, 2, function(x){match(-1, x-y, 0)==0})})
+    consistency.index(ncol(TIMBR.output$prior.D$A))
   }
   
   biallelic.consistency <- (index[,names(TIMBR.output$p.M.given.y)]%*%TIMBR.output$p.M.given.y)[,]
@@ -969,5 +968,22 @@ TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F
     list(biallelic.consistency=biallelic.consistency, index=index)
   } else {
     biallelic.consistency
+  }
+}
+
+#' @keywords internal
+consistency.index <- function(J, return.setparts=F){
+  partitions.all <- partitions::setparts(J)
+  colnames(partitions.all) <- apply(partitions.all, 2, function(x){paste(TIMBR:::m.rename(x), collapse=",")})
+  
+  M1 <- apply(partitions.all, 2, function(x){M <- matrix(0, length(x), max(x)); M[cbind(1:8, x)] <- 1; MMt <- tcrossprod(M); MMt[upper.tri(MMt)]})
+  M0 <- M1[,apply(partitions.all, 2, max)==2]
+  
+  index <- apply(M1, 2, function(y){apply(M0, 2, function(x){match(-1, x-y, 0)==0})})
+  
+  if (return.setparts){
+    list(index=index, setparts=partitions.all)
+  } else {
+    index
   }
 }
