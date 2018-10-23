@@ -39,6 +39,11 @@ M.matrix.from.ID <- function(M.ID){
 }
 
 #' @keywords internal
+m.from.M.ID <- function(M.ID){
+  as.numeric(unlist(strsplit(M.ID, ",")))
+}
+
+#' @keywords internal
 ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5){
   d <- length(beta)
   
