@@ -31,7 +31,7 @@ ln.bell <- function(J){
 
 #' @keywords internal
 M.matrix.from.ID <- function(M.ID){
-  m <- as.numeric(unlist(strsplit(M.ID, ","))) + 1
+  m <- m.from.M.ID
   J <- length(m)
   M <- matrix(0, J, max(m))
   M[cbind(1:J, m)] <- 1
@@ -40,7 +40,7 @@ M.matrix.from.ID <- function(M.ID){
 
 #' @keywords internal
 m.from.M.ID <- function(M.ID){
-  as.numeric(unlist(strsplit(M.ID, ",")))
+  as.numeric(unlist(strsplit(M.ID, ","))) + 1
 }
 
 #' @keywords internal
