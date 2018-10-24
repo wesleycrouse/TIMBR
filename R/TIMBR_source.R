@@ -955,7 +955,7 @@ TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F
     #M0 <- M1[,apply(partitions.all, 2, max)==2]
     #index <- apply(M1, 2, function(y){apply(M0, 2, function(x){match(-1, x-y, 0)==0})})
     
-    consistency.index(ncol(TIMBR.output$prior.D$A))
+    index <- consistency.index(ncol(TIMBR.output$prior.D$A))
   }
   
   biallelic.consistency <- (index[,names(TIMBR.output$p.M.given.y)]%*%TIMBR.output$p.M.given.y)[,]
