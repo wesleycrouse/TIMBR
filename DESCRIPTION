@@ -8,4 +8,5 @@ Maintainer: Wesley Crouse <wesleycrouse@gmail.com>
 Description: Posterior samples and Bayes Factors using the TIMBR model
 Imports: ape, dplyr, gsl, matrixStats, mvtnorm, numbers, partitions, pbapply, VGAM
 License: GPL-3
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
+Encoding: UTF-8

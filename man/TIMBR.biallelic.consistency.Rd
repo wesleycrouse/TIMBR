@@ -4,8 +4,8 @@
 \alias{TIMBR.biallelic.consistency}
 \title{Calculate Biallelic Consistency Scores from TIMBR Output}
 \usage{
-TIMBR.biallelic.consistency(TIMBR.output, index = NULL, return.index = F,
-  sort = T)
+TIMBR.biallelic.consistency(TIMBR.output, index = NULL,
+  return.index = F, sort = T)
 }
 \arguments{
 \item{TIMBR.output}{results object from the TIMBR function}
