@@ -725,8 +725,8 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
 #' 
 #' #running the sampler without user-specified trees; compare with target prior probabilities
 #' prior.M <- ewenss.sampler(100000, 8, prior.alpha)
-#' prior.M$probs[prior.M$M.IDs=="0,0,0,0,0,0,0,0"]
-#' prior.M$probs[prior.M$M.IDs=="0,1,2,3,4,5,6,7"]
+#' exp(prior.M$ln.probs[prior.M$M.IDs=="0,0,0,0,0,0,0,0"])
+#' exp(prior.M$ln.probs[prior.M$M.IDs=="0,1,2,3,4,5,6,7"])
 #' 
 #' #running the sampler with a user-specified tree and fixed concentration parameter; compare with tree structure
 #' trees <- ape::rcoal(8, LETTERS[1:8])
@@ -734,7 +734,7 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
 #' prior.alpha <- list(type="fixed", alpha=1)
 #' prior.M <- ewenss.sampler(100000, trees, prior.alpha)
 #' head(prior.M$M.IDs)
-#' head(prior.M$probs)
+#' head(exp(prior.M$ln.probs))
 #'
 #' @export
 ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
