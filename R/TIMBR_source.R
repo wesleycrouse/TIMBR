@@ -785,8 +785,9 @@ ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
   }
   
   #iterate Ewens's sampling formula using specified trees
-  if (is.null(trees)){
+  if (is.numeric(trees)){
     #sample allelic series from random coalescent trees
+    J <- trees
     results <- replicate(samples, sample.M.ID.from.tree(1))
   } else {
     #set class to multiphylo if single tree is specified
