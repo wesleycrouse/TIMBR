@@ -693,7 +693,7 @@ ln.K.prior.crp.marginalized <- function(K, J, a, b){
 #' @return vector of c(shape, rate) hyperparamters for the gamma distribution
 #' 
 #' @examples
-#' calc.concentration.prior(8, 0.05, 0.001)
+#' calc.concentration.prior(8, 0.05, 0.01)
 #'
 #' @export
 calc.concentration.prior <- function(J, p.1.target, p.J.target){
@@ -712,13 +712,11 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
 #' Sample allelic series (paritions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Total branch length(s) of specified tree(s) is ignored by default and must be in coalescent units for appropriate inference.
 #'
 #' @param samples number of samples
-#' @param J number of leaves (haplotypes) to be partitioned, ignored if trees argument is specified
+#' @param trees either user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
 #' @param prior.alpha prior type (fixed/gamma) for the concentration parameter, see examples for format
-#' @param trees optional user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package
-#' @param ignore.total.length option to ignore total branch length if trees is specified; TRUE by default
 #' @param verbose optionally report function progress
 #'
-#' @return list of allelic series IDs and probabilities, formatted as prior.M argument for TIMBR function
+#' @return list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
 #' 
 #' @examples
 #' #specifying hyperparameters for gamma prior using calc.concentration.prior
@@ -734,38 +732,23 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
 #' trees <- ape::rcoal(8, LETTERS[1:8])
 #' ape::plot.phylo(trees)
 #' prior.alpha <- list(type="fixed", alpha=1)
-#' prior.M <- ewenss.sampler(100000, 8, prior.alpha, trees)
+#' prior.M <- ewenss.sampler(100000, trees, prior.alpha)
 #' head(prior.M$M.IDs)
 #' head(prior.M$probs)
 #'
 #' @export
-ewenss.sampler <- function(samples, J, prior.alpha, trees=NULL, ignore.total.length=T, verbose=T){
+ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
   sample.M.ID.from.tree <- function(iter, tree=NULL){
-    #sample coalescent tree if tree is unspecified; optionally sample total branch lengths
-    if (!is.null(tree) & ignore.total.length){
-      L <- replicate(iter, sum(sapply(2:J, function(x){x*rexp(1, x*(x-1)/2)})))
-    } else {
-      if (is.null(tree)){
-        tree <- ape::rcoal(J, LETTERS[1:J])
-      }
-      L <- sum(tree$edge.length)
+    #sample coalescent tree if tree is unspecified
+    if (is.null(tree)){
+      tree <- ape::rcoal(J, LETTERS[1:J])
     }
     
-    #store basis matrix V
-    V <- matrix(0, J, 2*J-1)
-    rownames(V) <- tree$tip.label
-    nodepaths <- ape::nodepath(tree)
-    V[cbind(unlist(lapply(1:J, function(i) rep(i, length(nodepaths[[i]])))), unlist(nodepaths))] <- 1
-    colSums.V <- matrixStats::colSums2(V)
-    
-    #store branch lengths l and total branch length L
-    l <- c(tree$edge.length, 0)
-    l <- l[order(c(tree$edge[,2], Position(function(x){x==J}, colSums.V)))]
-    
-    #reorder V and l
-    order.colSums.V <- order(colSums.V)
-    l <- l[order.colSums.V]
-    V <- V[sort(rownames(V)), order.colSums.V]
+    #decompose tree into basis V and lengths l
+    tree.decomposed <- decompose.tree(tree)
+    V <- tree.decomposed$V
+    l <- tree.decomposed$l
+    L <- sum(l)
     
     #optionally sample the mutation rates for the poisson process
     if (prior.alpha$type=="gamma"){
@@ -801,7 +784,7 @@ ewenss.sampler <- function(samples, J, prior.alpha, trees=NULL, ignore.total.len
     alpha <- prior.alpha$alpha
   }
   
-  #iterate Ewens's sampling formula, optionally using specified trees
+  #iterate Ewens's sampling formula using specified trees
   if (is.null(trees)){
     #sample allelic series from random coalescent trees
     results <- replicate(samples, sample.M.ID.from.tree(1))
@@ -811,7 +794,7 @@ ewenss.sampler <- function(samples, J, prior.alpha, trees=NULL, ignore.total.len
       trees <- c(trees)
     }
     
-    #override user-specified J
+    #store number of leaves on the tree
     J <- trees[[1]]$Nnode + 1
     
     #calculate required number of samples for each specified tree
@@ -923,47 +906,6 @@ TIMBR.plot <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960
   }
 }
 
-#' Calculate Biallelic Consistency Scores from TIMBR Output
-#'
-#' Calculates consistency scores for all possible biallelic contrasts from TIMBR output
-#'
-#' @param TIMBR.output results object from the TIMBR function
-#' @param index a pre-calculated index, as supplied by return.index=T
-#' @param return.index optionally return the index used to compute the scores
-#' @param sort optionally disable sorting of the consistency scores
-#'
-#' @return a named vector of consistency scores, or optionally a list that also contains the index
-#' 
-#' @examples
-#' #example data
-#' data(mcv.data)
-#' str(mcv.data)
-#' 
-#' #call TIMBR using CRP
-#' results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
-#' 
-#' #calculate biallelic consistency
-#' TIMBR.biallelic.consistency(results)
-#'
-#' @export
-TIMBR.biallelic.consistency <- function(TIMBR.output, index=NULL, return.index=F, sort=T){
-  if (is.null(index)){
-    index <- consistency.index(ncol(TIMBR.output$prior.D$A))
-  }
-  
-  biallelic.consistency <- (index[,names(TIMBR.output$p.M.given.y)]%*%TIMBR.output$p.M.given.y)[,]
-  
-  if (sort){
-    biallelic.consistency <- rev(biallelic.consistency[order(biallelic.consistency)])
-  }
-  
-  if (return.index){
-    list(biallelic.consistency=biallelic.consistency, index=index)
-  } else {
-    biallelic.consistency
-  }
-}
-
 #' @keywords internal
 consistency.index <- function(J, return.setparts=F){
   partitions.all <- partitions::setparts(J)
@@ -1031,4 +973,28 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
     
     rev(sort(TIMBR.output$ln.BF + apply(index.by.ln.prior, 1, function(x){matrixStats::logSumExp(x + log(TIMBR.output$p.M.given.y) - ln.prior)})))
   }
+}
+
+#' @keywords internal
+decompose.tree <- function(tree){
+  J <- length(tree$tip.label)
+  
+  #store basis matrix V
+  V <- matrix(0, J, 2*J-1)
+  rownames(V) <- tree$tip.label
+  nodepaths <- ape::nodepath(tree)
+  V[cbind(unlist(lapply(1:J, function(i) rep(i, length(nodepaths[[i]])))), unlist(nodepaths))] <- 1
+  colSums.V <- matrixStats::colSums2(V)
+  
+  #store branch lengths l
+  l <- c(tree$edge.length, 0)
+  l <- l[order(c(tree$edge[,2], Position(function(x){x==J}, colSums.V)))]
+  
+  #reorder V and l
+  order.colSums.V <- order(colSums.V)
+  l <- l[order.colSums.V]
+  V <- V[sort(rownames(V)), order.colSums.V]
+  
+  #return V and l
+  list(V=V, l=l)
 }

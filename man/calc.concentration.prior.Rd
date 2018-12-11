@@ -20,6 +20,6 @@ vector of c(shape, rate) hyperparamters for the gamma distribution
 Uses optimization to find hyperparameters that approximately yield the specified prior probabilities. May not work well when J is large or target prior probabilities are extreme.
 }
 \examples{
-calc.concentration.prior(8, 0.05, 0.001)
+calc.concentration.prior(8, 0.05, 0.01)
 
 }

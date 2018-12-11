@@ -4,24 +4,19 @@
 \alias{ewenss.sampler}
 \title{Ewens's sampling formula with optional gamma prior distribution on the concentration parameter}
 \usage{
-ewenss.sampler(samples, J, prior.alpha, trees = NULL,
-  ignore.total.length = T, verbose = T)
+ewenss.sampler(samples, trees, prior.alpha, verbose = T)
 }
 \arguments{
 \item{samples}{number of samples}
 
-\item{J}{number of leaves (haplotypes) to be partitioned, ignored if trees argument is specified}
+\item{trees}{either user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned}
 
 \item{prior.alpha}{prior type (fixed/gamma) for the concentration parameter, see examples for format}
-
-\item{trees}{optional user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package}
-
-\item{ignore.total.length}{option to ignore total branch length if trees is specified; TRUE by default}
 
 \item{verbose}{optionally report function progress}
 }
 \value{
-list of allelic series IDs and probabilities, formatted as prior.M argument for TIMBR function
+list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
 }
 \description{
 Sample allelic series (paritions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Total branch length(s) of specified tree(s) is ignored by default and must be in coalescent units for appropriate inference.
@@ -40,7 +35,7 @@ prior.M$probs[prior.M$M.IDs=="0,1,2,3,4,5,6,7"]
 trees <- ape::rcoal(8, LETTERS[1:8])
 ape::plot.phylo(trees)
 prior.alpha <- list(type="fixed", alpha=1)
-prior.M <- ewenss.sampler(100000, 8, prior.alpha, trees)
+prior.M <- ewenss.sampler(100000, trees, prior.alpha)
 head(prior.M$M.IDs)
 head(prior.M$probs)
 
