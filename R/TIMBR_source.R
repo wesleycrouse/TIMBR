@@ -815,7 +815,7 @@ ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
   df <- dplyr::add_row(df, M.IDs=paste(rep(0,J),collapse=","), n=1-sum(df$n))
   df <- dplyr::arrange(df, dplyr::desc(n))
   
-  list(model.type="list", M.IDs=df$M.IDs, probs=log(df$n), hash.names=T)
+  list(model.type="list", M.IDs=df$M.IDs, probs=df$n, hash.names=T)
 }
 
 #' Create an additive genetic design matrix
