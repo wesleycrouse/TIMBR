@@ -497,13 +497,13 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   } else if (model.type=="list" | model.type=="mixture"){
     prior.M.hash <- new.env(hash = T)
     alpha <- NA
-    M <- M.matrix.from.ID(prior.M$M.IDs[which.max(prior.M$probs)])
+    M <- M.matrix.from.ID(prior.M$M.IDs[which.max(prior.M$ln.probs)])
     
     if (model.type=="list"){
-      list2env(setNames(as.list(log(prior.M$probs)), prior.M$M.IDs), envir = prior.M.hash)
+      list2env(setNames(as.list(log(prior.M$ln.probs)), prior.M$M.IDs), envir = prior.M.hash)
     } else {
       prior.M.input <- new.env(hash = T)
-      list2env(setNames(as.list(log(prior.M$probs)), prior.M$M.IDs), envir = prior.M.input)
+      list2env(setNames(as.list(log(prior.M$ln.probs)), prior.M$M.IDs), envir = prior.M.input)
       prior.alpha.shape <- prior.M$prior.alpha.shape
       prior.alpha.rate <- prior.M$prior.alpha.rate
       prior.M.weight.ln <- log(prior.M$weight)
