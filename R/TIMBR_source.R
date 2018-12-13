@@ -707,12 +707,12 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
   optim(c(1,1), distance)$par
 }
 
-#' Ewens's sampling formula with optional gamma prior distribution on the concentration parameter
+#' Ewens's sampling formula with optional gamma prior on the concentration parameter
 #'
-#' Sample allelic series (paritions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Total branch length(s) of specified tree(s) is ignored by default and must be in coalescent units for appropriate inference.
+#' Sample allelic series (paritions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Trees must be in coalescent units for appropriate inference.
 #'
 #' @param samples number of samples
-#' @param trees either user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
+#' @param trees either a user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
 #' @param prior.alpha prior type (fixed/gamma) for the concentration parameter, see examples for format
 #' @param verbose optionally report function progress
 #'
@@ -729,10 +729,10 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
 #' exp(prior.M$ln.probs[prior.M$M.IDs=="0,1,2,3,4,5,6,7"])
 #' 
 #' #running the sampler with a user-specified tree and fixed concentration parameter; compare with tree structure
-#' trees <- ape::rcoal(8, LETTERS[1:8])
-#' ape::plot.phylo(trees)
+#' tree <- ape::rcoal(8, LETTERS[1:8])
+#' ape::plot.phylo(tree)
 #' prior.alpha <- list(type="fixed", alpha=1)
-#' prior.M <- ewenss.sampler(100000, trees, prior.alpha)
+#' prior.M <- ewenss.sampler(100000, tree, prior.alpha)
 #' head(prior.M$M.IDs)
 #' head(exp(prior.M$ln.probs))
 #'
@@ -998,4 +998,127 @@ decompose.tree <- function(tree){
   
   #return V and l
   list(V=V, l=l)
+}
+
+#' @keywords internal
+dcrp <- function(m, prior.alpha, log.p=T){
+  J <- length(m)
+  J.k <- table(m, dnn=NULL)
+  K <- length(J.k)
+  
+  if (prior.alpha$type=="gamma"){
+    shape <- prior.alpha$shape
+    rate <- prior.alpha$rate
+    
+    density.crp.concentration <- Vectorize(function(x){
+      exp(lgamma(x) - lgamma(x+J) + (shape+K-1)*log(x) - rate*x)
+    })
+    
+    ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf)$value) + sum(lgamma(J.k)) + shape*log(rate) - lgamma(shape)
+    
+  } else if (prior.alpha$type=="fixed"){
+    alpha <- prior.alpha$alpha
+    
+    ln.p <- lgamma(alpha) - lgamma(alpha+J) + K*log(alpha) + sum(lgamma(J.k))
+  }
+  
+  ifelse(log.p, ln.p, exp(ln.p))
+}
+
+#' Exact calculation of Ewens's sampling formula with optional gamma prior on the concentration parameter
+#'
+#' Calculate exact probabilties for allelic series (paritions) under Ewen's sampling formula, optionally informed by a user-specified tree. Trees must be in coalescent units for appropriate inference.
+#'
+#' @param trees either a user-specified tree of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
+#' @param prior.alpha prior type (fixed/gamma) for the concentration parameter, see examples for format
+#'
+#' @return list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
+#' 
+#' @examples
+#' #specifying hyperparameters for gamma prior using calc.concentration.prior
+#' hyperparam <- calc.concentration.prior(8, 0.05, 0.01)
+#' prior.alpha <- list(type="gamma", shape=hyperparam[1], rate=hyperparam[2])
+#' 
+#' #running the sampler without user-specified trees; compare with target prior probabilities
+#' prior.M <- ewenss.exact(8, prior.alpha)
+#' exp(prior.M$ln.probs[prior.M$M.IDs=="0,0,0,0,0,0,0,0"])
+#' exp(prior.M$ln.probs[prior.M$M.IDs=="0,1,2,3,4,5,6,7"])
+#' 
+#' #running the sampler with a user-specified tree and fixed concentration parameter; compare with tree structure
+#' tree <- ape::rcoal(8, LETTERS[1:8])
+#' ape::plot.phylo(tree)
+#' prior.alpha <- list(type="fixed", alpha=1)
+#' prior.M <- ewenss.exact(tree, prior.alpha)
+#' head(prior.M$M.IDs)
+#' head(exp(prior.M$ln.probs))
+#'
+#' @export
+ewenss.exact <- function(tree, prior.alpha){
+  ln.prob.and.M.ID.from.B.ID <- function(B.ID){
+    #function to calculate probability of branch mutation configuration
+    B <- as.logical(intToBits(B.ID-1)[1:(ncol(V)-1)])
+    M.ID <- paste(TIMBR:::m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1})), collapse = ",")
+    
+    if (prior.alpha$type=="fixed"){
+      ln.prob <- sum(p[cbind(1:nrow(p), as.integer(B)+1)])
+    } else if (prior.alpha$type=="gamma"){
+      combinations <- as.matrix(expand.grid(replicate(sum(B), 0:1, simplify=FALSE)))
+      
+      if (B.ID==1){
+        sign <- 1
+      } else {
+        sign <- (-1)^(apply(combinations, 1, sum)%%2)
+      }
+      
+      params <- matrix(TRUE, 2^sum(B), length(l))
+      params[, which(B)] <- as.logical(combinations)
+      half.l <- 0.5*l
+      b.prime <- prior.alpha.rate + apply(params, 1, function(x){sum(half.l[x])})
+      
+      ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
+    }
+    
+    c(M.ID, ln.prob)
+  }
+  
+  if (is.numeric(tree)){
+    #enumerate all set partitions by partition class
+    partitions.all <- apply(partitions::parts(tree), 2, partitions::setparts)
+    
+    #calculate probabilities for each partition class
+    ln.probs <- unlist(sapply(1:length(partitions.all), function(x){rep(dcrp(partitions.all[[x]][,1], prior.alpha), ncol(partitions.all[[x]]))}))
+    
+    #normalize total to correct for approximation
+    if (prior.alpha$type=="gamma"){
+      ln.probs <- ln.probs - matrixStats::logSumExp(ln.probs)
+    }
+    
+    #generate partition names and prior.M object
+    M.IDs <- apply(do.call(cbind, partitions.all), 2, function(x){paste(TIMBR:::m.rename(x), collapse=",")})
+    list(model.type="list", M.IDs=M.IDs, ln.probs=ln.probs, hash.names=T)
+  } else {
+    #decompose tree into basis V and lengths l
+    tree.decomposed <- TIMBR:::decompose.tree(tree)
+    V <- tree.decomposed$V
+    l <- tree.decomposed$l
+    
+    if (prior.alpha$type=="fixed"){
+      #store mutation probabilities for each branch
+      lambda <- prior.alpha$alpha*l[-length(l)]/2
+      p <- dpois(0, lambda, log=T)
+      p <- cbind(p, log(exp(-p)-1)+p)
+      colnames(p) <- NULL
+    } else if (prior.alpha$type=="gamma"){
+      prior.alpha.shape <- prior.alpha$shape
+      prior.alpha.rate <- prior.alpha$rate
+    }
+    
+    #calculate probabilties for all combinations of branch mutations and collapse by M.ID
+    df <- do.call(rbind, lapply(1:(2^(ncol(V)-1)), ln.prob.and.M.ID.from.B.ID))
+    df <- data.frame(M.IDs=df[,1], ln.probs=as.numeric(df[,2]), stringsAsFactors=F)
+    df <- dplyr::group_by(df, M.IDs) %>% dplyr::summarize(ln.probs = matrixStats::logSumExp(ln.probs))
+    df <- dplyr::arrange(df, dplyr::desc(ln.probs))
+    
+    list(model.type="list", M.IDs=df$M.IDs, ln.probs=df$ln.probs, hash.names=T)
+  }
 }
