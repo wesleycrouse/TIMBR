@@ -1118,7 +1118,7 @@ ewenss.exact <- function(tree, prior.alpha){
     #calculate probabilties for all combinations of branch mutations and collapse by M.ID
     df <- do.call(rbind, lapply(1:(2^(ncol(V)-1)), ln.prob.and.M.ID.from.B.ID))
     df <- data.frame(M.IDs=df[,1], ln.probs=as.numeric(df[,2]), stringsAsFactors=F)
-    df <- dplyr::group_by(df, M.IDs) %>% dplyr::summarize(ln.probs = matrixStats::logSumExp(ln.probs))
+    df <- dplyr::group_by(df, M.IDs) `%>%` dplyr::summarize(ln.probs = matrixStats::logSumExp(ln.probs))
     df <- dplyr::arrange(df, dplyr::desc(ln.probs))
     
     list(model.type="list", M.IDs=df$M.IDs, ln.probs=df$ln.probs, hash.names=T)
