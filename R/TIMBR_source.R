@@ -1057,7 +1057,7 @@ ewenss.exact <- function(tree, prior.alpha){
   ln.prob.and.M.ID.from.B.ID <- function(B.ID){
     #function to calculate probability of branch mutation configuration
     B <- as.logical(intToBits(B.ID-1)[1:(ncol(V)-1)])
-    M.ID <- paste(TIMBR:::m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1})), collapse = ",")
+    M.ID <- paste(m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1})), collapse = ",")
     
     if (prior.alpha$type=="fixed"){
       ln.prob <- sum(p[cbind(1:nrow(p), as.integer(B)+1)])
@@ -1094,11 +1094,11 @@ ewenss.exact <- function(tree, prior.alpha){
     }
     
     #generate partition names and prior.M object
-    M.IDs <- apply(do.call(cbind, partitions.all), 2, function(x){paste(TIMBR:::m.rename(x), collapse=",")})
+    M.IDs <- apply(do.call(cbind, partitions.all), 2, function(x){paste(m.rename(x), collapse=",")})
     list(model.type="list", M.IDs=M.IDs, ln.probs=ln.probs, hash.names=T)
   } else {
     #decompose tree into basis V and lengths l
-    tree.decomposed <- TIMBR:::decompose.tree(tree)
+    tree.decomposed <- decompose.tree(tree)
     V <- tree.decomposed$V
     l <- tree.decomposed$l
     
