@@ -45,6 +45,7 @@ M.matrix.from.ID <- function(M.ID){
 
 #' @keywords internal
 ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5){
+  #Abramowitz and Stegun 55 p.505 "Confluent Hypergeometric Functions"
   d <- length(beta)
   
   #parameters for hypergeometric U
