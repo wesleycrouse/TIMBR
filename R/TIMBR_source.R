@@ -308,9 +308,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       }
       
       #sample concentration parameter if using CRP
-      #if (update.alpha){
+      if (update.alpha){
         alpha <- sample.crp.concentration()
-      #}
+      }
       
       #sample error variance and linear coefficients from conjugate normal-gamma distribution 
       #note that coefficients are scaled as eta=beta/lambda
