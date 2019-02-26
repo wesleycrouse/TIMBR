@@ -488,13 +488,13 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   }
   
   if (model.type=="crp"){
-    
     if (prior.M$prior.alpha.type=="gamma"){
       prior.alpha.shape <- prior.M$prior.alpha.shape
       prior.alpha.rate <- prior.M$prior.alpha.rate
       alpha <- prior.alpha.shape/prior.alpha.rate
-    } 
-    
+    } else if (prior.M$prior.alpha.type=="fixed"){
+      alpha <- prior.M$prior.alpha
+    }
     M <- matrix(1, J, 1)
   } else if (model.type=="uniform"){
     alpha <- NA
@@ -532,10 +532,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   if (model.type=="crp"){
     if (prior.M$prior.alpha.type=="gamma"){
       results <- TIMBR.sampler(samples)
+    } else if (prior.M$prior.alpha.type=="fixed"){
+      results <- TIMBR.sampler(samples, update.alpha=F)
     }
-    
-    
-    
   } else if (model.type=="fixed"){
     results <- TIMBR.sampler(samples, update.M=F, update.alpha=F)
   } else if (model.type=="uniform" | model.type=="list" | model.type=="mixture"){
@@ -557,7 +556,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     if (model.type=="crp"){
       if (prior.M$prior.alpha.type=="gamma"){
         ln.ml <- ln.ml.null + ln.m.prior.marginalized(rep(0,J), prior.alpha.shape, prior.alpha.rate) - log(post.M.null)
-      }
+      } 
       
       
       
