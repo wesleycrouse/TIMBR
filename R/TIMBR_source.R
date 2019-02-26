@@ -493,20 +493,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       prior.alpha.rate <- prior.M$prior.alpha.rate
       alpha <- prior.alpha.shape/prior.alpha.rate
     } else if (prior.M$prior.alpha.type=="fixed"){
-      
-      
-      
-      
-      
-      prior.alpha.shape <- 1
-      prior.alpha.rate <- 1
-      
-      
-      
-      
-      
-      
-      alpha <- prior.M$prior.alpha
+      alpha <- as.numeric(prior.M$prior.alpha)
     }
     M <- matrix(1, J, 1)
   } else if (model.type=="uniform"){
