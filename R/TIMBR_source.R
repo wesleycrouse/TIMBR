@@ -488,9 +488,13 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   }
   
   if (model.type=="crp"){
-    prior.alpha.shape <- prior.M$prior.alpha.shape
-    prior.alpha.rate <- prior.M$prior.alpha.rate
-    alpha <- prior.alpha.shape/prior.alpha.rate
+    
+    if (prior.M$prior.alpha.type=="gamma"){
+      prior.alpha.shape <- prior.M$prior.alpha.shape
+      prior.alpha.rate <- prior.M$prior.alpha.rate
+      alpha <- prior.alpha.shape/prior.alpha.rate
+    } 
+    
     M <- matrix(1, J, 1)
   } else if (model.type=="uniform"){
     alpha <- NA
@@ -526,7 +530,12 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   }
   
   if (model.type=="crp"){
-    results <- TIMBR.sampler(samples)
+    if (prior.M$prior.alpha.type=="gamma"){
+      results <- TIMBR.sampler(samples)
+    }
+    
+    
+    
   } else if (model.type=="fixed"){
     results <- TIMBR.sampler(samples, update.M=F, update.alpha=F)
   } else if (model.type=="uniform" | model.type=="list" | model.type=="mixture"){
@@ -546,7 +555,12 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   #if posterior probability of null model is relatively high, use this to calculate marginal likelihood
   if (names(post.M.ranked[1])==paste(rep(0, J), collapse=",") | post.M.null>=0.01){
     if (model.type=="crp"){
-      ln.ml <- ln.ml.null + ln.m.prior.marginalized(rep(0,J), prior.alpha.shape, prior.alpha.rate) - log(post.M.null)
+      if (prior.M$prior.alpha.type=="gamma"){
+        ln.ml <- ln.ml.null + ln.m.prior.marginalized(rep(0,J), prior.alpha.shape, prior.alpha.rate) - log(post.M.null)
+      }
+      
+      
+      
     } else if (model.type=="fixed"){
       ln.ml <- ln.ml.null
     } else if (model.type=="uniform"){
@@ -632,7 +646,15 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     }
     
     if (model.type=="crp"){
-      p3 <- ln.m.prior.marginalized(apply(M, 1, match, x=1), prior.alpha.shape, prior.alpha.rate)
+      if (prior.M$prior.alpha.type=="gamma"){
+        p3 <- ln.m.prior.marginalized(apply(M, 1, match, x=1), prior.alpha.shape, prior.alpha.rate)
+      }
+      
+      
+      
+      
+      
+      
       p6 <- log(post.M.ranked[1])
     } else if (model.type=="fixed"){
       p3 <- 0
