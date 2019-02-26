@@ -498,8 +498,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       
       
       
-      prior.alpha.shape <- 0
-      prior.alpha.rate <- 0
+      prior.alpha.shape <- 1
+      prior.alpha.rate <- 1
       
       
       
