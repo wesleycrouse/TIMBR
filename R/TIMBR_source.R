@@ -272,7 +272,16 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
                 #compute mixture prior for new M
                 missing.weighted.input <- sapply(M.space.key[M.ln.prior.null], function(x){prior.M.input[[x]]})
                 missing.weighted.input <- sapply(missing.weighted.input, function(x){ifelse(is.null(x), -Inf, x + prior.M.weight.ln)})
-                missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], ln.m.prior.marginalized, prior.alpha.shape=prior.alpha.shape, prior.alpha.rate=prior.alpha.rate) + prior.M.weight.ln.1minus
+                #missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], ln.m.prior.marginalized, prior.alpha.shape=prior.alpha.shape, prior.alpha.rate=prior.alpha.rate) + prior.M.weight.ln.1minus
+                missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], dcrp, prior.alpha=list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate)) + prior.M.weight.ln.1minus
+                
+                
+                
+                
+                
+                
+                
+                
                 missing.mixture <- sapply(1:length(M.ln.prior.null), function(x){matrixStats::logSumExp(c(missing.weighted.input[x], missing.weighted.crp[x]))})
                 
                 #update hash table with mixture prior for new M
