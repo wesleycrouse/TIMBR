@@ -555,9 +555,10 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   if (names(post.M.ranked[1])==paste(rep(0, J), collapse=",") | post.M.null>=0.01){
     if (model.type=="crp"){
       if (prior.M$prior.alpha.type=="gamma"){
-        #ln.ml <- ln.ml.null + ln.m.prior.marginalized(rep(0,J), prior.alpha.shape, prior.alpha.rate) - log(post.M.null)
         ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate)) - log(post.M.null)
-      } 
+      } else if (prior.M$prior.alpha.type=="fixed"){
+        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="fixed", alpha=prior.M$prior.alpha)) - log(post.M.null)
+      }
     } else if (model.type=="fixed"){
       ln.ml <- ln.ml.null
     } else if (model.type=="uniform"){
@@ -644,15 +645,10 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     
     if (model.type=="crp"){
       if (prior.M$prior.alpha.type=="gamma"){
-        #p3 <- ln.m.prior.marginalized(apply(M, 1, match, x=1), prior.alpha.shape, prior.alpha.rate)
         p3 <- dcrp(apply(M, 1, match, x=1), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate))
+      } else if (prior.M$prior.alpha.type=="fixed"){
+        p3 <- dcrp(apply(M, 1, match, x=1), list(type="fixed", alpha=prior.M$prior.alpha))
       }
-      
-      
-      
-      
-      
-      
       p6 <- log(post.M.ranked[1])
     } else if (model.type=="fixed"){
       p3 <- 0
