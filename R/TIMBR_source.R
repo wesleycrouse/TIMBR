@@ -147,23 +147,31 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       return.list
     }
     
-    sample.crp.concentration <- function(){
-      #sample latent variable eta
-      zeta <- rbeta(1, alpha+1, J)
-      ln.zeta <- log(zeta)
-      
-      #sample alpha conditional on eta
-      z <- (prior.alpha.shape+K-1)/(J*(prior.alpha.rate-ln.zeta))
-      pi <- z/(1+z)
-      
-      if (rbinom(1,1,pi)==1){
-        alpha <- rgamma(1, prior.alpha.shape+K, (prior.alpha.rate-ln.zeta))
-      } else {
-        alpha <- rgamma(1, prior.alpha.shape+K-1, (prior.alpha.rate-ln.zeta))
+    
+    
+    
+    
+    if (update.alpha){
+      sample.crp.concentration <- function(){
+        #sample latent variable eta
+        zeta <- rbeta(1, alpha+1, J)
+        ln.zeta <- log(zeta)
+        
+        #sample alpha conditional on eta
+        z <- (prior.alpha.shape+K-1)/(J*(prior.alpha.rate-ln.zeta))
+        pi <- z/(1+z)
+        
+        if (rbinom(1,1,pi)==1){
+          alpha <- rgamma(1, prior.alpha.shape+K, (prior.alpha.rate-ln.zeta))
+        } else {
+          alpha <- rgamma(1, prior.alpha.shape+K-1, (prior.alpha.rate-ln.zeta))
+        }
+        
+        alpha
       }
-      
-      alpha
     }
+    
+
     
     #precompute matrix products if model and diplotypes are fixed
     if (!update.M & fixed.diplo){
