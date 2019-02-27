@@ -984,7 +984,7 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
     
     rev(sort(TIMBR.output$ln.BF + log(TIMBR.output$p.M.given.y[biallelic]) - ln.prior))
   } else if (type=="consistent"){
-    index <- consistency.index(8, T)
+    index <- consistency.index(ncol(TIMBR.output$prior.D$A), T)
     
     if (TIMBR.output$prior.M$model.type=="crp"){
       ln.prior <- apply(index$setparts, 2, dcrp, prior.alpha=prior.alpha)
