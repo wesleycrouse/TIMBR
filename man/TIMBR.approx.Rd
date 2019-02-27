@@ -7,9 +7,9 @@
 TIMBR.approx(TIMBR.output, type = "consistent")
 }
 \arguments{
-\item{TIMBR.output}{results object from the TIMBR function, method for prior.M must be CRP or uniform}
+\item{TIMBR.output}{results object from the TIMBR function, prior.M method must be CRP or uniform}
 
-\item{type}{"all" - report BFs for all allelic series; "merge" - report BFs for biallelic series (i.e. merge analysis); "consistent" - report BFs for consistent merge analysis}
+\item{type}{"all" - report BFs for all allelic series; "merge" - report BFs for biallelic series (i.e. merge analysis); "consistent" - report BFs for consistent merge analysis; prior.M - report BF for list-type prior.M}
 }
 \value{
 a named vector of approximate Bayes Factors; appoximations that underflow are not reported
