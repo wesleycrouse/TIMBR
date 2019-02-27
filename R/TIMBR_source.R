@@ -10,13 +10,7 @@ sumtozero.contrast <- function(K){
 }
 
 #' @keywords internal
-m.rename <- function(m){
-  unique.m <- unique(m)
-  sapply(m, function(y){match(x=y, unique.m)-1})
-}
-
-#' @keywords internal
-m.rename2 <- function(m, string=T){
+m.rename <- function(m, string=T){
   unique.m <- unique(m)
   output <- sapply(m, function(y){match(x=y, unique.m)-1})
   ifelse(string, paste(output, collapse=","), output)
@@ -259,14 +253,12 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
               
               #compute unique names for new string IDs and update hash table
               if (length(M.space.key.null) != 0){
-                #M.space.key[M.space.key.null] <- sapply(M.space.vec[M.space.key.null], function(x){paste(m.rename(x), collapse=",")})
-                M.space.key[M.space.key.null] <- sapply(M.space.vec[M.space.key.null], m.rename2)
+                M.space.key[M.space.key.null] <- sapply(M.space.vec[M.space.key.null], m.rename)
                 list2env(setNames(M.space.key[M.space.key.null], M.space.name[M.space.key.null]), envir = prior.M.names)
               }
             } else {
               #compute unique names for possible settings of M
-              #M.space.key <- lapply(M.space.vec, function(x){paste(m.rename(x), collapse=",")})
-              M.space.key <- lapply(M.space.vec, m.rename2)
+              M.space.key <- lapply(M.space.vec, m.rename)
             }
             
             #use the unique names to look up priors for possible settings of M using hash table
@@ -402,13 +394,11 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     
     #report unique names for posterior samples of M
     if (update.M==F){
-      #post.M <- rep(paste(m.rename(post.M[1,]), collapse=","), iterations)
-      post.M <- rep(m.rename2(post.M[1,]), iterations)
+      post.M <- rep(m.rename(post.M[1,]), iterations)
     } else if (hash.names){
       post.M <- apply(post.M, 1, function(x){prior.M.names[[paste(x, collapse=",")]]})
     } else {
-      #post.M <- apply(post.M, 1, function(x){paste(m.rename(x), collapse=",")})
-      post.M <- apply(post.M, 1, m.rename2)
+      post.M <- apply(post.M, 1, m.rename)
     }
     
     #calculate marginal posterior diplotype probabilities
@@ -792,8 +782,7 @@ ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
     B <- rbind(sapply(theta, rmultinom, n=1, prob=l[-length(l)])>0, T)
     
     #collect allelic series
-    #m <- apply(B, 2, function(y){paste(m.rename(apply(V[,y], 1, Position, f=function(x){x==1})), collapse=",")})
-    m <- apply(B, 2, function(y){m.rename2(apply(V[,y], 1, Position, f=function(x){x==1}))})
+    m <- apply(B, 2, function(y){m.rename(apply(V[,y], 1, Position, f=function(x){x==1}))})
     
     #return allelic series and null probabilities
     list(m, p.null)
@@ -939,8 +928,7 @@ TIMBR.plot <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960
 #' @keywords internal
 consistency.index <- function(J, return.setparts=F){
   partitions.all <- partitions::setparts(J)
-  #colnames(partitions.all) <- apply(partitions.all, 2, function(x){paste(m.rename(x), collapse=",")})
-  colnames(partitions.all) <- apply(partitions.all, 2, m.rename2(x))
+  colnames(partitions.all) <- apply(partitions.all, 2, m.rename(x))
   
   M1 <- apply(partitions.all, 2, function(x){M <- matrix(0, length(x), max(x)); M[cbind(1:8, x)] <- 1; MMt <- tcrossprod(M); MMt[upper.tri(MMt)]})
   M0 <- M1[,apply(partitions.all, 2, max)==2]
@@ -1087,8 +1075,7 @@ ewenss.exact <- function(tree, prior.alpha){
   ln.prob.and.M.ID.from.B.ID <- function(B.ID){
     #function to calculate probability of branch mutation configuration
     B <- as.logical(intToBits(B.ID-1)[1:(ncol(V)-1)])
-    #M.ID <- paste(m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1})), collapse = ",")
-    M.ID <- m.rename2(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1}))
+    M.ID <- m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1}))
     
     if (prior.alpha$type=="fixed"){
       ln.prob <- sum(p[cbind(1:nrow(p), as.integer(B)+1)])
@@ -1125,8 +1112,7 @@ ewenss.exact <- function(tree, prior.alpha){
     }
     
     #generate partition names and prior.M object
-    #M.IDs <- apply(do.call(cbind, partitions.all), 2, function(x){paste(m.rename(x), collapse=",")})
-    M.IDs <- apply(do.call(cbind, partitions.all), 2, m.rename2)
+    M.IDs <- apply(do.call(cbind, partitions.all), 2, m.rename)
     list(model.type="list", M.IDs=M.IDs, ln.probs=ln.probs, hash.names=T)
   } else {
     #decompose tree into basis V and lengths l
