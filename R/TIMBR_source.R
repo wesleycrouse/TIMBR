@@ -1151,3 +1151,56 @@ ewenss.exact <- function(tree, prior.alpha){
     list(model.type="list", M.IDs=df$M.IDs, ln.probs=df$ln.probs, hash.names=T)
   }
 }
+
+#' Construct consistent prior from existing list-type prior.M
+#'
+#' Updates prior.M to be consistent with biallelic contrast encoded by M.ID
+#'
+#' @param prior.M prior.M object for use as TIMBR input, model.type must be list
+#' @param M.ID string that denotes the specified biallelic contrast
+#'
+#' @return updated prior.M object that is consistent with M.ID
+#' 
+#' @examples
+#' #example data
+#' data(mcv.data)
+#' 
+#' #call TIMBR using CRP
+#' results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
+#' 
+#' #approximate biallelic consistency BFs for all contrasts
+#' head(TIMBR.approx(results))
+#' 
+#' #generate list object for CRP prior
+#' prior.alpha <- list(type="gamma", shape=results$prior.M$prior.alpha.shape, rate=results$prior.M$prior.alpha.rate)
+#' prior.M <- ewenss.exact(8, prior.alpha)
+#' 
+#' #specify biallelic contrast for consistency and update prior.M
+#' M.ID <- "0,1,0,1,1,0,0,0"
+#' prior.M <- TIMBR.consistent(prior.M, M.ID)
+#' 
+#' #analyze results, compare with approximate BF from earlier
+#' results.consistent <- TIMBR(mcv.data$y, mcv.data$prior.D, prior.M)
+#' results.consistent$ln.BF
+#'
+#' @export
+TIMBR.consistent <- function(prior.M, M.ID){
+  m <- TIMBR:::m.from.M.ID(M.ID)
+  
+  if (max(m)!=2){
+    stop("M.ID is not biallelic")
+  }
+  
+  J <- length(m)
+  
+  index <- consistency.index(J, F)
+  index <- index[which(row.names(index)==M.ID),]
+  index <- index[prior.M$M.IDs]
+  
+  prior.M$M.IDs <- prior.M$M.IDs[index]
+  
+  ln.probs <- prior.M$ln.probs[index]
+  prior.M$ln.probs <- ln.probs - matrixStats::logSumExp(ln.probs)
+  
+  prior.M
+}
