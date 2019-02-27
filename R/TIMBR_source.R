@@ -57,19 +57,6 @@ ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5)
   (-0.5*d)*log(2) - 0.5*d*log(pi) - 0.5*d*log(sigma.sq) - lbeta(0.5, prior.v.b) + lgamma(a.U) + log(gsl::hyperg_U(a.U, b.U, z.U))
 }
 
-#' @keywords internal
-ln.m.prior.marginalized <- function(m, prior.alpha.shape, prior.alpha.rate){
-  J <- length(m)
-  J.k <- table(m, dnn=NULL)
-  K <- length(J.k)
-  
-  density.crp.concentration <- Vectorize(function(x){
-    exp(lgamma(x) - lgamma(x+J) + (prior.alpha.shape+K-1)*log(x) - prior.alpha.rate*x)
-  })
-  
-  log(integrate(density.crp.concentration, lower=0, upper=Inf)$value) + sum(lgamma(J.k)) + prior.alpha.shape*log(prior.alpha.rate) - lgamma(prior.alpha.shape)
-}
-
 #' Tree-based Inference of Multiallelism via Bayesian Regression
 #'
 #' Posterior samples and Bayes Factors using the TIMBR model
@@ -946,7 +933,7 @@ consistency.index <- function(J, return.setparts=F){
 #'
 #' Approximate Bayes factors for various hypotheses from TIMBR output
 #'
-#' @param TIMBR.output results object from the TIMBR function, must be CRP or uniform method for prior.M
+#' @param TIMBR.output results object from the TIMBR function, method for prior.M must be CRP or uniform
 #' @param type "all" - report BFs for all allelic series; "merge" - report BFs for biallelic series (i.e. merge analysis); "consistent" - report BFs for consistent merge analysis
 #'
 #' @return a named vector of approximate Bayes Factors; appoximations that underflow are not reported
@@ -965,22 +952,46 @@ consistency.index <- function(J, return.setparts=F){
 #' @export
 TIMBR.approx <- function(TIMBR.output, type="consistent"){
 
-  if (TIMBR.output$prior.M$model.type!="crp"){
-    print("prior.M$model.type is not CRP in TIMBR.output")
-  } else if (type=="all"){
-    ln.prior <- sapply(names(TIMBR.output$p.M.given.y), function(x){ln.m.prior.marginalized(m.from.M.ID(x), TIMBR.output$prior.M$prior.alpha.shape, TIMBR.output$prior.M$prior.alpha.rate)})
+  if (TIMBR.output$prior.M$model.type=="crp"){
+    if (TIMBR.output$prior.M$prior.alpha.type=="gamma"){
+      prior.alpha <- list(type="gamma", shape=TIMBR.output$prior.M$prior.alpha.shape, rate=TIMBR.output$prior.M$prior.alpha.rate)
+    } else if (TIMBR.output$prior.M$prior.alpha.type=="fixed"){
+      prior.alpha <- list(type="fixed", alpha=TIMBR.output$prior.M$prior.alpha)
+    }
+  } else if (TIMBR.output$prior.M$model.type=="uniform"){
+    ln.prior.uniform <- -ln.bell(ncol(TIMBR.output$prior.D$A))
+  } else {
+    stop("prior.M$model.type is not crp or uniform")
+  }
+  
+  if (type=="all"){
+    if (TIMBR.output$prior.M$model.type=="crp"){
+      ln.prior <- sapply(names(TIMBR.output$p.M.given.y), function(x){dcrp(m.from.M.ID(x), prior.alpha)})
+    } else if (TIMBR.output$prior.M$model.type=="uniform"){
+      ln.prior <- rep(ln.prior.uniform, length(TIMBR.output$p.M.given.y))
+    }
     
     rev(sort(TIMBR.output$ln.BF + log(TIMBR.output$p.M.given.y) - ln.prior))
   } else if (type=="merge"){
     m.list <- lapply(names(TIMBR.output$p.M.given.y), m.from.M.ID)
     biallelic <- sapply(m.list, max)==2
-    ln.prior <- sapply(m.list[biallelic], ln.m.prior.marginalized, prior.alpha.shape=TIMBR.output$prior.M$prior.alpha.shape, prior.alpha.rate=TIMBR.output$prior.M$prior.alpha.rate)
+    
+    if (TIMBR.output$prior.M$model.type=="crp"){
+      ln.prior <- sapply(m.list[biallelic], dcrp, prior.alpha=prior.alpha)
+    } else if (TIMBR.output$prior.M$model.type=="uniform"){
+      ln.prior <- rep(ln.prior.uniform, length(m.list[biallelic]))
+    }
     
     rev(sort(TIMBR.output$ln.BF + log(TIMBR.output$p.M.given.y[biallelic]) - ln.prior))
   } else if (type=="consistent"){
     index <- consistency.index(8, T)
     
-    ln.prior <- apply(index$setparts, 2, ln.m.prior.marginalized, prior.alpha.shape=TIMBR.output$prior.M$prior.alpha.shape, prior.alpha.rate=TIMBR.output$prior.M$prior.alpha.rate)
+    if (TIMBR.output$prior.M$model.type=="crp"){
+      ln.prior <- apply(index$setparts, 2, dcrp, prior.alpha=prior.alpha)
+    } else if (TIMBR.output$prior.M$model.type=="uniform"){
+      ln.prior <- rep(ln.prior.uniform, ncol(index$setparts))
+      names(ln.prior) <- colnames(index$setparts)
+    }
     
     index.by.ln.prior <- as.matrix(index$index)%*%diag(ln.prior)
     index.by.ln.prior <- apply(index.by.ln.prior, 2, function(x){x[x==0] <- -Inf; x})
