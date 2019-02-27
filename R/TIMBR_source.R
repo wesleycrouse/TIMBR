@@ -946,7 +946,7 @@ consistency.index <- function(J, return.setparts=F){
 #'
 #' Approximate Bayes factors for various hypotheses from TIMBR output
 #'
-#' @param TIMBR.output results object from the TIMBR function
+#' @param TIMBR.output results object from the TIMBR function, must be CRP method or uniform (type "all" or "merge" only)
 #' @param type "all" - report BFs for all allelic series; "merge" - report BFs for biallelic series (i.e. merge analysis); "consistent" - report BFs for consistent merge analysis
 #'
 #' @return a named vector of approximate Bayes Factors; appoximations that underflow are not reported
