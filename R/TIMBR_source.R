@@ -928,7 +928,7 @@ TIMBR.plot <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960
 #' @keywords internal
 consistency.index <- function(J, return.setparts=F){
   partitions.all <- partitions::setparts(J)
-  colnames(partitions.all) <- apply(partitions.all, 2, m.rename(x))
+  colnames(partitions.all) <- apply(partitions.all, 2, m.rename)
   
   M1 <- apply(partitions.all, 2, function(x){M <- matrix(0, length(x), max(x)); M[cbind(1:8, x)] <- 1; MMt <- tcrossprod(M); MMt[upper.tri(MMt)]})
   M0 <- M1[,apply(partitions.all, 2, max)==2]
