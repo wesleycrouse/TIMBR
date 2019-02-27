@@ -969,6 +969,7 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
       ln.prior <- sapply(names(TIMBR.output$p.M.given.y), function(x){dcrp(m.from.M.ID(x), prior.alpha)})
     } else if (TIMBR.output$prior.M$model.type=="uniform"){
       ln.prior <- rep(ln.prior.uniform, length(TIMBR.output$p.M.given.y))
+      names(ln.prior) <- names(TIMBR.output$p.M.given.y)
     }
     
     rev(sort(TIMBR.output$ln.BF + log(TIMBR.output$p.M.given.y) - ln.prior))
@@ -980,6 +981,7 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
       ln.prior <- sapply(m.list[biallelic], dcrp, prior.alpha=prior.alpha)
     } else if (TIMBR.output$prior.M$model.type=="uniform"){
       ln.prior <- rep(ln.prior.uniform, length(m.list[biallelic]))
+      names(ln.prior) <- names(m.list)[biallelic]
     }
     
     rev(sort(TIMBR.output$ln.BF + log(TIMBR.output$p.M.given.y[biallelic]) - ln.prior))
@@ -1185,7 +1187,7 @@ ewenss.exact <- function(tree, prior.alpha){
 #'
 #' @export
 TIMBR.consistent <- function(prior.M, M.ID){
-  m <- TIMBR:::m.from.M.ID(M.ID)
+  m <- m.from.M.ID(M.ID)
   
   if (max(m)!=2){
     stop("M.ID is not biallelic")
