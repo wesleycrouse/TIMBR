@@ -965,18 +965,6 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
   }
   
   if (class(type)!="list"){
-    if (TIMBR.output$prior.M$model.type=="crp"){
-      if (TIMBR.output$prior.M$prior.alpha.type=="gamma"){
-        prior.alpha <- list(type="gamma", shape=TIMBR.output$prior.M$prior.alpha.shape, rate=TIMBR.output$prior.M$prior.alpha.rate)
-      } else if (TIMBR.output$prior.M$prior.alpha.type=="fixed"){
-        prior.alpha <- list(type="fixed", alpha=TIMBR.output$prior.M$prior.alpha)
-      }
-    } else if (TIMBR.output$prior.M$model.type=="uniform"){
-      ln.prior.uniform <- -ln.bell(ncol(TIMBR.output$prior.D$A))
-    } else {
-      stop("prior.M$model.type is not crp or uniform")
-    }
-    
     if (type=="all"){
       if (TIMBR.output$prior.M$model.type=="crp"){
         ln.prior <- sapply(names(TIMBR.output$p.M.given.y), function(x){dcrp(m.from.M.ID(x), prior.alpha)})
