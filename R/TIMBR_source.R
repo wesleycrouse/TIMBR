@@ -951,7 +951,6 @@ consistency.index <- function(J, return.setparts=F){
 #'
 #' @export
 TIMBR.approx <- function(TIMBR.output, type="consistent"){
-
   if (TIMBR.output$prior.M$model.type=="crp"){
     if (TIMBR.output$prior.M$prior.alpha.type=="gamma"){
       prior.alpha <- list(type="gamma", shape=TIMBR.output$prior.M$prior.alpha.shape, rate=TIMBR.output$prior.M$prior.alpha.rate)
@@ -960,8 +959,8 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
     }
   } else if (TIMBR.output$prior.M$model.type=="uniform"){
     ln.prior.uniform <- -ln.bell(ncol(TIMBR.output$prior.D$A))
-  } else {
-    stop("prior.M$model.type is not crp or uniform")
+  } else if (TIMBR.output$prior.M$model.type!="list" & type=="consistent"){
+    stop("prior.M$model.type is not crp/uniform or list (consistent type only)")
   }
   
   if (class(type)!="list"){
@@ -988,20 +987,24 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
       rev(sort(TIMBR.output$ln.BF + log(TIMBR.output$p.M.given.y[biallelic]) - ln.prior))
     } else if (type=="consistent"){
       index <- consistency.index(ncol(TIMBR.output$prior.D$A), T)
-      
       if (TIMBR.output$prior.M$model.type=="crp"){
         ln.prior <- apply(index$setparts, 2, dcrp, prior.alpha=prior.alpha)
       } else if (TIMBR.output$prior.M$model.type=="uniform"){
         ln.prior <- rep(ln.prior.uniform, ncol(index$setparts))
         names(ln.prior) <- colnames(index$setparts)
+      } else if (TIMBR.output$prior.M$model.type=="list"){
+        ln.prior <- TIMBR.output$prior.M$ln.probs
+        names(ln.prior) <- TIMBR.output$prior.M$M.IDs
+        ln.prior <- ln.prior[colnames(index$index)]
+        ln.prior[is.na(ln.prior)] <- -Inf
+        names(ln.prior) <- colnames(index$index)
       }
       
       index.by.ln.prior <- as.matrix(index$index)%*%diag(ln.prior)
-      index.by.ln.prior <- apply(index.by.ln.prior, 2, function(x){x[x==0] <- -Inf; x})
+      index.by.ln.prior <- apply(index.by.ln.prior, 2, function(x){x[x==0 | is.nan(x)] <- -Inf; x})
       index.by.ln.prior <- index.by.ln.prior - matrixStats::rowLogSumExps(index.by.ln.prior)
       colnames(index.by.ln.prior) <- colnames(index$index)
       index.by.ln.prior <- index.by.ln.prior[,names(TIMBR.output$p.M.given.y)]
-      
       ln.prior <- ln.prior[names(TIMBR.output$p.M.given.y)]
       
       rev(sort(TIMBR.output$ln.BF + apply(index.by.ln.prior, 1, function(x){matrixStats::logSumExp(x + log(TIMBR.output$p.M.given.y) - ln.prior)})))
@@ -1021,6 +1024,7 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
     
     matrixStats::logSumExp(BFs + prior.M$ln.probs)
   }
+  
 }
 
 #' @keywords internal
