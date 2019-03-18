@@ -136,18 +136,17 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     }
     
     sample.crp.concentration <- function(){
-      #sample latent variable eta
-      zeta <- rbeta(1, alpha+1, J)
-      ln.zeta <- log(zeta)
+      #sample latent variable zeta
+      ln.zeta <- log(rbeta(1, alpha+1, J))
       
-      #sample alpha conditional on eta
+      #sample alpha conditional on zeta
       z <- (prior.alpha.shape+K-1)/(J*(prior.alpha.rate-ln.zeta))
       pi <- z/(1+z)
       
       if (rbinom(1,1,pi)==1){
-        alpha <- rgamma(1, prior.alpha.shape+K, (prior.alpha.rate-ln.zeta))
+        alpha <- rgamma(1, prior.alpha.shape+K, prior.alpha.rate-ln.zeta)
       } else {
-        alpha <- rgamma(1, prior.alpha.shape+K-1, (prior.alpha.rate-ln.zeta))
+        alpha <- rgamma(1, prior.alpha.shape+K-1, prior.alpha.rate-ln.zeta)
       }
       
       alpha
