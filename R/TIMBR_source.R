@@ -1277,12 +1277,15 @@ TIMBR.plot.circos <- function(TIMBR.output, colors=c("cyan", "magenta"), color.r
     circlize::circos.text(0.5, 1.5, LETTERS[i], LETTERS[i])
   }
   
-  #color by marginal MAP for each haplotype effect
+  #color by marginal MAP for each haplotype effect, scaled from 0 (min of y) to 1 (max of y)
   MAP <- apply(TIMBR.output$post.hap.effects, 2, function(i){dens <- density(i); dens$x[which.max(dens$y)]})
   names(MAP) <- LETTERS[1:J]
   
-  MAP.scaled <- MAP - min(MAP)
-  MAP.scaled <- MAP.scaled/max(MAP.scaled)
+  #MAP.scaled <- MAP - min(MAP)
+  #MAP.scaled <- MAP.scaled/max(MAP.scaled)
+  
+  MAP.scaled <- MAP - min(TIMBR.output$y)
+  MAP.scaled <- MAP.scaled/max(TIMBR.output$y)
   
   colors <- colorRampPalette(colors)(color.res+1)
   colors <- colors[floor(MAP.scaled*color.res)+1]
