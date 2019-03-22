@@ -1225,3 +1225,68 @@ TIMBR.consistent <- function(prior.M, M.ID){
   
   prior.M
 }
+
+#' @keywords internal
+TIMBR.plot.circos <- function(TIMBR.output){
+  #calculate pairwise probabilities for haplotype groupings
+  E.MMt <- lapply(1:length(TIMBR.output$p.M.given.y), function(x){M <- TIMBR:::M.matrix.from.ID(names(TIMBR.output$p.M.given.y)[x]); TIMBR.output$p.M.given.y[x]*M%*%t(M)})
+  E.MMt <- Reduce("+", E.MMt)
+  
+  rownames(E.MMt) <- LETTERS[1:8]
+  colnames(E.MMt) <- rownames(E.MMt)
+  
+  #optimize order by minimizing distance of lines drawn on unit circle, weighed by probabilities
+  orders <- combinat::permn(2:8, function(x){c(1,x)})
+  locations <- cbind(sinpi(2/8*(0:7)), cospi(2/8*(0:7)))
+  
+  distance <- diag(0,8)
+  
+  for (i in 1:7){
+    for (j in (i+1):8){
+      distance[i,j] <- sqrt(sum((locations[i,] - locations[j,])^2))
+    }
+  }
+  
+  distance <- distance[upper.tri(distance)]
+  
+  order.dist <- rep(NA, length(orders))
+  
+  for (i in 1:length(orders)){
+    order <- unlist(orders[i])
+    E.MMt.order <- E.MMt[order, order]
+    order.dist[i] <- sum(E.MMt.order[upper.tri(E.MMt.order)]*distance)
+  }
+  
+  best.order <- unlist(orders[which.min(order.dist)])
+  E.MMt <- E.MMt[best.order, best.order]
+  
+  #plot connnections
+  circlize::circos.initialize(LETTERS[best.order], xlim=cbind(rep(0,8),rep(1,8)))
+  circlize::circos.trackPlotRegion(y=rep(0,8), ylim=c(0,1))
+  
+  for (i in 1:7){
+    for (j in (i+1):8){
+      color <- rgb(0,0,0, max=255, alpha=E.MMt[i,j]*255)
+      circlize::circos.link(rownames(E.MMt)[i], c(0.45,0.55), rownames(E.MMt)[j], c(0.45,0.55), col=color)
+    }
+  }
+  
+  for (i in 1:8){
+    circlize::circos.text(0.5, 2, LETTERS[i], LETTERS[i])
+  }
+  
+  #color by marginal MAP for each haplotype effect
+  MAP <- apply(TIMBR.output$post.hap.effects, 2, function(i){dens <- density(i); dens$x[which.max(dens$y)]})
+  names(MAP) <- LETTERS[1:8]
+  
+  MAP.scaled <- MAP - min(MAP)
+  MAP.scaled <- MAP.scaled/max(MAP.scaled)
+  
+  color.levels <- 1000
+  colors <- colorRampPalette(c("cyan","magenta"))(color.levels+1)
+  colors <- colors[floor(MAP.scaled*color.levels)+1]
+  
+  for (i in 1:8){
+    circlize::circos.rect(0,0,1,1, LETTERS[i], col=colors[i])
+  }
+}
