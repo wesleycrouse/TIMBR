@@ -1231,7 +1231,7 @@ TIMBR.plot.circos <- function(TIMBR.output, colors=c("cyan", "magenta"), color.r
   J <- ncol(results$prior.D$A)
   
   #calculate pairwise probabilities for haplotype groupings
-  E.MMt <- lapply(1:length(TIMBR.output$p.M.given.y), function(x){M <- TIMBR:::M.matrix.from.ID(names(TIMBR.output$p.M.given.y)[x]); TIMBR.output$p.M.given.y[x]*M%*%t(M)})
+  E.MMt <- lapply(1:length(TIMBR.output$p.M.given.y), function(x){M <- TIMBR:::M.matrix.from.ID(names(TIMBR.output$p.M.given.y)[x]); TIMBR.output$p.M.given.y[x]*tcrossprod(M)})
   E.MMt <- Reduce("+", E.MMt)
   
   rownames(E.MMt) <- LETTERS[1:J]
