@@ -1227,7 +1227,7 @@ TIMBR.consistent <- function(prior.M, M.ID){
 }
 
 #' @keywords internal
-TIMBR.plot.circos <- function(TIMBR.output){
+TIMBR.plot.circos <- function(TIMBR.output, colors=c("cyan", "magenta"), color.res=1000){
   J <- ncol(results$prior.D$A)
   
   #calculate pairwise probabilities for haplotype groupings
@@ -1284,9 +1284,8 @@ TIMBR.plot.circos <- function(TIMBR.output){
   MAP.scaled <- MAP - min(MAP)
   MAP.scaled <- MAP.scaled/max(MAP.scaled)
   
-  color.levels <- 1000
-  colors <- colorRampPalette(c("cyan","magenta"))(color.levels+1)
-  colors <- colors[floor(MAP.scaled*color.levels)+1]
+  colors <- colorRampPalette(colors)(color.res+1)
+  colors <- colors[floor(MAP.scaled*color.res)+1]
   
   for (i in 1:J){
     circlize::circos.rect(0,0,1,1, LETTERS[i], col=colors[i])
