@@ -1274,7 +1274,7 @@ TIMBR.plot.circos <- function(TIMBR.output, colors=c("cyan", "magenta"), color.r
   }
   
   for (i in 1:J){
-    circlize::circos.text(0.5, 2, LETTERS[i], LETTERS[i])
+    circlize::circos.text(0.5, 1.5, LETTERS[i], LETTERS[i])
   }
   
   #color by marginal MAP for each haplotype effect
