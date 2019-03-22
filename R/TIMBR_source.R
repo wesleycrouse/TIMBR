@@ -1228,21 +1228,23 @@ TIMBR.consistent <- function(prior.M, M.ID){
 
 #' @keywords internal
 TIMBR.plot.circos <- function(TIMBR.output){
+  J <- ncol(results$prior.D$A)
+  
   #calculate pairwise probabilities for haplotype groupings
   E.MMt <- lapply(1:length(TIMBR.output$p.M.given.y), function(x){M <- TIMBR:::M.matrix.from.ID(names(TIMBR.output$p.M.given.y)[x]); TIMBR.output$p.M.given.y[x]*M%*%t(M)})
   E.MMt <- Reduce("+", E.MMt)
   
-  rownames(E.MMt) <- LETTERS[1:8]
+  rownames(E.MMt) <- LETTERS[1:J]
   colnames(E.MMt) <- rownames(E.MMt)
   
   #optimize order by minimizing distance of lines drawn on unit circle, weighed by probabilities
-  orders <- combinat::permn(2:8, function(x){c(1,x)})
-  locations <- cbind(sinpi(2/8*(0:7)), cospi(2/8*(0:7)))
+  orders <- combinat::permn(2:J, function(x){c(1,x)})
+  locations <- cbind(sinpi(2/J*(0:(J-1))), cospi(2/J*(0:(J-1))))
   
-  distance <- diag(0,8)
+  distance <- diag(0,J)
   
-  for (i in 1:7){
-    for (j in (i+1):8){
+  for (i in 1:(J-1)){
+    for (j in (i+1):J){
       distance[i,j] <- sqrt(sum((locations[i,] - locations[j,])^2))
     }
   }
@@ -1261,23 +1263,23 @@ TIMBR.plot.circos <- function(TIMBR.output){
   E.MMt <- E.MMt[best.order, best.order]
   
   #plot connnections
-  circlize::circos.initialize(LETTERS[best.order], xlim=cbind(rep(0,8),rep(1,8)))
-  circlize::circos.trackPlotRegion(y=rep(0,8), ylim=c(0,1))
+  circlize::circos.initialize(LETTERS[best.order], xlim=cbind(rep(0,J),rep(1,J)))
+  circlize::circos.trackPlotRegion(y=rep(0,J), ylim=c(0,1))
   
-  for (i in 1:7){
-    for (j in (i+1):8){
+  for (i in 1:(J-1)){
+    for (j in (i+1):J){
       color <- rgb(0,0,0, max=255, alpha=E.MMt[i,j]*255)
       circlize::circos.link(rownames(E.MMt)[i], c(0.45,0.55), rownames(E.MMt)[j], c(0.45,0.55), col=color)
     }
   }
   
-  for (i in 1:8){
+  for (i in 1:J){
     circlize::circos.text(0.5, 2, LETTERS[i], LETTERS[i])
   }
   
   #color by marginal MAP for each haplotype effect
   MAP <- apply(TIMBR.output$post.hap.effects, 2, function(i){dens <- density(i); dens$x[which.max(dens$y)]})
-  names(MAP) <- LETTERS[1:8]
+  names(MAP) <- LETTERS[1:J]
   
   MAP.scaled <- MAP - min(MAP)
   MAP.scaled <- MAP.scaled/max(MAP.scaled)
@@ -1286,7 +1288,7 @@ TIMBR.plot.circos <- function(TIMBR.output){
   colors <- colorRampPalette(c("cyan","magenta"))(color.levels+1)
   colors <- colors[floor(MAP.scaled*color.levels)+1]
   
-  for (i in 1:8){
+  for (i in 1:J){
     circlize::circos.rect(0,0,1,1, LETTERS[i], col=colors[i])
   }
 }
