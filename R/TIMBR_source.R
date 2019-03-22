@@ -1285,7 +1285,7 @@ TIMBR.plot.circos <- function(TIMBR.output, colors=c("cyan", "magenta"), color.r
     #scaled from 0 (min of effects) to 1 (max of effects)
     MAP.scaled <- MAP - min(MAP)
     MAP.scaled <- MAP.scaled/max(MAP.scaled)
-  } else if (scaling="data"){
+  } else if (scaling=="data"){
     #scaled from 0 (min of y) to 1 (max of y)
     MAP.scaled <- MAP - min(TIMBR.output$y)
     MAP.scaled <- MAP.scaled/max(TIMBR.output$y)
