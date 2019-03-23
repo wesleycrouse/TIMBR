@@ -1227,7 +1227,7 @@ TIMBR.consistent <- function(prior.M, M.ID){
 }
 
 #' @keywords internal
-TIMBR.plot.circos <- function(TIMBR.output, colors=c("cyan", "magenta"), color.res=1000, scaling="effects"){
+TIMBR.plot.circos <- function(TIMBR.output, post.summary="mean", colors=c("blue", "white", "red"), color.res=1000){
   J <- ncol(results$prior.D$A)
   
   #calculate pairwise probabilities for haplotype groupings
@@ -1277,24 +1277,30 @@ TIMBR.plot.circos <- function(TIMBR.output, colors=c("cyan", "magenta"), color.r
     circlize::circos.text(0.5, 1.5, LETTERS[i], LETTERS[i])
   }
   
-  #color by marginal MAP for each haplotype effect
-  MAP <- apply(TIMBR.output$post.hap.effects, 2, function(i){dens <- density(i); dens$x[which.max(dens$y)]})
-  names(MAP) <- LETTERS[1:J]
+  #signed variance of each effect divided by variance of effect and error
+  diff <- TIMBR.output$post.hap.effects - apply(TIMBR.output$post.hap.effects, 1, mean)
+  sign <- (-1)^(diff < 0)
+  sum.sq <- diff^2
+  var.exp <- sum.sq / (sum.sq + TIMBR.output$post.sigma.sq)
+  var.exp.signed <- var.exp*sign
   
-  if (scaling=="effects"){
-    #scaled from 0 (min of effects) to 1 (max of effects)
-    MAP.scaled <- MAP - min(MAP)
-    MAP.scaled <- MAP.scaled/max(MAP.scaled)
-  } else if (scaling=="data"){
-    #scaled from 0 (min of y) to 1 (max of y)
-    MAP.scaled <- MAP - min(TIMBR.output$y)
-    MAP.scaled <- MAP.scaled/max(TIMBR.output$y)
+  #posterior summary of transformed effects
+  if (post.summary=="mean"){
+    effects <- colMeans(var.exp.signed)
+  } else if (post.summary=="mode"){
+    effects <- apply(var.exp.signed, 2, function(x){dens <- density(x, from=-1, to=1); dens$x[which.max(dens$y)]})
+  } else if (post.summary=="median"){
+    effects <- apply(var.exp.signed,2,median)
   }
+  names(effects) <- LETTERS[1:J]
   
+  #plot effects
   colors <- colorRampPalette(colors)(color.res+1)
-  colors <- colors[floor(MAP.scaled*color.res)+1]
+  colors <- colors[round(color.res*(effects+1)/2)+1]
   
   for (i in 1:J){
     circlize::circos.rect(0,0,1,1, LETTERS[i], col=colors[i])
   }
+  
+  circlize::circos.clear()
 }
