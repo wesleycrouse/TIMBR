@@ -1070,16 +1070,6 @@ dcrp <- function(m, prior.alpha, log.p=T){
     alpha <- prior.alpha$alpha
     
     ln.p <- lgamma(alpha) - lgamma(alpha+J) + K*log(alpha) + sum(lgamma(J.k))
-  } else if (prior.alpha$type=="beta.prime"){
-    a <- prior.alpha$a
-    b <- prior.alpha$b
-    q <- prior.alpha$q
-    
-    density.crp.concentration <- Vectorize(function(x){
-      exp(lgamma(x) - lgamma(x+J) + (a+K-1)*log(x) - (a+b)*log(1+x/q))
-    })
-    
-    ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf)$value) + sum(lgamma(J.k)) - a*log(q) - lbeta(a,b)
   }
   
   ifelse(log.p, ln.p, exp(ln.p))
