@@ -1149,7 +1149,7 @@ ewenss.exact <- function(tree, prior.alpha){
     ln.probs <- unlist(sapply(1:length(partitions.all), function(x){rep(dcrp(partitions.all[[x]][,1], prior.alpha), ncol(partitions.all[[x]]))}))
     
     #normalize total to correct for approximation
-    if (prior.alpha$type=="gamma"){
+    if (prior.alpha$type!="fixed"){
       ln.probs <- ln.probs - matrixStats::logSumExp(ln.probs)
     }
     
