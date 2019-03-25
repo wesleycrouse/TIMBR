@@ -297,6 +297,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       #sample concentration parameter if using CRP
       if (update.alpha){
         alpha <- sample.crp.concentration()
+        if (prior.alpha.type=="beta.prime"){
+          prior.alpha.rate <- rgamma(1, prior.alpha.b + prior.alpha.shape, prior.alpha.q + alpha)
+        }
       }
       
       #sample error variance and linear coefficients from conjugate normal-gamma distribution 
@@ -475,12 +478,19 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   }
   
   if (model.type=="crp"){
-    if (prior.M$prior.alpha.type=="gamma"){
+    prior.alpha.type <- prior.M$prior.alpha.type
+    if (prior.alpha.type=="gamma"){
       prior.alpha.shape <- prior.M$prior.alpha.shape
       prior.alpha.rate <- prior.M$prior.alpha.rate
       alpha <- prior.alpha.shape/prior.alpha.rate
-    } else if (prior.M$prior.alpha.type=="fixed"){
+    } else if (prior.alpha.type=="fixed"){
       alpha <- prior.M$prior.alpha
+    } else if (prior.alpha.type=="beta.prime"){
+      prior.alpha.shape <- prior.M$prior.alpha.a
+      prior.alpha.b <- prior.M$prior.alpha.b
+      prior.alpha.q <- prior.M$prior.alpha.q
+      prior.alpha.rate <- prior.alpha.b/prior.alpha.q
+      alpha <- prior.alpha.shape/prior.alpha.rate
     }
     M <- matrix(1, J, 1)
   } else if (model.type=="uniform"){
@@ -517,9 +527,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   }
   
   if (model.type=="crp"){
-    if (prior.M$prior.alpha.type=="gamma"){
+    if (prior.alpha.type=="gamma" | prior.alpha.type=="beta.prime"){
       results <- TIMBR.sampler(samples)
-    } else if (prior.M$prior.alpha.type=="fixed"){
+    } else if (prior.alpha.type=="fixed"){
       results <- TIMBR.sampler(samples, update.alpha=F)
     }
   } else if (model.type=="fixed"){
@@ -541,10 +551,12 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   #if posterior probability of null model is relatively high, use this to calculate marginal likelihood
   if (names(post.M.ranked[1])==paste(rep(0, J), collapse=",") | post.M.null>=0.01){
     if (model.type=="crp"){
-      if (prior.M$prior.alpha.type=="gamma"){
+      if (prior.alpha.type=="gamma"){
         ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate)) - log(post.M.null)
-      } else if (prior.M$prior.alpha.type=="fixed"){
+      } else if (prior.alpha.type=="fixed"){
         ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="fixed", alpha=prior.M$prior.alpha)) - log(post.M.null)
+      } else if (prior.alpha.type=="beta.prime"){
+        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="beta.prime", a=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q)) - log(post.M.null)
       }
     } else if (model.type=="fixed"){
       ln.ml <- ln.ml.null
@@ -631,10 +643,12 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     }
     
     if (model.type=="crp"){
-      if (prior.M$prior.alpha.type=="gamma"){
+      if (prior.alpha.type=="gamma"){
         p3 <- dcrp(apply(M, 1, match, x=1), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate))
-      } else if (prior.M$prior.alpha.type=="fixed"){
+      } else if (prior.alpha.type=="fixed"){
         p3 <- dcrp(apply(M, 1, match, x=1), list(type="fixed", alpha=prior.M$prior.alpha))
+      } else if (prior.alpha.type=="beta.prime"){
+        p3 <- dcrp(apply(M, 1, match, x=1), list(type="beta.prime", a=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q))
       }
       p6 <- log(post.M.ranked[1])
     } else if (model.type=="fixed"){
