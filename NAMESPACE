@@ -3,7 +3,7 @@
 export(TIMBR)
 export(TIMBR.approx)
 export(TIMBR.consistent)
-export(TIMBR.plot)
+export(TIMBR.plot.haplotypes)
 export(additive.design)
 export(calc.concentration.prior)
 export(ewenss.exact)
