@@ -1254,12 +1254,15 @@ TIMBR.consistent <- function(prior.M, M.ID){
 
 #' @keywords internal
 TIMBR.plot.circos <- function(TIMBR.output, post.summary="mean", colors=c("blue", "white", "red"), color.res=1000){
-  J <- ncol(results$prior.D$A)
-  
   #calculate pairwise probabilities for haplotype groupings
-  E.MMt <- lapply(1:length(TIMBR.output$p.M.given.y), function(x){M <- TIMBR:::M.matrix.from.ID(names(TIMBR.output$p.M.given.y)[x]); TIMBR.output$p.M.given.y[x]*tcrossprod(M)})
-  E.MMt <- Reduce("+", E.MMt)
+  if (is.null(TIMBR.output$y)){
+    E.MMt <- lapply(1:length(TIMBR.output$ln.probs), function(x){M <- TIMBR:::M.matrix.from.ID(TIMBR.output$M.IDs[x]); exp(TIMBR.output$ln.probs[x])*tcrossprod(M)})
+  } else {
+    E.MMt <- lapply(1:length(TIMBR.output$p.M.given.y), function(x){M <- TIMBR:::M.matrix.from.ID(names(TIMBR.output$p.M.given.y)[x]); TIMBR.output$p.M.given.y[x]*tcrossprod(M)})
+  }
   
+  E.MMt <- Reduce("+", E.MMt)
+  J <- ncol(E.MMt)
   rownames(E.MMt) <- LETTERS[1:J]
   colnames(E.MMt) <- rownames(E.MMt)
   
@@ -1304,19 +1307,23 @@ TIMBR.plot.circos <- function(TIMBR.output, post.summary="mean", colors=c("blue"
   }
   
   #signed variance of each effect divided by variance of effect and error
-  diff <- TIMBR.output$post.hap.effects - apply(TIMBR.output$post.hap.effects, 1, mean)
-  sign <- (-1)^(diff < 0)
-  sum.sq <- diff^2
-  var.exp <- sum.sq / (sum.sq + TIMBR.output$post.sigma.sq)
-  var.exp.signed <- var.exp*sign
-  
-  #posterior summary of transformed effects
-  if (post.summary=="mean"){
-    effects <- colMeans(var.exp.signed)
-  } else if (post.summary=="mode"){
-    effects <- apply(var.exp.signed, 2, function(x){dens <- density(x, from=-1, to=1); dens$x[which.max(dens$y)]})
-  } else if (post.summary=="median"){
-    effects <- apply(var.exp.signed,2,median)
+  if (is.null(TIMBR.output$y)){
+    effects <- rep(0, J)
+  } else {
+    diff <- TIMBR.output$post.hap.effects - apply(TIMBR.output$post.hap.effects, 1, mean)
+    sign <- (-1)^(diff < 0)
+    sum.sq <- diff^2
+    var.exp <- sum.sq / (sum.sq + TIMBR.output$post.sigma.sq)
+    var.exp.signed <- var.exp*sign
+    
+    #posterior summary of transformed effects
+    if (post.summary=="mean"){
+      effects <- colMeans(var.exp.signed)
+    } else if (post.summary=="mode"){
+      effects <- apply(var.exp.signed, 2, function(x){dens <- density(x, from=-1, to=1); dens$x[which.max(dens$y)]})
+    } else if (post.summary=="median"){
+      effects <- apply(var.exp.signed,2,median)
+    }
   }
   names(effects) <- LETTERS[1:J]
   
