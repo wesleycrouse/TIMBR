@@ -969,6 +969,8 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
       prior.alpha <- list(type="gamma", shape=TIMBR.output$prior.M$prior.alpha.shape, rate=TIMBR.output$prior.M$prior.alpha.rate)
     } else if (TIMBR.output$prior.M$prior.alpha.type=="fixed"){
       prior.alpha <- list(type="fixed", alpha=TIMBR.output$prior.M$prior.alpha)
+    } else if (TIMBR.output$prior.M$prior.alpha.type=="beta.prime"){
+      prior.alpha <- list(type="beta.prime", a=TIMBR.output$prior.M$prior.alpha.a, b=TIMBR.output$prior.M$prior.alpha.b, q=TIMBR.output$prior.M$prior.alpha.q)
     }
   } else if (TIMBR.output$prior.M$model.type=="uniform"){
     ln.prior.uniform <- -ln.bell(ncol(TIMBR.output$prior.D$A))
