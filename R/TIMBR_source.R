@@ -172,6 +172,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     post.alpha <- rep(NA, iterations)
     post.hyperparameters <- vector("list", iterations)
     post.K <- rep(NA, iterations)
+    post.y.hat <- matrix(NA, iterations, n)
     
     #iterate sampler
     for (i in 1:iterations){
@@ -335,7 +336,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       tau.sq <- rgamma(1, tau.sq.shape, tau.sq.rate)^(-1)
       
       #update lambda from conjugate normal distribution
-      y.prime <- c(y-Z%*%delta)
+      Z.delta <- Z%*%delta
+      y.prime <- c(y-Z.delta)
       MCeta <- MC%*%eta
       
       if (update.M | !fixed.diplo){
@@ -368,7 +370,6 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
         #probabilities are normalized by rmultinom
         D <- t(apply(D.prob, 1, rmultinom, n=1, size=1))
       }
-      
       #store posterior samples and hyperparameters
       post.M[i,] <- M.list
       post.MCbeta[i,] <- MCbeta
@@ -379,6 +380,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       post.hyperparameters[[i]] <- M.posteriors[1:4]
       p.D.given.y <- p.D.given.y + D
       post.K[i] <- K
+      post.y.hat[i,] <- D%*%AMCbeta + Z.delta
     }
     
     #report unique names for posterior samples of M
@@ -400,10 +402,11 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     phi.sq <<- phi.sq
     
     #return posterior samples and hyperparameters
-    posterior.results <- list("post.M"=post.M, "post.MCbeta"=post.MCbeta, "post.delta"=post.delta, "post.sigma.sq"=post.sigma.sq, "post.phi.sq"=post.phi.sq, "p.D.given.y"=p.D.given.y, "post.hyperparameters"=post.hyperparameters, "post.K"=post.K)
+    posterior.results <- list("post.M"=post.M, "post.MCbeta"=post.MCbeta, "post.delta"=post.delta, "post.sigma.sq"=post.sigma.sq, "post.phi.sq"=post.phi.sq, 
+                              "p.D.given.y"=p.D.given.y, "post.hyperparameters"=post.hyperparameters, "post.K"=post.K, "post.y.hat"=post.y.hat)
 
     if (update.alpha){
-      posterior.results$post.alpha <-  post.alpha
+      posterior.results$post.alpha <- post.alpha
     }
       
     if (calc.null.ml){
