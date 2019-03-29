@@ -1151,19 +1151,31 @@ ewenss.exact <- function(tree, prior.alpha){
       ln.prob <- sum(p[cbind(1:nrow(p), as.integer(B)+1)])
     } else if (prior.alpha$type=="gamma"){
       combinations <- as.matrix(expand.grid(replicate(sum(B), 0:1, simplify=FALSE)))
-      
-      if (B.ID==1){
-        sign <- 1
-      } else {
-        sign <- (-1)^(apply(combinations, 1, sum)%%2)
-      }
-      
+      sign <- ifelse(B.ID==1, 1, (-1)^(apply(combinations, 1, sum)%%2))
       params <- matrix(TRUE, 2^sum(B), length(l))
       params[, which(B)] <- as.logical(combinations)
       half.l <- 0.5*l
       b.prime <- prior.alpha.rate + apply(params, 1, function(x){sum(half.l[x])})
       
       ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
+    } else if (prior.alpha$type=="beta.prime"){
+      
+      combinations <- as.matrix(expand.grid(replicate(sum(B), 0:1, simplify=FALSE)))
+      sign <- ifelse(B.ID==1, 1, (-1)^(apply(combinations, 1, sum)%%2))
+      params <- matrix(TRUE, 2^sum(B), length(l))
+      params[, which(B)] <- as.logical(combinations)
+      half.l <- 0.5*l
+      
+      b.prime.data <- apply(params, 1, function(x){sum(half.l[x])})
+      
+      density.ewenss.beta.prime <- Vectorize(function(x){
+        b.prime <- x + b.prime.data
+        
+        #x^(prior.alpha.shape) * sum(sign*b.prime^(-prior.alpha.shape)) * x^(prior.alpha.b-1) * exp(-prior.alpha.q*x)
+        x^(prior.alpha.shape + prior.alpha.b - 1)*sum(sign*b.prime^(-prior.alpha.shape))*exp(-prior.alpha.q*x)
+      })
+      
+      ln.p <- log(integrate(density.ewenss.beta.prime, lower=0, upper=Inf)$value) + prior.alpha.b*log(prior.alpha.q) - lgamma(prior.alpha.b)
     }
     
     c(M.ID, ln.prob)
@@ -1199,6 +1211,10 @@ ewenss.exact <- function(tree, prior.alpha){
     } else if (prior.alpha$type=="gamma"){
       prior.alpha.shape <- prior.alpha$shape
       prior.alpha.rate <- prior.alpha$rate
+    } else if (prior.alpha$type=="beta.prime"){
+      prior.alpha.shape <- prior.alpha$a
+      prior.alpha.b <- prior.alpha$b
+      prior.alpha.q <- ifelse(is.null(prior.alpha$q), 1, prior.alpha$q)
     }
     
     #calculate probabilties for all combinations of branch mutations and collapse by M.ID
