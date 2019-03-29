@@ -734,7 +734,7 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
 #'
 #' @param samples number of samples
 #' @param trees either a user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
-#' @param prior.alpha prior type (fixed/gamma) for the concentration parameter, see examples for format
+#' @param prior.alpha prior type (fixed / gamma / beta prime) for the concentration parameter, see examples for format
 #' @param verbose optionally report function progress
 #'
 #' @return list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
