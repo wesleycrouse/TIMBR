@@ -1175,7 +1175,7 @@ ewenss.exact <- function(tree, prior.alpha){
         x^(prior.alpha.shape + prior.alpha.b - 1)*sum(sign*b.prime^(-prior.alpha.shape))*exp(-prior.alpha.q*x)
       })
       
-      ln.p <- log(integrate(density.ewenss.beta.prime, lower=0, upper=Inf)$value) + prior.alpha.b*log(prior.alpha.q) - lgamma(prior.alpha.b)
+      ln.prob <- log(integrate(density.ewenss.beta.prime, lower=0, upper=Inf)$value) + prior.alpha.b*log(prior.alpha.q) - lgamma(prior.alpha.b)
     }
     
     c(M.ID, ln.prob)
