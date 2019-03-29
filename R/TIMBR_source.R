@@ -491,7 +491,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     } else if (prior.alpha.type=="beta.prime"){
       prior.alpha.shape <- prior.M$prior.alpha.a
       prior.alpha.b <- prior.M$prior.alpha.b
-      prior.alpha.q <- prior.M$prior.alpha.q
+      prior.alpha.q <- ifelse(is.null(prior.M$prior.alpha.q), 1, prior.M$prior.alpha.q)
       prior.alpha.rate <- prior.alpha.b/prior.alpha.q
       alpha <- prior.alpha.shape/prior.alpha.rate
     }
@@ -772,7 +772,10 @@ ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
     L <- sum(l)
     
     #optionally sample the mutation rates for the poisson process
-    if (prior.alpha$type=="gamma"){
+    if (prior.alpha$type!="fixed"){
+      if (prior.alpha$type=="beta.prime"){
+        prior.alpha.rate <- rgamma(1, prior.alpha.b, prior.alpha.q)
+      }
       alpha <- rgamma(iter, prior.alpha.shape, prior.alpha.rate)
     }
     lambda <- alpha*L/2
@@ -791,7 +794,6 @@ ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
     list(m, p.null)
   }
   
-  ###################
   #optionally disable reporting
   if (verbose){
     print("Iterating Ewens's sampling formula")
@@ -803,6 +805,10 @@ ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
     prior.alpha.rate <- prior.alpha$rate
   } else if (prior.alpha$type=="fixed"){
     alpha <- prior.alpha$alpha
+  } else if (prior.alpha$type=="beta.prime"){
+    prior.alpha.shape <- prior.alpha$a
+    prior.alpha.b <- prior.alpha$b
+    prior.alpha.q <- ifelse(is.null(prior.alpha$q), 1, prior.alpha$q)
   }
   
   #iterate Ewens's sampling formula using specified trees
@@ -973,6 +979,9 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
     } else if (TIMBR.output$prior.M$prior.alpha.type=="fixed"){
       prior.alpha <- list(type="fixed", alpha=TIMBR.output$prior.M$prior.alpha)
     } else if (TIMBR.output$prior.M$prior.alpha.type=="beta.prime"){
+      if (is.null(TIMBR.output$prior.M$prior.alpha.q)){
+        TIMBR.output$prior.M$prior.alpha.q <- 1
+      }
       prior.alpha <- list(type="beta.prime", a=TIMBR.output$prior.M$prior.alpha.a, b=TIMBR.output$prior.M$prior.alpha.b, q=TIMBR.output$prior.M$prior.alpha.q)
     }
   } else if (TIMBR.output$prior.M$model.type=="uniform"){
@@ -1092,7 +1101,7 @@ dcrp <- function(m, prior.alpha, log.p=T){
   } else if (prior.alpha$type=="beta.prime"){
     a <- prior.alpha$a
     b <- prior.alpha$b
-    q <- prior.alpha$q
+    q <- ifelse(is.null(prior.alpha$q), 1, prior.alpha$q)
     
     density.crp.concentration <- Vectorize(function(x){
       exp(lgamma(x) - lgamma(x+J) + (a+K-1)*log(x) - (a+b)*log(1+x/q))
