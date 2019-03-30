@@ -734,7 +734,7 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
 #'
 #' @param samples number of samples
 #' @param trees either a user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
-#' @param prior.alpha prior type (fixed / gamma / beta prime) for the concentration parameter, see examples for format
+#' @param prior.alpha prior type c("fixed","gamma") for the concentration parameter, see examples for format. type "beta.prime" supported but sampler appears unstable, use ewenss.exact function instead
 #' @param verbose optionally report function progress
 #'
 #' @return list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
@@ -1353,98 +1353,4 @@ TIMBR.plot.circos <- function(TIMBR.output, post.summary="mean", colors=c("blue"
   }
   
   circlize::circos.clear()
-}
-
-#' @keywords internal
-ewenss.sampler2 <- function(samples, trees, prior.alpha, verbose=T){
-  sample.M.ID.from.tree <- function(iter, tree=NULL){
-    #sample coalescent tree if tree is unspecified
-    if (is.null(tree)){
-      tree <- ape::rcoal(J, LETTERS[1:J])
-    }
-    
-    #decompose tree into basis V and lengths l
-    tree.decomposed <- decompose.tree(tree)
-    V <- tree.decomposed$V
-    l <- tree.decomposed$l
-    L <- sum(l)
-    
-    #optionally sample the mutation rates for the poisson process
-    if (prior.alpha$type=="gamma"){
-      alpha <- rgamma(iter, prior.alpha.shape, prior.alpha.rate)
-    } else if (prior.alpha$type=="beta.prime"){
-      alpha <- PearsonDS::rpearsonVI(1, prior.alpha.shape, prior.alpha.b, 0, prior.alpha.q)
-    }
-    
-    #if (prior.alpha$type!="fixed"){
-    #  if (prior.alpha$type=="beta.prime"){
-    #    prior.alpha.rate <- rgamma(1, prior.alpha.b, prior.alpha.q)
-    #  }
-    #  alpha <- rgamma(iter, prior.alpha.shape, prior.alpha.rate)
-    #}
-    lambda <- alpha*L/2
-    
-    #calculate null probabilities and sample non-zero numbers of mutations from truncated poisson
-    p.null <- dpois(0, lambda)
-    theta <- rpois(iter, lambda + log(1 - runif(iter)*(1 - exp(-lambda)))) + 1
-    
-    #probabilistically assign mutations to branches in proportion to branch lengths
-    B <- rbind(sapply(theta, rmultinom, n=1, prob=l[-length(l)])>0, T)
-    
-    #collect allelic series
-    m <- apply(B, 2, function(y){m.rename(apply(V[,y], 1, Position, f=function(x){x==1}))})
-    
-    #return allelic series and null probabilities
-    list(m, p.null)
-  }
-  
-  #optionally disable reporting
-  if (verbose){
-    print("Iterating Ewens's sampling formula")
-  }
-  
-  #specify alpha or prior hyperparameters
-  if (prior.alpha$type=="gamma"){
-    prior.alpha.shape <- prior.alpha$shape
-    prior.alpha.rate <- prior.alpha$rate
-  } else if (prior.alpha$type=="fixed"){
-    alpha <- prior.alpha$alpha
-  } else if (prior.alpha$type=="beta.prime"){
-    prior.alpha.shape <- prior.alpha$a
-    prior.alpha.b <- prior.alpha$b
-    prior.alpha.q <- ifelse(is.null(prior.alpha$q), 1, prior.alpha$q)
-  }
-  
-  #iterate Ewens's sampling formula using specified trees
-  if (is.numeric(trees)){
-    #sample allelic series from random coalescent trees
-    J <- trees
-    results <- replicate(samples, sample.M.ID.from.tree(1))
-  } else {
-    #set class to multiphylo if single tree is specified
-    if (class(trees)=="phylo"){
-      trees <- c(trees)
-    }
-    
-    #store number of leaves on the tree
-    J <- trees[[1]]$Nnode + 1
-    
-    #calculate required number of samples for each specified tree
-    n.trees <- length(trees)
-    iter <- rep(floor(samples/n.trees), n.trees)
-    remainder <- samples%%n.trees
-    if (remainder != 0){
-      iter[1:remainder] <- iter[1:remainder] + 1
-    }
-    
-    #sample allelic series from specified trees
-    results <- sapply(1:n.trees, function(x){sample.M.ID.from.tree(iter[x], trees[[x]])})
-  }
-  
-  df <- data.frame(M.IDs=unlist(results[1,]), wt=(1-unlist(results[2,]))/samples, stringsAsFactors=F)
-  df <- dplyr::count(df, M.IDs, wt = wt)
-  df <- dplyr::add_row(df, M.IDs=paste(rep(0,J),collapse=","), n=1-sum(df$n))
-  df <- dplyr::arrange(df, dplyr::desc(n))
-  
-  list(model.type="list", M.IDs=df$M.IDs, ln.probs=log(df$n), hash.names=T)
 }
