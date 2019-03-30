@@ -29,7 +29,7 @@ head(TIMBR.approx(results))
 
 #generate list object for CRP prior
 prior.alpha <- list(type="gamma", shape=results$prior.M$prior.alpha.shape, rate=results$prior.M$prior.alpha.rate)
-prior.M <- ewenss.exact(8, prior.alpha)
+prior.M <- ewenss.calc(8, prior.alpha)
 
 #specify biallelic contrast for consistency and update prior.M
 M.ID <- "0,1,0,1,1,0,0,0"

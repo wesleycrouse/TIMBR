@@ -11,7 +11,7 @@ ewenss.sampler(samples, trees, prior.alpha, verbose = T)
 
 \item{trees}{either a user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned}
 
-\item{prior.alpha}{prior type (fixed/gamma) for the concentration parameter, see examples for format}
+\item{prior.alpha}{prior type c("fixed","gamma") for the concentration parameter, see examples for format. type "beta.prime" supported but sampler appears unstable, use ewenss.calc function instead}
 
 \item{verbose}{optionally report function progress}
 }
