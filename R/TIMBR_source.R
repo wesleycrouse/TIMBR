@@ -1148,7 +1148,7 @@ ewenss.exact <- function(tree, prior.alpha){
     M.ID <- m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1}))
     
     if (prior.alpha$type=="fixed"){
-      ln.prob <- sum(p[cbind(1:nrow(p), as.integer(B)+1)])
+      ln.prob <- sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)])
     } else if (prior.alpha$type=="gamma"){
       combinations <- as.matrix(expand.grid(replicate(sum(B), 0:1, simplify=FALSE)))
       sign <- ifelse(B.ID==1, 1, (-1)^(apply(combinations, 1, sum)%%2))
@@ -1159,23 +1159,13 @@ ewenss.exact <- function(tree, prior.alpha){
       
       ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
     } else if (prior.alpha$type=="beta.prime"){
-      
-      combinations <- as.matrix(expand.grid(replicate(sum(B), 0:1, simplify=FALSE)))
-      sign <- ifelse(B.ID==1, 1, (-1)^(apply(combinations, 1, sum)%%2))
-      params <- matrix(TRUE, 2^sum(B), length(l))
-      params[, which(B)] <- as.logical(combinations)
-      half.l <- 0.5*l
-      
-      b.prime.data <- apply(params, 1, function(x){sum(half.l[x])})
-      
-      density.ewenss.beta.prime <- Vectorize(function(x){
-        b.prime <- x + b.prime.data
-        
-        #x^(prior.alpha.shape) * sum(sign*b.prime^(-prior.alpha.shape)) * x^(prior.alpha.b-1) * exp(-prior.alpha.q*x)
-        x^(prior.alpha.shape + prior.alpha.b - 1)*sum(sign*b.prime^(-prior.alpha.shape))*exp(-prior.alpha.q*x)
+      density.ewens.beta.prime <- Vectorize(function(x){
+        ln.p <- -x*l[-length(l)]/2
+        ln.p <- cbind(ln.p, log(exp(-ln.p)-1)+ln.p)
+        exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
       })
       
-      ln.prob <- log(integrate(density.ewenss.beta.prime, lower=0, upper=Inf)$value) + prior.alpha.b*log(prior.alpha.q) - lgamma(prior.alpha.b)
+      ln.prob <- log(integrate(density.ewens.beta.prime, lower=0, upper=Inf)$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
     }
     
     c(M.ID, ln.prob)
@@ -1204,15 +1194,14 @@ ewenss.exact <- function(tree, prior.alpha){
     
     if (prior.alpha$type=="fixed"){
       #store mutation probabilities for each branch
-      lambda <- prior.alpha$alpha*l[-length(l)]/2
-      p <- dpois(0, lambda, log=T)
-      p <- cbind(p, log(exp(-p)-1)+p)
-      colnames(p) <- NULL
+      ln.p <- -prior.alpha$alpha*l[-length(l)]/2
+      ln.p <- cbind(ln.p, log(exp(-ln.p)-1)+ln.p)
+      #colnames(ln.p) <- NULL
     } else if (prior.alpha$type=="gamma"){
       prior.alpha.shape <- prior.alpha$shape
       prior.alpha.rate <- prior.alpha$rate
     } else if (prior.alpha$type=="beta.prime"){
-      prior.alpha.shape <- prior.alpha$a
+      prior.alpha.a <- prior.alpha$a
       prior.alpha.b <- prior.alpha$b
       prior.alpha.q <- ifelse(is.null(prior.alpha$q), 1, prior.alpha$q)
     }
