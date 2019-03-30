@@ -1161,7 +1161,7 @@ ewenss.exact <- function(tree, prior.alpha){
     } else if (prior.alpha$type=="beta.prime"){
       density.ewens.beta.prime <- Vectorize(function(x){
         ln.p <- -x*l[-length(l)]/2
-        ln.p <- cbind(ln.p, log(exp(-ln.p)-1)+ln.p)
+        ln.p <- cbind(ln.p, log(1-exp(ln.p)))
         exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
       })
       
@@ -1195,7 +1195,7 @@ ewenss.exact <- function(tree, prior.alpha){
     if (prior.alpha$type=="fixed"){
       #store mutation probabilities for each branch
       ln.p <- -prior.alpha$alpha*l[-length(l)]/2
-      ln.p <- cbind(ln.p, log(exp(-ln.p)-1)+ln.p)
+      ln.p <- cbind(ln.p, log(1-exp(ln.p)))
       #colnames(ln.p) <- NULL
     } else if (prior.alpha$type=="gamma"){
       prior.alpha.shape <- prior.alpha$shape
