@@ -1212,6 +1212,11 @@ ewenss.exact <- function(tree, prior.alpha){
     df <- dplyr::summarize(dplyr::group_by(df, M.IDs), ln.probs = matrixStats::logSumExp(ln.probs))
     df <- dplyr::arrange(df, dplyr::desc(ln.probs))
     
+    #normalize total to correct for approximation
+    if (prior.alpha$type=="beta.prime"){
+      df$ln.probs <- df$ln.probs - matrixStats::logSumExp(df$ln.probs)
+    }
+    
     list(model.type="list", M.IDs=df$M.IDs, ln.probs=df$ln.probs, hash.names=T)
   }
 }
