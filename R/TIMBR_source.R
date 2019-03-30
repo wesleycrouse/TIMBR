@@ -898,13 +898,24 @@ additive.design <- function(J, type){
 #' TIMBR.plot.haplotypes(results)
 #'
 #' @export
-TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960, plot.height=480){
+TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960, plot.height=480, TIMBR.output.bkgrd <- NULL,
+                                  colors.bkgrd=NULL, trans=c(0.7,0.4)){
   densities <- apply(TIMBR.output$post.hap.effect, 2, density)
   J <- length(densities)
   
-  scale.y <- max(sapply(densities, function(x){max(x$y)})) * 1.2
+  scale.y <- max(sapply(densities, function(x){max(x$y)})*1.2)
   min.x <- min(sapply(densities, function(x){min(x$x)}))
   max.x <- max(sapply(densities, function(x){max(x$x)}))
+  
+  if (!is.null(TIMBR.output.bkgrd)){
+    densities.bkgrd <- apply(TIMBR.output.bkgrd$post.hap.effect, 2, density)
+    if(length(densities.bkgrd)!=J){
+      stop("J does not match for TIMBR.output and TIMBR.output.bkgrd")
+    } 
+    scale.y <- max(sapply(densities.bkgrd, function(x){max(x$y)})*1.2, scale.y)
+    min.x <- min(sapply(densities.bkgrd, function(x){min(x$x)}), min.x)
+    max.x <- max(sapply(densities.bkgrd, function(x){max(x$x)}), max.x)
+  }
   
   par(cex.axis=1.1, cex.lab=1.1, cex.main=1.2, cex.sub=1.1)
   
@@ -921,6 +932,21 @@ TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plo
       colors <- c("#9000E0","#F00000","#00A000","#00A0F0","#1010F0","#F08080","#808080","#F0F000")
     } else {
       colors <- rep("#4D4D4D", J)
+    }
+  }
+  
+  
+  if (!is.null(TIMBR.output.bkgrd)){
+    
+    #change this to ifelse
+    if (is.null(colors.bkgrd)){
+      colors.bkgrd <- scales::alpha(colors, trans[2])
+      colors <- scales::alpha(rep("#4D4D4D", J), trans[1])
+    }
+    
+    for (i in 1:J){
+      densities.bkgrd[[(J+1)-i]]$y <- densities.bkgrd[[(J+1)-i]]$y + (i-1)*scale.y
+      polygon(densities.bkgrd[[(J+1)-i]], col=colors.bkgrd[i], lwd=1)
     }
   }
   
