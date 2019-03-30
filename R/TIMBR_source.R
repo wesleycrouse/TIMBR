@@ -1373,7 +1373,7 @@ ewenss.sampler2 <- function(samples, trees, prior.alpha, verbose=T){
     if (prior.alpha$type=="gamma"){
       alpha <- rgamma(iter, prior.alpha.shape, prior.alpha.rate)
     } else if (prior.alpha$type=="beta.prime"){
-      alpha <- PearsonDS::rpearsonVI(1, prior.alpha.shape, prior.alpha.b, 1, prior.alpha.q)
+      alpha <- PearsonDS::rpearsonVI(1, prior.alpha.shape, prior.alpha.b, 0, prior.alpha.q)
     }
     
     #if (prior.alpha$type!="fixed"){
