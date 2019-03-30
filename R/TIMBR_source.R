@@ -734,7 +734,7 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target){
 #'
 #' @param samples number of samples
 #' @param trees either a user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
-#' @param prior.alpha prior type c("fixed","gamma") for the concentration parameter, see examples for format. type "beta.prime" supported but sampler appears unstable, use ewenss.exact function instead
+#' @param prior.alpha prior type c("fixed","gamma") for the concentration parameter, see examples for format. type "beta.prime" supported but sampler appears unstable, use ewenss.calc function instead
 #' @param verbose optionally report function progress
 #'
 #' @return list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
@@ -1113,12 +1113,12 @@ dcrp <- function(m, prior.alpha, log.p=T){
   ifelse(log.p, ln.p, exp(ln.p))
 }
 
-#' Exact calculation of Ewens's sampling formula with optional gamma prior on the concentration parameter
+#' Direct calculation of Ewens's sampling formula with optional gamma or beta prime prior on the concentration parameter
 #'
-#' Calculate exact probabilties for allelic series (paritions) under Ewen's sampling formula, optionally informed by a user-specified tree. Trees must be in coalescent units for appropriate inference.
+#' Directly calculates probabilties for allelic series (paritions) under Ewen's sampling formula, optionally informed by a user-specified tree. Trees must be in coalescent units for appropriate inference.
 #'
 #' @param trees either a user-specified tree of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
-#' @param prior.alpha prior type (fixed/gamma) for the concentration parameter, see examples for format
+#' @param prior.alpha prior type c("fixed","gamma","beta.prime") for the concentration parameter, see examples for format
 #'
 #' @return list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
 #' 
@@ -1128,7 +1128,7 @@ dcrp <- function(m, prior.alpha, log.p=T){
 #' prior.alpha <- list(type="gamma", shape=hyperparam[1], rate=hyperparam[2])
 #' 
 #' #running the sampler without user-specified trees; compare with target prior probabilities
-#' prior.M <- ewenss.exact(8, prior.alpha)
+#' prior.M <- ewenss.calc(8, prior.alpha)
 #' exp(prior.M$ln.probs[prior.M$M.IDs=="0,0,0,0,0,0,0,0"])
 #' exp(prior.M$ln.probs[prior.M$M.IDs=="0,1,2,3,4,5,6,7"])
 #' 
@@ -1136,12 +1136,12 @@ dcrp <- function(m, prior.alpha, log.p=T){
 #' tree <- ape::rcoal(8, LETTERS[1:8])
 #' ape::plot.phylo(tree)
 #' prior.alpha <- list(type="fixed", alpha=1)
-#' prior.M <- ewenss.exact(tree, prior.alpha)
+#' prior.M <- ewenss.calc(tree, prior.alpha)
 #' head(prior.M$M.IDs)
 #' head(exp(prior.M$ln.probs))
 #'
 #' @export
-ewenss.exact <- function(tree, prior.alpha){
+ewenss.calc <- function(tree, prior.alpha){
   ln.prob.and.M.ID.from.B.ID <- function(B.ID){
     #function to calculate probability of branch mutation configuration
     B <- as.logical(intToBits(B.ID-1)[1:(ncol(V)-1)])
@@ -1242,7 +1242,7 @@ ewenss.exact <- function(tree, prior.alpha){
 #' 
 #' #generate list object for CRP prior
 #' prior.alpha <- list(type="gamma", shape=results$prior.M$prior.alpha.shape, rate=results$prior.M$prior.alpha.rate)
-#' prior.M <- ewenss.exact(8, prior.alpha)
+#' prior.M <- ewenss.calc(8, prior.alpha)
 #' 
 #' #specify biallelic contrast for consistency and update prior.M
 #' M.ID <- "0,1,0,1,1,0,0,0"
