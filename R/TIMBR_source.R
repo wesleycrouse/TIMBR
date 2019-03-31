@@ -1350,22 +1350,25 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
   
   distance <- diag(0,J)
   distance[t(combn(1:J, 2))] <- apply(combn(1:8, 2), 2, function(x){sqrt(sum((locations[x[1],] - locations[x[2],])^2))})
-  
-  #for (i in 1:(J-1)){
-  #  for (j in (i+1):J){
-  #    distance[i,j] <- sqrt(sum((locations[i,] - locations[j,])^2))
-  #  }
-  #}
-  
   distance <- distance[upper.tri(distance)]
   
-  order.dist <- rep(NA, length(orders))
   
-  for (i in 1:length(orders)){
-    order <- unlist(orders[i])
-    E.MMt.order <- E.MMt[order, order]
-    order.dist[i] <- sum(E.MMt.order[upper.tri(E.MMt.order)]*distance)
-  }
+  
+  order.dist <- sapply(orders, function(x){
+    E.MMt.order <- E.MMt[x, x]; sum(E.MMt.order[upper.tri(E.MMt.order)]*distance)
+  })
+  
+  
+  
+  
+  
+  #order.dist <- rep(NA, length(orders))
+  
+  #for (i in 1:length(orders)){
+  #  order <- unlist(orders[i])
+  #  E.MMt.order <- E.MMt[order, order]
+  #  order.dist[i] <- sum(E.MMt.order[upper.tri(E.MMt.order)]*distance)
+  #}
   
   best.order <- unlist(orders[which.min(order.dist)])
   E.MMt <- E.MMt[best.order, best.order]
