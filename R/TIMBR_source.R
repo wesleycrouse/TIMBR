@@ -1352,28 +1352,15 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
   distance[t(combn(1:J, 2))] <- apply(combn(1:8, 2), 2, function(x){sqrt(sum((locations[x[1],] - locations[x[2],])^2))})
   distance <- distance[upper.tri(distance)]
   
-  
-  
-  order.dist <- sapply(orders, function(x){
-    E.MMt.order <- E.MMt[x, x]; sum(E.MMt.order[upper.tri(E.MMt.order)]*distance)
-  })
-  
-  
-  
-  
-  
-  #order.dist <- rep(NA, length(orders))
-  
-  #for (i in 1:length(orders)){
-  #  order <- unlist(orders[i])
-  #  E.MMt.order <- E.MMt[order, order]
-  #  order.dist[i] <- sum(E.MMt.order[upper.tri(E.MMt.order)]*distance)
-  #}
-  
+  order.dist <- sapply(orders, function(x){E.MMt.order <- E.MMt[x, x]; sum(E.MMt.order[upper.tri(E.MMt.order)]*distance)})
   best.order <- unlist(orders[which.min(order.dist)])
   E.MMt <- E.MMt[best.order, best.order]
   
   #plot connnections
+  if (!is.null(file.path)){
+    png(file.path, height=plot.height, width=plot.width)
+  }
+  
   circlize::circos.initialize(LETTERS[best.order], xlim=cbind(rep(0,J),rep(1,J)))
   circlize::circos.trackPlotRegion(y=rep(0,J), ylim=c(0,1))
   
@@ -1384,11 +1371,12 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
     }
   }
   
+  #add labels
   for (i in 1:J){
     circlize::circos.text(0.5, 1.5, LETTERS[i], LETTERS[i])
   }
   
-  #signed variance of each effect divided by variance of effect and error
+  #calculate signed squared effect divided by sum of squared effect and error variance
   if (is.null(TIMBR.object$y)){
     effects <- rep(0, J)
   } else {
@@ -1417,5 +1405,10 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
     circlize::circos.rect(0,0,1,1, LETTERS[i], col=colors[i])
   }
   
+  #clean-up and publish plot
   circlize::circos.clear()
+  
+  if (!is.null(file.path)){
+    dev.off()
+  }
 }
