@@ -885,7 +885,7 @@ additive.design <- function(J, type){
 #' @param plot.height PNG plot height
 #' @param TIMBR.output.bkgrd optional second results object for background plot
 #' @param colors.bkgrd optional colors for background plot
-#' @param trans optional vector of transparencies for foreground and background plots, ignored if second results object is not specified
+#' @param transparency optional vector of transparencies for foreground and background plots, ignored if second results object is not specified
 #'
 #' @return plot of the posterior haplotype effect densities
 #' 
@@ -902,7 +902,7 @@ additive.design <- function(J, type){
 #'
 #' @export
 TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960, plot.height=480, TIMBR.output.bkgrd=NULL,
-                                  colors.bkgrd=NULL, trans=c(0.7,0.4)){
+                                  colors.bkgrd=NULL, transparency=c(0.7,0.4)){
   densities <- apply(TIMBR.output$post.hap.effect, 2, density)
   J <- length(densities)
   
@@ -943,8 +943,8 @@ TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plo
     
     #change this to ifelse
     if (is.null(colors.bkgrd)){
-      colors.bkgrd <- scales::alpha(colors, trans[2])
-      colors <- scales::alpha(rep("#4D4D4D", J), trans[1])
+      colors.bkgrd <- scales::alpha(colors, transparency[2])
+      colors <- scales::alpha(rep("#4D4D4D", J), transparency[1])
     }
     
     for (i in 1:J){
