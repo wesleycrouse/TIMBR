@@ -5,7 +5,8 @@
 \title{Plot Haplotype Effects from TIMBR Output}
 \usage{
 TIMBR.plot.haplotypes(TIMBR.output, colors = NULL, file.path = NULL,
-  plot.width = 960, plot.height = 480)
+  plot.width = 960, plot.height = 480, TIMBR.output.bkgrd = NULL,
+  colors.bkgrd = NULL, trans = c(0.7, 0.4))
 }
 \arguments{
 \item{TIMBR.output}{results object from the TIMBR function}
@@ -17,6 +18,12 @@ TIMBR.plot.haplotypes(TIMBR.output, colors = NULL, file.path = NULL,
 \item{plot.width}{PNG plot width}
 
 \item{plot.height}{PNG plot height}
+
+\item{TIMBR.output.bkgrd}{optional second results object for background plot}
+
+\item{colors.bkgrd}{optional colors for background plot}
+
+\item{trans}{optional vector of transparencies for foreground and background plots, ignored if second results object is not specified}
 }
 \value{
 plot of the posterior haplotype effect densities
