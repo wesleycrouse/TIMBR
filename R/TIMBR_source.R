@@ -931,17 +931,11 @@ TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plo
   Axis(side=1)
   
   if (is.null(colors)){
-    if (J==8){
-      colors <- c("#9000E0","#F00000","#00A000","#00A0F0","#1010F0","#F08080","#808080","#F0F000")
-    } else {
-      colors <- rep("#4D4D4D", J)
-    }
+    colors <- ifelse(J==8, c("#9000E0","#F00000","#00A000","#00A0F0","#1010F0","#F08080","#808080","#F0F000"), rep("#4D4D4D", J))
   }
   
   
   if (!is.null(TIMBR.output.bkgrd)){
-    
-    #change this to ifelse
     if (is.null(colors.bkgrd)){
       colors.bkgrd <- scales::alpha(colors, transparency[2])
       colors <- scales::alpha(rep("#4D4D4D", J), transparency[1])
@@ -1303,13 +1297,46 @@ TIMBR.consistent <- function(prior.M, M.ID){
   prior.M
 }
 
-#' @keywords internal
-TIMBR.plot.circos <- function(TIMBR.output, post.summary="mean", colors=c("blue", "white", "red"), color.res=1000){
+
+
+
+
+
+
+
+#' Circos Plot of Pairwise Partition Probabilities from TIMBR Object
+#'
+#' Plots the probability that each pair of haplotypes is partitioned together on a circos plot; includes heatmap of relative effect sizes when using TIMBR results
+#'
+#' @param TIMBR.object results object from the TIMBR function; or prior.M object of "list" type 
+#' @param file.path an optional file path for saving the plot as a PNG
+#' @param plot.width PNG plot width
+#' @param plot.height PNG plot height
+#' @param post.summary posterior summary for relative effect size; select from c("mean", "median", "mode")
+#' @param colors colors for heatmap of relative effect sizes
+#' @param color.res number of colors to use for the heatmap color ramp
+#'
+#' @return circos plot of pairwise partition probabilities
+#' 
+#' @examples
+#' #example data
+#' data(mcv.data)
+#' str(mcv.data)
+#' 
+#' #call TIMBR using CRP
+#' results <- TIMBR(mcv.data$y, mcv.data$prior.D, mcv.data$prior.M$crp)
+#' 
+#' #plot partition probabilities
+#' TIMBR.plot.circos(results)
+#'
+#' @export
+TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot.height=480,
+                              post.summary="mean", colors=c("blue", "white", "red"), color.res=1000){
   #calculate pairwise probabilities for haplotype groupings
-  if (is.null(TIMBR.output$y)){
-    E.MMt <- lapply(1:length(TIMBR.output$ln.probs), function(x){M <- TIMBR:::M.matrix.from.ID(TIMBR.output$M.IDs[x]); exp(TIMBR.output$ln.probs[x])*tcrossprod(M)})
+  if (is.null(TIMBR.object$y)){
+    E.MMt <- lapply(1:length(TIMBR.object$ln.probs), function(x){M <- TIMBR:::M.matrix.from.ID(TIMBR.object$M.IDs[x]); exp(TIMBR.object$ln.probs[x])*tcrossprod(M)})
   } else {
-    E.MMt <- lapply(1:length(TIMBR.output$p.M.given.y), function(x){M <- TIMBR:::M.matrix.from.ID(names(TIMBR.output$p.M.given.y)[x]); TIMBR.output$p.M.given.y[x]*tcrossprod(M)})
+    E.MMt <- lapply(1:length(TIMBR.object$p.M.given.y), function(x){M <- TIMBR:::M.matrix.from.ID(names(TIMBR.object$p.M.given.y)[x]); TIMBR.object$p.M.given.y[x]*tcrossprod(M)})
   }
   
   E.MMt <- Reduce("+", E.MMt)
@@ -1322,12 +1349,13 @@ TIMBR.plot.circos <- function(TIMBR.output, post.summary="mean", colors=c("blue"
   locations <- cbind(sinpi(2/J*(0:(J-1))), cospi(2/J*(0:(J-1))))
   
   distance <- diag(0,J)
+  distance[t(combn(1:J, 2))] <- apply(combn(1:8, 2), 2, function(x){sqrt(sum((locations[x[1],] - locations[x[2],])^2))})
   
-  for (i in 1:(J-1)){
-    for (j in (i+1):J){
-      distance[i,j] <- sqrt(sum((locations[i,] - locations[j,])^2))
-    }
-  }
+  #for (i in 1:(J-1)){
+  #  for (j in (i+1):J){
+  #    distance[i,j] <- sqrt(sum((locations[i,] - locations[j,])^2))
+  #  }
+  #}
   
   distance <- distance[upper.tri(distance)]
   
@@ -1358,13 +1386,13 @@ TIMBR.plot.circos <- function(TIMBR.output, post.summary="mean", colors=c("blue"
   }
   
   #signed variance of each effect divided by variance of effect and error
-  if (is.null(TIMBR.output$y)){
+  if (is.null(TIMBR.object$y)){
     effects <- rep(0, J)
   } else {
-    diff <- TIMBR.output$post.hap.effects - apply(TIMBR.output$post.hap.effects, 1, mean)
+    diff <- TIMBR.object$post.hap.effects - apply(TIMBR.object$post.hap.effects, 1, mean)
     sign <- (-1)^(diff < 0)
     sum.sq <- diff^2
-    var.exp <- sum.sq / (sum.sq + TIMBR.output$post.sigma.sq)
+    var.exp <- sum.sq / (sum.sq + TIMBR.object$post.sigma.sq)
     var.exp.signed <- var.exp*sign
     
     #posterior summary of transformed effects
