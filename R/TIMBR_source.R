@@ -1373,7 +1373,8 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
   
   #add labels
   for (i in 1:J){
-    circlize::circos.text(0.5, 1.5, LETTERS[i], LETTERS[i])
+    #circlize::circos.text(0.5, 1.5, LETTERS[i], LETTERS[i])
+    circlize::circos.text(0.5, -1.5, LETTERS[i], LETTERS[i])
   }
   
   #calculate signed squared effect divided by sum of squared effect and error variance
