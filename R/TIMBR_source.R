@@ -883,6 +883,9 @@ additive.design <- function(J, type){
 #' @param file.path an optional file path for saving the plot as a PNG
 #' @param plot.width PNG plot width
 #' @param plot.height PNG plot height
+#' @param TIMBR.output.bkgrd optional second results object for background plot
+#' @param colors.bkgrd optional colors for background plot
+#' @param trans optional vector of transparencies for foreground and background plots, ignored if second results object is not specified
 #'
 #' @return plot of the posterior haplotype effect densities
 #' 
