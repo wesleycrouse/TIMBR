@@ -1398,7 +1398,7 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
   
   for (i in 1:J){
     circlize::circos.rect(0,0,1,1, LETTERS[i], col=colors[i])
-    circlize::circos.text(0.5, 0.5, LETTERS[i], LETTERS[i], cex=2)
+    circlize::circos.text(0.5, 0.5, LETTERS[i], LETTERS[i], cex=1.5)
   }
   
   #clean-up and publish plot
