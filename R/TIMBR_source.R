@@ -1371,12 +1371,6 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
     }
   }
   
-  #add labels
-  #for (i in 1:J){
-    #circlize::circos.text(0.5, 1.5, LETTERS[i], LETTERS[i])
-  #  circlize::circos.text(0.5, 0.5, LETTERS[i], LETTERS[i])
-  #}
-  
   #calculate signed squared effect divided by sum of squared effect and error variance
   if (is.null(TIMBR.object$y)){
     effects <- rep(0, J)
@@ -1398,21 +1392,14 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
   }
   names(effects) <- LETTERS[1:J]
   
-  #plot effects
+  #add effects and labels
   colors <- colorRampPalette(colors)(color.res+1)
   colors <- colors[round(color.res*(effects+1)/2)+1]
   
   for (i in 1:J){
     circlize::circos.rect(0,0,1,1, LETTERS[i], col=colors[i])
-  }
-  
-  
-  #add labels
-  for (i in 1:J){
-    #circlize::circos.text(0.5, 1.5, LETTERS[i], LETTERS[i])
     circlize::circos.text(0.5, 0.5, LETTERS[i], LETTERS[i])
   }
-  
   
   #clean-up and publish plot
   circlize::circos.clear()
