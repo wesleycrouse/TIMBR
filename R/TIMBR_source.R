@@ -898,7 +898,7 @@ additive.design <- function(J, type){
 #' TIMBR.plot.haplotypes(results)
 #'
 #' @export
-TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960, plot.height=480, TIMBR.output.bkgrd <- NULL,
+TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960, plot.height=480, TIMBR.output.bkgrd=NULL,
                                   colors.bkgrd=NULL, trans=c(0.7,0.4)){
   densities <- apply(TIMBR.output$post.hap.effect, 2, density)
   J <- length(densities)
