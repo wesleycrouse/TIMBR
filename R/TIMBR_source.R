@@ -382,7 +382,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       post.alpha[i] <- alpha
       post.hyperparameters[[i]] <- M.posteriors[1:4]
       post.K[i] <- K
-      post.y.hat[i,] <- D%*%AMCbeta + Z.delta
+      #post.y.hat[i,] <- D%*%AMCbeta + Z.delta
+      post.y.hat[i,] <- AMCbeta[D.list] + Z.delta
       p.D.given.y <- p.D.given.y + D
     }
     
@@ -400,6 +401,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     
     #update variable state for potential reduced run of the sampler
     D <<- D
+    D.list <<- D.list
     lambda <<- lambda
     tau.sq <<- tau.sq
     phi.sq <<- phi.sq
@@ -624,14 +626,17 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     
     if (!fixed.diplo){
       D <- matrix(0, n, ncol.P)
-      D[cbind(1:n, apply(p.D.given.y, 1, which.max))] <- 1
+      D.list <- apply(p.D.given.y, 1, which.max)
+      D[cbind(1:n, D.list)] <- 1
+      #D[cbind(1:n, apply(p.D.given.y, 1, which.max))] <- 1
     }
     
     #calculate partial marginal likelihood at point of high posterior probability
     Zdelta <- Z%*%delta
     AMCbeta <- A%*%MC%*%beta
     
-    p1 <- sum(dnorm(y, Zdelta + D%*%AMCbeta, sqrt(sigma.sq*W^(-1)), log=T))
+    #p1 <- sum(dnorm(y, Zdelta + D%*%AMCbeta, sqrt(sigma.sq*W^(-1)), log=T))
+    p1 <- sum(dnorm(y, AMCbeta[D.list] + Zdelta, sqrt(sigma.sq*W^(-1)), log=T))
     p4 <- log(sigma.sq)
     p5 <- ln.beta.prior.marginalized(beta, sigma.sq, prior.v.b)
     p7 <- matrixStats::logSumExp(dgamma(sigma.sq^(-1), 0.5*kappa.star, 0.5*psi.star, log=T))-log(samples.ml)
@@ -639,13 +644,12 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     c <- -0.5*n*log(pi) + lgamma(0.5*kappa.star) - 0.5*sum(-log(W))
     
     if (!fixed.diplo){
-      D.states <- apply(D,1,match,x=1)
-      p2 <- sum(ln.P[cbind(1:n, D.states)])
+      p2 <- sum(ln.P[cbind(1:n, D.list)])
       
       D.ln.ml <- matrix(dnorm(rep((y - Zdelta), each=ncol.P), rep(AMCbeta, n), rep(sqrt(sigma.sq)*sqrt.W^(-1), each=ncol.P), log=T), n, ncol.P, byrow=T)
       D.ln.prob <- D.ln.ml + ln.P
       D.ln.prob <-  D.ln.prob - matrixStats::rowLogSumExps(D.ln.prob)
-      p9 <- sum(D.ln.prob[cbind(1:n, D.states)])
+      p9 <- sum(D.ln.prob[cbind(1:n, D.list)])
     } else {
       p2 <- 0
       p9 <- 0
