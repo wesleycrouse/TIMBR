@@ -154,17 +154,16 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     
     #precompute matrix products if model and diplotypes are fixed
     if (!update.M & fixed.diplo){
-      X <- cbind(Z, DA%*%MC)
+      DAMC <<- DA%*%MC
+      X <- cbind(Z, DAMC)
       XtWy <- crossprod(X,Wy)
       ZtWDAMC <- ZtWDA%*%MC
       CtMtAtDtWDAMC <- crossprod(MC, AtDtWDA)%*%MC
       V.star.inv <- rbind(cbind(ZtWZ, ZtWDAMC),cbind(t(ZtWDAMC),CtMtAtDtWDAMC))
-      DAMC <<- DA%*%MC
     }
     
     #create objects to store results
     post.M <- matrix(NA, iterations, J)
-    p.D.given.y <- matrix(0, n, ncol.P)
     post.MCbeta <- matrix(NA, iterations, J)
     post.delta <- matrix(NA, iterations, p)
     post.phi.sq <- rep(NA, iterations)
@@ -173,6 +172,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     post.hyperparameters <- vector("list", iterations)
     post.K <- rep(NA, iterations)
     post.y.hat <- matrix(NA, iterations, n)
+    p.D.given.y <- matrix(0, n, ncol.P)
     
     #iterate sampler
     for (i in 1:iterations){
@@ -182,7 +182,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       
       #compute matrix quantitites that depend on D
       if (!fixed.diplo){
-        DA <- D%*%A
+        DA <- A[D.list,]
+        #DA <- D%*%A
         ZtWDA <- ZtW%*%DA
         AtDtWDA <- crossprod(DA*sqrt.W)
         AtDtWy <- crossprod(DA, Wy)
@@ -369,7 +370,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
         #sample assignment for each row of D from independent categorical distributions
         #probabilities are normalized by rmultinom
         D <- t(apply(D.prob, 1, rmultinom, n=1, size=1))
+        D.list <- apply(D, 1, match, x=1)
       }
+      
       #store posterior samples and hyperparameters
       post.M[i,] <- M.list
       post.MCbeta[i,] <- MCbeta
@@ -378,9 +381,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       post.sigma.sq[i] <- sigma.sq
       post.alpha[i] <- alpha
       post.hyperparameters[[i]] <- M.posteriors[1:4]
-      p.D.given.y <- p.D.given.y + D
       post.K[i] <- K
       post.y.hat[i,] <- D%*%AMCbeta + Z.delta
+      p.D.given.y <- p.D.given.y + D
     }
     
     #report unique names for posterior samples of M
@@ -453,10 +456,13 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   tau.sq <- phi.sq/(lambda^2)
   
   D <- matrix(0, n, ncol.P)
-  D[cbind(1:n, apply(P, 1, which.max))] <- 1
+  D.list <- apply(P, 1, which.max)
+  D[cbind(1:n, D.list)] <- 1
+  #D[cbind(1:n, apply(P, 1, which.max))] <- 1
   
   if (fixed.diplo){
-    DA <- D%*%A
+    DA <- A[D.list,]
+    #DA <- D%*%A
     ZtWDA <- ZtW%*%DA
     AtDtWDA <- crossprod(DA*sqrt.W)
     AtDtWy <- crossprod(DA, Wy)
