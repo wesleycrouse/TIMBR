@@ -183,7 +183,6 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       #compute matrix quantitites that depend on D
       if (!fixed.diplo){
         DA <- A[D.list,]
-        #DA <- D%*%A
         ZtWDA <- ZtW%*%DA
         AtDtWDA <- crossprod(DA*sqrt.W)
         AtDtWy <- crossprod(DA, Wy)
@@ -382,7 +381,6 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       post.alpha[i] <- alpha
       post.hyperparameters[[i]] <- M.posteriors[1:4]
       post.K[i] <- K
-      #post.y.hat[i,] <- D%*%AMCbeta + Z.delta
       post.y.hat[i,] <- AMCbeta[D.list] + Z.delta
       p.D.given.y <- p.D.given.y + D
     }
@@ -460,11 +458,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   D <- matrix(0, n, ncol.P)
   D.list <- apply(P, 1, which.max)
   D[cbind(1:n, D.list)] <- 1
-  #D[cbind(1:n, apply(P, 1, which.max))] <- 1
-  
+
   if (fixed.diplo){
     DA <- A[D.list,]
-    #DA <- D%*%A
     ZtWDA <- ZtW%*%DA
     AtDtWDA <- crossprod(DA*sqrt.W)
     AtDtWy <- crossprod(DA, Wy)
@@ -628,14 +624,12 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       D <- matrix(0, n, ncol.P)
       D.list <- apply(p.D.given.y, 1, which.max)
       D[cbind(1:n, D.list)] <- 1
-      #D[cbind(1:n, apply(p.D.given.y, 1, which.max))] <- 1
     }
     
     #calculate partial marginal likelihood at point of high posterior probability
     Zdelta <- Z%*%delta
     AMCbeta <- A%*%MC%*%beta
     
-    #p1 <- sum(dnorm(y, Zdelta + D%*%AMCbeta, sqrt(sigma.sq*W^(-1)), log=T))
     p1 <- sum(dnorm(y, AMCbeta[D.list] + Zdelta, sqrt(sigma.sq*W^(-1)), log=T))
     p4 <- log(sigma.sq)
     p5 <- ln.beta.prior.marginalized(beta, sigma.sq, prior.v.b)
