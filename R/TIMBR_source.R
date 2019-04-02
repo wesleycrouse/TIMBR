@@ -182,7 +182,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
       
       #compute matrix quantitites that depend on D
       if (!fixed.diplo){
-        DA <- A[D.list,]
+        DA <- A[D.list,,drop=F]
         ZtWDA <- ZtW%*%DA
         AtDtWDA <- crossprod(DA*sqrt.W)
         AtDtWy <- crossprod(DA, Wy)
@@ -490,7 +490,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
   D[cbind(1:n, D.list)] <- 1
 
   if (fixed.diplo){
-    DA <- A[D.list,]
+    DA <- A[D.list,,drop=F]
     ZtWDA <- ZtW%*%DA
     AtDtWDA <- crossprod(DA*sqrt.W)
     AtDtWy <- crossprod(DA, Wy)
