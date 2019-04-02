@@ -1306,13 +1306,6 @@ TIMBR.consistent <- function(prior.M, M.ID){
   prior.M
 }
 
-
-
-
-
-
-
-
 #' Circos Plot of Pairwise Partition Probabilities from TIMBR Object
 #'
 #' Plots the probability that each pair of haplotypes is partitioned together on a circos plot; includes heatmap of relative effect sizes when using TIMBR results
