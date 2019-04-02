@@ -4,7 +4,7 @@
 \alias{TIMBR.approx}
 \title{Approximate Bayes Factors from TIMBR Output}
 \usage{
-TIMBR.approx(TIMBR.output, type = "consistent")
+TIMBR.approx(TIMBR.output, type = "all", ln.ml = F, return.prior = F)
 }
 \arguments{
 \item{TIMBR.output}{results object from the TIMBR function, prior.M method must be CRP or uniform}
