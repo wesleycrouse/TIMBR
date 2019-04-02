@@ -234,7 +234,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
           MC.space[[K+1]] <- contrast.list[[K+1]][M.list.space[[K+1]],,drop=F]
           
           print(str(M.list.space))
-          print(str(MC.space))
+         # print(str(MC.space))
           
           #MC.space <- lapply(1:K, function(x){M.list[j] <- x; C[M.list,,drop=F]})
           #MC.space[[K+1]] <- contrast.list[[K+1]][M.list.space[[K+1]],,drop=F]
