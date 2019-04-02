@@ -999,7 +999,7 @@ consistency.index <- function(J, return.setparts=F){
 #' TIMBR.approx(results)
 #'
 #' @export
-TIMBR.approx <- function(TIMBR.output, type="consistent"){
+TIMBR.approx <- function(TIMBR.output, type="consistent", ln.ml = F){
   if (TIMBR.output$prior.M$model.type=="crp"){
     if (TIMBR.output$prior.M$prior.alpha.type=="gamma"){
       prior.alpha <- list(type="gamma", shape=TIMBR.output$prior.M$prior.alpha.shape, rate=TIMBR.output$prior.M$prior.alpha.rate)
@@ -1026,7 +1026,7 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
         names(ln.prior) <- names(TIMBR.output$p.M.given.y)
       }
       
-      rev(sort(TIMBR.output$ln.BF + log(TIMBR.output$p.M.given.y) - ln.prior))
+      ln.BF <- rev(sort(TIMBR.output$ln.BF + log(TIMBR.output$p.M.given.y) - ln.prior))
     } else if (type=="merge"){
       m.list <- lapply(names(TIMBR.output$p.M.given.y), m.from.M.ID)
       biallelic <- sapply(m.list, max)==2
@@ -1038,7 +1038,7 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
         names(ln.prior) <- names(m.list)[biallelic]
       }
       
-      rev(sort(TIMBR.output$ln.BF + log(TIMBR.output$p.M.given.y[biallelic]) - ln.prior))
+      ln.BF <- rev(sort(TIMBR.output$ln.BF + log(TIMBR.output$p.M.given.y[biallelic]) - ln.prior))
     } else if (type=="consistent"){
       index <- consistency.index(ncol(TIMBR.output$prior.D$A), T)
       if (TIMBR.output$prior.M$model.type=="crp"){
@@ -1061,7 +1061,7 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
       index.by.ln.prior <- index.by.ln.prior[,names(TIMBR.output$p.M.given.y)]
       ln.prior <- ln.prior[names(TIMBR.output$p.M.given.y)]
       
-      rev(sort(TIMBR.output$ln.BF + apply(index.by.ln.prior, 1, function(x){matrixStats::logSumExp(x + log(TIMBR.output$p.M.given.y) - ln.prior)})))
+      ln.BF <- rev(sort(TIMBR.output$ln.BF + apply(index.by.ln.prior, 1, function(x){matrixStats::logSumExp(x + log(TIMBR.output$p.M.given.y) - ln.prior)})))
     }
   } else {
     if (TIMBR.output$prior.M$model.type=="crp"){
@@ -1076,9 +1076,10 @@ TIMBR.approx <- function(TIMBR.output, type="consistent"){
     BFs[is.na(BFs)] <- -Inf
     names(BFs) <- prior.M$M.IDs
     
-    matrixStats::logSumExp(BFs + prior.M$ln.probs)
+    ln.BF <- matrixStats::logSumExp(BFs + prior.M$ln.probs)
   }
   
+  ifelse(ln.ml==T, ln.BF + TIMBR.output$ln.ml.null, ln.BF)
 }
 
 #' @keywords internal
