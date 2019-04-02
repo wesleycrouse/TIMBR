@@ -225,7 +225,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
           #MC.space[[K+1]] <- cbind(M,c(rep(0,j-1),1,rep(0,J-j)))%*%contrast.list[[K+1]]
           
           M.list.space <- sapply(1:(K+1), function(x){M.list[j] <- x})
-          MC.space <- lapply(1:K, function(X){C[M.list.space[[x]],]})
+          MC.space <- lapply(1:K, function(x){C[M.list.space[[x]],]})
           MC.space[[K+1]] <- contrast.list[[K+1]][M.list.space[[K+1]],]
           
           if (j==j.order[1]){
