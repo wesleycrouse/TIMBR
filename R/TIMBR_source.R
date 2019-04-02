@@ -1081,12 +1081,10 @@ TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F){
   
   if (ln.ml){
     ln.BF <- ln.BF + TIMBR.output$ln.ml.null
-  } else {
-    ln.BF
   }
   
   if (return.prior){
-    output <- list(ln.BF=ln.BF, ln.prior=ln.prior[names(ln.BF)])
+    cbind(ln.BF, ln.prior[names(ln.BF)])
   } else {
     ln.BF
   }
