@@ -221,32 +221,21 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
           C <- contrast.list[[K]]
           
           #calculate t-distributed likelihood for all possible assignments of current row of M
-          MC.space <- lapply(1:K, function(x){M[j,x]<-1; M%*%C})
-          MC.space[[K+1]] <- cbind(M,c(rep(0,j-1),1,rep(0,J-j)))%*%contrast.list[[K+1]]
-          
-          print("YES")
-          print(str(MC.space))
+          #MC.space <- lapply(1:K, function(x){M[j,x]<-1; M%*%C})
+          #MC.space[[K+1]] <- cbind(M,c(rep(0,j-1),1,rep(0,J-j)))%*%contrast.list[[K+1]]
           
           #M.list.space <- lapply(1:(K+1), function(x){M.list[j] <- x})
           #MC.space <- lapply(1:K, function(x){C[M.list.space[[x]],]})
           #MC.space[[K+1]] <- contrast.list[[K+1]][M.list.space[[K+1]],]
           
           MC.space <- lapply(1:K, function(x){M.list[j] <- x; C[M.list,,drop=F]})
-          MC.space[[K+1]] <- cbind(M,c(rep(0,j-1),1,rep(0,J-j)))%*%contrast.list[[K+1]]
-          
-          print("NO")
-          print(str(MC.space))
-          
+          MC.space[[K+1]] <- contrast.list[[K+1]][M.list.space[[K+1]],,drop=F]
           
           if (j==j.order[1]){
             M.posteriors <- lapply(MC.space, nglm.hyperparameters.ml)
           } else {
-            print("yay")
             M.posteriors <- vector("list", K+1)
             M.posteriors[[M.current$new.index]] <- M.current$M.posteriors
-            
-            print(MC.space[-M.current$new.index])
-            
             M.posteriors[-M.current$new.index] <- lapply(MC.space[-M.current$new.index], nglm.hyperparameters.ml)
           }
           
