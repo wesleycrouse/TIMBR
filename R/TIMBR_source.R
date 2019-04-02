@@ -298,9 +298,6 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
             M.list <- M.current$M.list
             M <- M.current$M
             K <- K + 1
-            
-            #M.indicator <- M.list[j]
-            
           } else {
             M.list[j] <- M.indicator
             
