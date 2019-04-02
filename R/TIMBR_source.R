@@ -223,7 +223,10 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
           #calculate t-distributed likelihood for all possible assignments of current row of M
           #MC.space <- lapply(1:K, function(x){M[j,x]<-1; M%*%C})
           #MC.space[[K+1]] <- cbind(M,c(rep(0,j-1),1,rep(0,J-j)))%*%contrast.list[[K+1]]
-          MC.space <- lapply(1:(K+1), function(x){M.list[j] <- x; C[M.list,]})
+          
+          M.list.space <- sapply(1:(K+1), function(x){M.list[j] <- x})
+          MC.space <- lapply(1:K, function(X){C[M.list.space[[x]],]})
+          MC.space[[K+1]] <- contrast.list[[K+1]][M.list.space[[K+1]],]
           
           if (j==j.order[1]){
             M.posteriors <- lapply(MC.space, nglm.hyperparameters.ml)
