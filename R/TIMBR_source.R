@@ -241,8 +241,12 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
           if (j==j.order[1]){
             M.posteriors <- lapply(MC.space, nglm.hyperparameters.ml)
           } else {
+            print("yay")
             M.posteriors <- vector("list", K+1)
             M.posteriors[[M.current$new.index]] <- M.current$M.posteriors
+            
+            print(MC.space[-M.current$new.index])
+            
             M.posteriors[-M.current$new.index] <- lapply(MC.space[-M.current$new.index], nglm.hyperparameters.ml)
           }
           
