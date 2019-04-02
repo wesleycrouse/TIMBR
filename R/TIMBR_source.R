@@ -999,7 +999,7 @@ consistency.index <- function(J, return.setparts=F){
 #' TIMBR.approx(results)
 #'
 #' @export
-TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F){
+TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F){
   if (TIMBR.output$prior.M$model.type=="crp"){
     if (TIMBR.output$prior.M$prior.alpha.type=="gamma"){
       prior.alpha <- list(type="gamma", shape=TIMBR.output$prior.M$prior.alpha.shape, rate=TIMBR.output$prior.M$prior.alpha.rate)
@@ -1079,8 +1079,14 @@ TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F){
     ln.BF <- matrixStats::logSumExp(BFs + prior.M$ln.probs)
   }
   
-  if (ln.ml==T){
-    ln.BF + TIMBR.output$ln.ml.null
+  if (ln.ml){
+    ln.BF <- ln.BF + TIMBR.output$ln.ml.null
+  } else {
+    ln.BF
+  }
+  
+  if (return.prior){
+    output <- list(ln.BF=ln.BF, ln.prior=ln.prior)
   } else {
     ln.BF
   }
