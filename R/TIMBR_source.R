@@ -1085,7 +1085,7 @@ TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F){
   
   if (return.prior){
     output <- cbind(ln.BF, ln.prior[names(ln.BF)])
-    colnames(output)[2] <- ln.prior
+    colnames(output)[2] <- "ln.prior"
     output
   } else {
     ln.BF
