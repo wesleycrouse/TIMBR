@@ -4,7 +4,7 @@
 \alias{TIMBR}
 \title{Tree-based Inference of Multiallelism via Bayesian Regression}
 \usage{
-TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 10000,
+TIMBR(y, prior.D, prior.M, prior.phi.b = 1, samples = 10000,
   samples.ml = 10000, Z = NULL, W = NULL, verbose = T)
 }
 \arguments{
@@ -14,7 +14,7 @@ TIMBR(y, prior.D, prior.M, prior.v.b = 1, samples = 10000,
 
 \item{prior.M}{list of inputs for the prior distribution of the allelic series model; see data(mcv.data) for examples}
 
-\item{prior.v.b}{shape parameter for the beta prime prior distribution on the variance component}
+\item{prior.phi.b}{shape parameter for the beta prime prior distribution on the variance component}
 
 \item{samples}{number of samples to draw from the full posterior}
 

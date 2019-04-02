@@ -45,16 +45,16 @@ M.matrix.from.ID <- function(M.ID){
 }
 
 #' @keywords internal
-ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5){
+ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.phi.b, prior.phi.a=0.5){
   #Abramowitz and Stegun 55 p.505 "Confluent Hypergeometric Functions"
   d <- length(beta)
   
   #parameters for hypergeometric U
   z.U <- 0.5*sum(beta^2)/sigma.sq
-  a.U <- prior.v.b + 0.5*d
-  b.U <- prior.v.a + 0.5*d
+  a.U <- prior.phi.b + 0.5*d
+  b.U <- prior.phi.a + 0.5*d
   
-  (-0.5*d)*log(2) - 0.5*d*log(pi) - 0.5*d*log(sigma.sq) - lbeta(0.5, prior.v.b) + lgamma(a.U) + log(gsl::hyperg_U(a.U, b.U, z.U))
+  (-0.5*d)*log(2) - 0.5*d*log(pi) - 0.5*d*log(sigma.sq) - lbeta(0.5, prior.phi.b) + lgamma(a.U) + log(gsl::hyperg_U(a.U, b.U, z.U))
 }
 
 #' Tree-based Inference of Multiallelism via Bayesian Regression
@@ -64,7 +64,7 @@ ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5)
 #' @param y vector of phenotype values for each strain
 #' @param prior.D list of inputs for the prior distribution of strain diplotype states; see data(mcv.data) for an example
 #' @param prior.M list of inputs for the prior distribution of the allelic series model; see data(mcv.data) for examples
-#' @param prior.v.b shape parameter for the beta prime prior distribution on the variance component
+#' @param prior.phi.b shape parameter for the beta prime prior distribution on the variance component
 #' @param samples number of samples to draw from the full posterior
 #' @param samples.ml number of samples to draw from the condtiional posterior (if necessary)
 #' @param Z design matrix for intercept and covariates; first column must be a vector of ones, which is the default
@@ -91,7 +91,7 @@ ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.v.b, prior.v.a=0.5)
 #' colMeans(results$post.hap.effects)
 #'
 #' @export
-TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10000, Z=NULL, W=NULL, verbose=T){
+TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=10000, Z=NULL, W=NULL, verbose=T){
   
   TIMBR.sampler <- function(iterations, calc.null.ml=T, update.M=T, update.alpha=T){
     
@@ -331,7 +331,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
       }
       
       #update tau.sq from conjugate inv-gamma distribution
-      tau.sq.shape <- prior.v.b + 0.5*d
+      tau.sq.shape <- prior.phi.b + 0.5*d
       tau.sq.rate <- 0.5 + 0.5*sigma.sq.inv*sum(eta^(2))
       tau.sq <- rgamma(1, tau.sq.shape, tau.sq.rate)^(-1)
       
@@ -451,7 +451,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   ytWy <- sum(y*Wy)
   kappa.star <- n
   
-  phi.sq <- 0.5/prior.v.b
+  phi.sq <- 0.5/prior.phi.b
   lambda <- 1
   tau.sq <- phi.sq/(lambda^2)
   
@@ -632,7 +632,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
     
     p1 <- sum(dnorm(y, AMCbeta[D.list] + Zdelta, sqrt(sigma.sq*W^(-1)), log=T))
     p4 <- log(sigma.sq)
-    p5 <- ln.beta.prior.marginalized(beta, sigma.sq, prior.v.b)
+    p5 <- ln.beta.prior.marginalized(beta, sigma.sq, prior.phi.b)
     p7 <- matrixStats::logSumExp(dgamma(sigma.sq^(-1), 0.5*kappa.star, 0.5*psi.star, log=T))-log(samples.ml)
     p8 <- matrixStats::logSumExp(sapply(1:samples.ml, function(x){mvtnorm::dmvnorm(theta, m.star[[x]], V.star[[x]]*sigma.sq, log=T)}))-log(samples.ml)
     c <- -0.5*n*log(pi) + lgamma(0.5*kappa.star) - 0.5*sum(-log(W))
@@ -674,7 +674,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.v.b=1, samples=10000, samples.ml=10
   }
   
   #return posterior samples, marginal densities, and marginal likelihood
-  output <- list(y=y, prior.D=prior.D, prior.M=prior.M, prior.v.b=prior.v.b, samples=samples, samples.ml=samples.ml, Z=Z, W=W)
+  output <- list(y=y, prior.D=prior.D, prior.M=prior.M, prior.phi.b=prior.phi.b, samples=samples, samples.ml=samples.ml, Z=Z, W=W)
   output <- c(output, results[names(results) != "post.hyperparameters"], ln.ml=ln.ml, ln.BF=ln.ml-ln.ml.null, p.M.given.y=list(post.M.ranked), 
               post.var.exp=list(results$post.phi.sq/(results$post.phi.sq + 1)), post.hap.effects=list(results$post.MCbeta+results$post.delta[,1]),
               p.K.given.y=list(table(results$post.K)/samples))
