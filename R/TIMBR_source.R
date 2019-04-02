@@ -1416,3 +1416,25 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
     dev.off()
   }
 }
+
+#' @keywords internal
+TIMBR.joint <- function(TIMBR.output.1, TIMBR.output.2){
+  if (!identical(TIMBR.output.1$prior.M, TIMBR.output.2$prior.M)){
+    stop("prior.M does not match")
+  }
+  
+  ln.ml.h0 <- TIMBR.output.1$ln.ml + TIMBR.output.2$ln.ml
+  
+  approx.1 <- TIMBR.approx(TIMBR.output.1, ln.ml=T, return.prior=T)
+  approx.2 <- TIMBR.approx(TIMBR.output.2, ln.ml=T, return.prior=T)
+  
+  data <- cbind(approx.1, approx.2[match(rownames(approx.1), rownames(approx.2)),])
+  data <- data[!is.na(data[,3]),c(1,3,2)]
+  
+  ln.ml.hA <- matrixStats::logSumExp(rowSums(data))
+  
+  ln.BF <- ln.ml.hA - ln.ml.h0
+  joint.p.M.given.Y <- rev(sort(exp(rowSums(data) - ln.ml.hA)))
+  
+  list(ln.BF=ln.BF, joint.p.M.given.Y=joint.p.M.given.Y)
+}
