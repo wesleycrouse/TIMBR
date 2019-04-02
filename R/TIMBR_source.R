@@ -202,6 +202,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
           
           if (j!=j.order[1]){
             M.current <- list(M=M, M.list=M.list, M.posteriors=M.posteriors[[M.indicator]], new.index=M.list[j])
+          } else {
+            M.current <- list()
           }
     
           #set current row to zero and update matrix columns if necessary
@@ -211,9 +213,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
             M.update.index <- M.list[-j] > M.list[j]
             M.list[-j][M.update.index] <- M.list[-j][M.update.index] - 1
             M <- M[,-M.list[j],drop=F]
-            if (j!=j.order[1]){
-              M.current$new.index <- ncol(M)+1
-            }
+            M.current$new.index <- ncol(M)+1
           }
           
           M.list[j] <- NA
@@ -294,7 +294,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
           #sample assignment for current row of M from categorical distribution
           M.indicator <- match(rmultinom(1,1,M.prob), x=1)
           
-          if (M.indicator==M.current$new.index & M.current$M.list[j]!=M.current$new.index){
+          if (isTRUE(M.indicator==M.current$new.index) & isTRUE(M.current$M.list[j]!=M.current$new.index)){
             M.list <- M.current$M.list
             M <- M.current$M
             K <- K + 1
