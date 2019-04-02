@@ -999,7 +999,7 @@ consistency.index <- function(J, return.setparts=F){
 #' TIMBR.approx(results)
 #'
 #' @export
-TIMBR.approx <- function(TIMBR.output, type="consistent", ln.ml = F){
+TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F){
   if (TIMBR.output$prior.M$model.type=="crp"){
     if (TIMBR.output$prior.M$prior.alpha.type=="gamma"){
       prior.alpha <- list(type="gamma", shape=TIMBR.output$prior.M$prior.alpha.shape, rate=TIMBR.output$prior.M$prior.alpha.rate)
