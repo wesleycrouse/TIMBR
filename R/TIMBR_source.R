@@ -1079,7 +1079,11 @@ TIMBR.approx <- function(TIMBR.output, type="consistent", ln.ml = F){
     ln.BF <- matrixStats::logSumExp(BFs + prior.M$ln.probs)
   }
   
-  ifelse(ln.ml==T, ln.BF + TIMBR.output$ln.ml.null, ln.BF)
+  if (ln.ml==T){
+    ln.BF + TIMBR.output$ln.ml.null
+  } else {
+    ln.BF
+  }
 }
 
 #' @keywords internal
