@@ -1555,7 +1555,7 @@ TIMBR.test <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, sample
       
       #compute matrix quantitites that depend on D
       if (!fixed.diplo){
-        DA <- A[D.list,,drop=F]
+        DA <- A[D.list,]
         ZtWDA <- ZtW%*%DA
         AtDtWDA <- crossprod(DA*sqrt.W)
         AtDtWy <- crossprod(DA, Wy)
@@ -1572,13 +1572,6 @@ TIMBR.test <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, sample
         
         #sample each row of M conditional on the other rows
         for (j in j.order){
-          
-          if (j!=j.order[1]){
-            M.current <- list(M=M, M.list=M.list, M.posteriors=M.posteriors[[M.indicator]], new.index=M.list[j])
-          } else {
-            M.current <- list()
-          }
-          
           #set current row to zero and update matrix columns if necessary
           M[j,] <- 0
           
@@ -1586,7 +1579,6 @@ TIMBR.test <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, sample
             M.update.index <- M.list[-j] > M.list[j]
             M.list[-j][M.update.index] <- M.list[-j][M.update.index] - 1
             M <- M[,-M.list[j],drop=F]
-            M.current$new.index <- ncol(M)+1
           }
           
           M.list[j] <- NA
@@ -1594,21 +1586,9 @@ TIMBR.test <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, sample
           C <- contrast.list[[K]]
           
           #calculate t-distributed likelihood for all possible assignments of current row of M
-          #M.list.space <- lapply(1:(K+1), function(x){M.list[j] <- x; M.list})
-          #MC.space <- lapply(1:K, function(x){C[M.list.space[[x]],,drop=F]})
-          #MC.space[[K+1]] <- contrast.list[[K+1]][M.list.space[[K+1]],,drop=F]
-          
           MC.space <- lapply(1:K,function(x){M[j,x]<-1; M%*%C})
           MC.space[[K+1]] <- cbind(M,c(rep(0,j-1),1,rep(0,J-j)))%*%contrast.list[[K+1]]
-          
-          if (j==j.order[1]){
-            M.posteriors <- lapply(MC.space, nglm.hyperparameters.ml)
-          } else {
-            M.posteriors <- vector("list", K+1)
-            M.posteriors[[M.current$new.index]] <- M.current$M.posteriors
-            M.posteriors[-M.current$new.index] <- lapply(MC.space[-M.current$new.index], nglm.hyperparameters.ml)
-          }
-          
+          M.posteriors <- lapply(MC.space, nglm.hyperparameters.ml)
           M.ln.ml <- unlist(lapply(M.posteriors, function(x){x$partial.ln.ml}))
           
           #calculate prior for all possible assignments of current row of M
@@ -1670,22 +1650,15 @@ TIMBR.test <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, sample
           
           #sample assignment for current row of M from categorical distribution
           M.indicator <- match(rmultinom(1,1,M.prob), x=1)
+          M.list[j] <- M.indicator
           
-          if (isTRUE(M.indicator==M.current$new.index) & isTRUE(M.current$M.list[j]!=M.current$new.index)){
-            M.list <- M.current$M.list
-            M <- M.current$M
+          #update M
+          if (M.indicator > ncol(M)){
+            M <- cbind(M,0)
+            M[j, M.indicator] <- 1
             K <- K + 1
           } else {
-            M.list[j] <- M.indicator
-            
-            #update M
-            if (M.indicator > ncol(M)){
-              M <- cbind(M,0)
-              M[j, M.indicator] <- 1
-              K <- K + 1
-            } else {
-              M[j, M.indicator] <- 1
-            }
+            M[j, M.indicator] <- 1
           }
         }
         #update quantities that depend on M
@@ -1860,7 +1833,7 @@ TIMBR.test <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, sample
   D[cbind(1:n, D.list)] <- 1
   
   if (fixed.diplo){
-    DA <- A[D.list,,drop=F]
+    DA <- A[D.list,]
     ZtWDA <- ZtW%*%DA
     AtDtWDA <- crossprod(DA*sqrt.W)
     AtDtWy <- crossprod(DA, Wy)
