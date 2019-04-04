@@ -1479,10 +1479,10 @@ scale.pop <- function(x){
 }
 
 #' @keywords internal
-simulate.population <- function(M, reps, var.exp, spacing="equal"){
+simulate.population <- function(M, N.J, var.exp, spacing="equal"){
   J <- nrow(M)
   K <- ncol(M)
-  N <- J*reps
+  N <- J*N.J
   M.list <- apply(M, 1, match, x=1)
   
   #balanced homozygous population
