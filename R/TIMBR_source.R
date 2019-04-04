@@ -1479,7 +1479,7 @@ scale.pop <- function(x){
 }
 
 #' @keywords internal
-simulate.population <- function(M, reps, var.exp, spacing <- "equal"){
+simulate.population <- function(M, reps, var.exp, spacing="equal"){
   J <- nrow(M)
   K <- ncol(M)
   N <- J*reps
