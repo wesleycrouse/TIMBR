@@ -154,7 +154,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
     
     #precompute matrix products if model and diplotypes are fixed
     if (!update.M & fixed.diplo){
-      DAMC <<- DA%*%MC
+      DAMC <- DA%*%MC
       X <- cbind(Z, DAMC)
       XtWy <- crossprod(X,Wy)
       ZtWDAMC <- ZtWDA%*%MC
