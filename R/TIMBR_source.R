@@ -378,13 +378,10 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
       phi.sq <- lambda^2*tau.sq
       beta <- lambda*eta
       MCbeta <- lambda*(MCeta)
-      
       AMCbeta <- A%*%MCbeta
       
       #update dipltypes jointly from independent categorical distributions
       if (!fixed.diplo){
-        #AMCbeta <- AMC%*%beta
-        
         #calculate independent normal likelihood for all possible assignments of each row of D
         D.ln.ml <- matrix(dnorm(rep(y.prime, each=ncol.P), rep(AMCbeta, n), rep(sigma*sqrt.W^(-1), each=ncol.P), log=T), n, ncol.P, byrow=T)
         
