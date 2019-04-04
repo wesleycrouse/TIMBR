@@ -1483,12 +1483,11 @@ simulate.population <- function(M, reps, var.exp, spacing="equal"){
   J <- nrow(M)
   K <- ncol(M)
   N <- J*reps
-  
   M.list <- apply(M, 1, match, x=1)
   
   #balanced homozygous population
-  D <- matrix(0, N, J + choose(J,2))
   D.list <- rep(1:J, each=N/J)
+  D <- matrix(0, N, J + choose(J,2))
   D[cbind(1:N, D.list)] <- 1
   
   #additive design matrix
@@ -1500,12 +1499,10 @@ simulate.population <- function(M, reps, var.exp, spacing="equal"){
   } else if (spacing=="equal"){
     B <- 1:K
   }
-  
   B <- sort(scale.pop(B)*sqrt(var.exp))
   
   #sample standard normal error, center at zero, set population variance equal to 1-var.exp
-  e <- rnorm(N)
-  e <- scale.pop(e)*sqrt(1-var.exp)
+  e <- scale.pop(rnorm(N))*sqrt(1-var.exp)
   
   #define phenotype
   y <- A[D.list,]%*%B[M.list] + e
