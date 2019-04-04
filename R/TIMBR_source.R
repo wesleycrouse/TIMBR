@@ -1508,5 +1508,5 @@ simulate.population <- function(M, reps, var.exp, spacing="equal"){
   y <- A[D.list,]%*%B[M.list] + e
   
   #return list of formatted input for TIMBR
-  list(y=y, prior.D=list(P=D, A=A, fixed.diplo=T))
+  list(y=y, prior.D=list(P=D, A=A, fixed.diplo=T), B=B)
 }
