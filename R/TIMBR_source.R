@@ -1226,7 +1226,7 @@ ewenss.calc <- function(tree, prior.alpha){
         exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
       })
       
-      ln.prob <- log(integrate(density.ewens.beta.prime, lower=0, upper=Inf)$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
+      ln.prob <- log(integrate(density.ewens.beta.prime, lower=0, upper=Inf, rel.tol=max(50*.Machine$double.eps, 0.5e-28))$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
     }
     
     c(M.ID, ln.prob)
