@@ -1223,8 +1223,8 @@ ewenss.calc <- function(tree, prior.alpha){
       density.ewens.beta.prime <- Vectorize(function(x){
         ln.p <- -x*l[-length(l)]/2
         
-        #ln.p <- cbind(ln.p, log(1-exp(ln.p)))
-        ln.p <- cbind(ln.p, log1mexp(ln.p))
+        ln.p <- cbind(ln.p, log(1-exp(ln.p)))
+        #ln.p <- cbind(ln.p, log1mexp(ln.p))
         
         exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
       })
