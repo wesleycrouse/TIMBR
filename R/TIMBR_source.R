@@ -1222,12 +1222,14 @@ ewenss.calc <- function(tree, prior.alpha){
     } else if (prior.alpha$type=="beta.prime"){
       density.ewens.beta.prime <- Vectorize(function(x){
         ln.p <- -x*l[-length(l)]/2
-        ln.p <- cbind(ln.p, log(1-exp(ln.p)))
+        
+        #ln.p <- cbind(ln.p, log(1-exp(ln.p)))
+        ln.p <- cbind(ln.p, log1mexp(ln.p))
+        
         exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
       })
       
-      #ln.prob <- log(integrate(density.ewens.beta.prime, lower=0, upper=Inf, rel.tol=max(50*.Machine$double.eps, 0.5e-28))$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
-      ln.prob <- log(integrate(density.ewens.beta.prime, lower=0, upper=Inf, abs.tol=max(50*.Machine$double.eps, 0.5e-28))$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
+      ln.prob <- log(integrate(density.ewens.beta.prime, lower=0, upper=Inf, rel.tol=max(50*.Machine$double.eps, 0.5e-28))$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
     }
     
     c(M.ID, ln.prob)
@@ -1257,7 +1259,12 @@ ewenss.calc <- function(tree, prior.alpha){
     if (prior.alpha$type=="fixed"){
       #store mutation probabilities for each branch
       ln.p <- -prior.alpha$alpha*l[-length(l)]/2
+      #ln.p <- cbind(ln.p, log(1-exp(ln.p)))
+      
       ln.p <- cbind(ln.p, log(1-exp(ln.p)))
+      
+      
+      
       #colnames(ln.p) <- NULL
     } else if (prior.alpha$type=="gamma"){
       prior.alpha.shape <- prior.alpha$shape
@@ -1509,4 +1516,9 @@ simulate.population <- function(M, N.J, var.exp, spacing="equal"){
   
   #return list of formatted input for TIMBR
   list(y=y, prior.D=list(P=D, A=A, fixed.diplo=T), B=B)
+}
+
+#' @keywords internal
+log1mexp <- function(ln.p){
+  sapply(ln.p, function(x){ifelse(x < -log(2), log1p(-exp(x)), log(-expm1(x)))})
 }
