@@ -220,20 +220,10 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
           K <- ncol(M)
           C <- contrast.list[[K]]
           
-          #calculate t-distributed likelihood for all possible assignments of current row of M
+          #enumerate all possible assignments of current row of M
           M.list.space <- lapply(1:(K+1), function(x){M.list[j] <- x; M.list})
           MC.space <- lapply(1:K, function(x){C[M.list.space[[x]],,drop=F]})
           MC.space[[K+1]] <- contrast.list[[K+1]][M.list.space[[K+1]],,drop=F]
-          
-          if (j==j.order[1]){
-            M.posteriors <- lapply(MC.space, nglm.hyperparameters.ml)
-          } else {
-            M.posteriors <- vector("list", K+1)
-            M.posteriors[[M.current$new.index]] <- M.current$M.posteriors
-            M.posteriors[-M.current$new.index] <- lapply(MC.space[-M.current$new.index], nglm.hyperparameters.ml)
-          }
-          
-          M.ln.ml <- unlist(lapply(M.posteriors, function(x){x$partial.ln.ml}))
           
           #calculate prior for all possible assignments of current row of M
           if (model.type=="crp"){
@@ -287,6 +277,19 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
             }
             M.ln.prior <- unlist(M.ln.prior)
           }
+          
+          #calculate t-distributed likelihood for all possible assignments of current row of M
+
+          if (j==j.order[1]){
+            M.posteriors <- lapply(MC.space, nglm.hyperparameters.ml)
+            #M.posteriors <- lapply(1:(K+1), function(x){ifelse(M.ln.prior[x]==-Inf, 0, nglm.hyperparameters.ml(MC.space[x]))})
+          } else {
+            M.posteriors <- vector("list", K+1)
+            M.posteriors[[M.current$new.index]] <- M.current$M.posteriors
+            M.posteriors[-M.current$new.index] <- lapply(MC.space[-M.current$new.index], nglm.hyperparameters.ml)
+          }
+          
+          M.ln.ml <- unlist(lapply(M.posteriors, function(x){x$partial.ln.ml}))
           
           #combine likelihoods with priors and scale by normalizing constant
           M.prob <- M.ln.ml + M.ln.prior
