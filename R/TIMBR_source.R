@@ -1709,16 +1709,16 @@ TIMBR2 <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml
           
           #calculate t-distributed likelihood for all possible assignments of current row of M
           if (j==j.order[1]){
-            M.posteriors <- lapply(MC.space, nglm.hyperparameters.ml)
+            #M.posteriors <- lapply(MC.space, nglm.hyperparameters.ml)
             #M.posteriors <- lapply(1:(K+1), function(x){nglm.hyperparameters.ml(MC.space[[x]])})
             M.posteriors <- lapply(1:(K+1), function(x){if (M.ln.prior[x]==-Inf){list(partial.ln.ml=0)} else {nglm.hyperparameters.ml(MC.space[[x]])}})
             
           } else {
             M.posteriors <- vector("list", K+1)
             M.posteriors[[M.current$new.index]] <- M.current$M.posteriors
-            M.posteriors[-M.current$new.index] <- lapply(MC.space[-M.current$new.index], nglm.hyperparameters.ml)
+            #M.posteriors[-M.current$new.index] <- lapply(MC.space[-M.current$new.index], nglm.hyperparameters.ml)
             #M.posteriors[-M.current$new.index] <- lapply((1:(K+1))[-M.current$new.index], function(x){ifelse(M.ln.prior[x]==-Inf, 0, nglm.hyperparameters.ml(MC.space[[x]]))})
-            #M.posteriors[-M.current$new.index] <- lapply((1:(K+1))[-M.current$new.index], function(x){if (M.ln.prior[x]==-Inf){0} else {nglm.hyperparameters.ml(MC.space[x])}})
+            M.posteriors[-M.current$new.index] <- lapply((1:(K+1))[-M.current$new.index], function(x){if (M.ln.prior[x]==-Inf){list(partial.ln.ml=0)} else {nglm.hyperparameters.ml(MC.space[[x]])}})
           }
           
           M.ln.ml <- unlist(lapply(M.posteriors, function(x){x$partial.ln.ml}))
