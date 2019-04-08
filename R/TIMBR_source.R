@@ -1715,8 +1715,8 @@ TIMBR2 <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml
           } else {
             M.posteriors <- vector("list", K+1)
             M.posteriors[[M.current$new.index]] <- M.current$M.posteriors
-            #M.posteriors[-M.current$new.index] <- lapply(MC.space[-M.current$new.index], nglm.hyperparameters.ml)
-            M.posteriors[-M.current$new.index] <- lapply((1:(K+1))[-M.current$new.index], function(x){ifelse(M.ln.prior[x]==-Inf, 0, nglm.hyperparameters.ml(MC.space[[x]]))})
+            M.posteriors[-M.current$new.index] <- lapply(MC.space[-M.current$new.index], nglm.hyperparameters.ml)
+            #M.posteriors[-M.current$new.index] <- lapply((1:(K+1))[-M.current$new.index], function(x){ifelse(M.ln.prior[x]==-Inf, 0, nglm.hyperparameters.ml(MC.space[[x]]))})
           }
           
           M.ln.ml <- unlist(lapply(M.posteriors, function(x){x$partial.ln.ml}))
