@@ -1258,7 +1258,11 @@ ewenss.calc <- function(tree, prior.alpha){
     if (prior.alpha$type=="fixed"){
       #store mutation probabilities for each branch
       ln.p <- -prior.alpha$alpha*l[-length(l)]/2
-      ln.p <- cbind(ln.p, log(1-exp(ln.p)))
+      #ln.p <- cbind(ln.p, log(1-exp(ln.p)))
+      ln.p <- cbind(ln.p, log1mexp(ln.P))
+      
+      
+      
     } else if (prior.alpha$type=="gamma"){
       prior.alpha.shape <- prior.alpha$shape
       prior.alpha.rate <- prior.alpha$rate
