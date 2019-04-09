@@ -1528,10 +1528,8 @@ log1mexp <- function(ln.p){
 ewenss.calc2 <- function(tree, prior.alpha){
   ln.prob.and.M.ID.from.B.ID <- function(B){
     #function to calculate probability of branch mutation configuration
-    M.ID <- m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1}))
-    
     if (prior.alpha$type=="fixed"){
-      ln.prob <- sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)])
+      sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)])
     } else if (prior.alpha$type=="gamma"){
       combinations <- as.matrix(expand.grid(replicate(sum(B), 0:1, simplify=FALSE)))
       sign <- ifelse(B.ID==1, 1, (-1)^(apply(combinations, 1, sum)%%2))
@@ -1540,7 +1538,7 @@ ewenss.calc2 <- function(tree, prior.alpha){
       half.l <- 0.5*l
       b.prime <- prior.alpha.rate + apply(params, 1, function(x){sum(half.l[x])})
       
-      ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
+      prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
     } else if (prior.alpha$type=="beta.prime"){
       density.ewens.beta.prime <- Vectorize(function(x, high.precision=F){
         ln.p <- cbind(-x*l[-length(l)]/2, NA)
@@ -1554,13 +1552,11 @@ ewenss.calc2 <- function(tree, prior.alpha){
         exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
       })
       
-      ln.prob <- log(tryCatch(integrate(density.ewens.beta.prime, lower=0, upper=Inf), 
-                              error = function(e) {
-                                integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, rel.tol=.Machine$double.eps)
-                              })$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
+      log(tryCatch(integrate(density.ewens.beta.prime, lower=0, upper=Inf), 
+                   error = function(e) {
+                     integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, rel.tol=.Machine$double.eps)
+                   })$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
     }
-    
-    c(M.ID, ln.prob)
   }
   
   if (is.numeric(tree)){
@@ -1599,8 +1595,12 @@ ewenss.calc2 <- function(tree, prior.alpha){
     
     #calculate probabilties for all combinations of branch mutations and collapse by M.ID
     B.all <- sapply(1:(2^(ncol(V)-1)), function(B.ID){as.logical(intToBits(B.ID-1)[1:(ncol(V)-1)])})
-    df <- do.call(rbind, apply(B.all, 2, ln.prob.and.M.ID.from.B.ID))
-    df <- data.frame(M.IDs=df[,1], ln.probs=as.numeric(df[,2]), stringsAsFactors=F)
+    M.IDs.all <- apply(B.all, 2, function(B){M.ID <- m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1}))})
+    ln.prob.all <- apply(B.all, 2, ln.prob.and.M.ID.from.B.ID)
+    
+    df <- data.frame(M.IDs=M.IDs.all, ln.probs=ln.prob.all, stringsAsFactors=F)
+    #df <- do.call(rbind, apply(B.all, 2, ln.prob.and.M.ID.from.B.ID))
+    #df <- data.frame(M.IDs=df[,1], ln.probs=as.numeric(df[,2]), stringsAsFactors=F)
     df <- dplyr::summarize(dplyr::group_by(df, M.IDs), ln.probs = matrixStats::logSumExp(ln.probs))
     df <- dplyr::arrange(df, dplyr::desc(ln.probs))
     
