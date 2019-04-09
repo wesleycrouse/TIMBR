@@ -1599,7 +1599,7 @@ ewenss.calc2 <- function(tree, prior.alpha, M.ID=NULL){
 
     if (!is.null(M.ID)){
       which.B <- M.IDs==M.ID
-      B.all <- B.all[which.B]
+      B.all <- B.all[which.B,,drop=F]
       M.IDs <- M.IDs[which.B]
     }
     
