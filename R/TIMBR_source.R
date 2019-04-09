@@ -1235,7 +1235,7 @@ ewenss.calc <- function(tree, prior.alpha){
       
       ln.prob <- log(tryCatch(integrate(density.ewens.beta.prime, lower=0, upper=Inf), 
                               error = function(e) {
-                                integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, high.precision=T, rel.tol=.Machine$double.eps)
+                                integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, rel.tol=.Machine$double.eps)
                               })$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
     }
     
