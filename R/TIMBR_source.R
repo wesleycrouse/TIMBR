@@ -1222,12 +1222,12 @@ ewenss.calc <- function(tree, prior.alpha){
       ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
     } else if (prior.alpha$type=="beta.prime"){
       density.ewens.beta.prime <- Vectorize(function(x, high.precision=F){
-        ln.p <- -x*l[-length(l)]/2
+        ln.p <- cbind(-x*l[-length(l)]/2, NA)
         
         if (high.precision){
-          ln.p <- cbind(ln.p, log1mexp(ln.p))
+          ln.p[B,2] <- log1mexp(ln.p[B,1])
         } else {
-          ln.p <- cbind(ln.p, log(1-exp(ln.p)))
+          ln.p[B,2] <- log(1-exp(ln.p[B,1]))
         }
         
         exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
