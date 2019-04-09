@@ -1525,7 +1525,7 @@ log1mexp <- function(ln.p){
 }
 
 #' @keywords internal
-ewenss.calc2 <- function(tree, prior.alpha){
+ewenss.calc2 <- function(tree, prior.alpha, M.ID=NULL){
   ln.prob.and.M.ID.from.B.ID <- function(B){
     #function to calculate probability of branch mutation configuration
     if (prior.alpha$type=="fixed"){
@@ -1596,9 +1596,14 @@ ewenss.calc2 <- function(tree, prior.alpha){
     #calculate probabilties for all combinations of branch mutations and collapse by M.ID
     B.all <- sapply(1:(2^(ncol(V)-1)), function(B.ID){as.logical(intToBits(B.ID-1)[1:(ncol(V)-1)])})
     M.IDs <- apply(B.all, 2, function(B){M.ID <- m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1}))})
-    ln.probs <- apply(B.all, 2, ln.prob.and.M.ID.from.B.ID)
+
+    if (!is.null(M.ID)){
+      which.B <- M.IDs==M.ID
+      B.all <- B.all[which.B]
+      M.IDs <- M.IDs[which.B]
+    }
     
-    df <- data.frame(M.IDs=M.IDs, ln.probs=ln.probs, stringsAsFactors=F)
+    df <- data.frame(M.IDs=M.IDs, ln.probs=apply(B.all, 2, ln.prob.and.M.ID.from.B.ID), stringsAsFactors=F)
     df <- dplyr::summarize(dplyr::group_by(df, M.IDs), ln.probs = matrixStats::logSumExp(ln.probs))
     df <- dplyr::arrange(df, dplyr::desc(ln.probs))
     
