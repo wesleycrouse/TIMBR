@@ -1221,14 +1221,22 @@ ewenss.calc <- function(tree, prior.alpha){
       
       ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
     } else if (prior.alpha$type=="beta.prime"){
-      density.ewens.beta.prime <- Vectorize(function(x){
+      density.ewens.beta.prime <- Vectorize(function(x, high.precision=F){
         ln.p <- -x*l[-length(l)]/2
-        ln.p <- cbind(ln.p, log(1-exp(ln.p)))
-
+        
+        if (high.precision){
+          ln.p <- cbind(ln.p, log1mexp(ln.p))
+        } else {
+          ln.p <- cbind(ln.p, log(1-exp(ln.p)))
+        }
+        
         exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
       })
       
-      ln.prob <- log(integrate(density.ewens.beta.prime, lower=0, upper=Inf)$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
+      ln.prob <- log(tryCatch(integrate(density.ewens.beta.prime, lower=0, upper=Inf), 
+                              error = function(e) {
+                                integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, rel.tol=.Machine$double.eps^0.25, abs.tol = 0)
+                              })$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
     }
     
     c(M.ID, ln.prob)
