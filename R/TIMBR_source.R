@@ -1523,3 +1523,101 @@ simulate.population <- function(M, N.J, var.exp, spacing="equal"){
 log1mexp <- function(ln.p){
   sapply(ln.p, function(x){ifelse(x < -log(2), log1p(-exp(x)), log(-expm1(x)))})
 }
+
+
+
+
+
+
+
+#' @keywords internal
+ewenss.calc2 <- function(tree, prior.alpha){
+  ln.prob.and.M.ID.from.B.ID <- function(B.ID){
+    #function to calculate probability of branch mutation configuration
+    B <- as.logical(intToBits(B.ID-1)[1:(ncol(V)-1)])
+    M.ID <- m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1}))
+    
+    if (prior.alpha$type=="fixed"){
+      ln.prob <- sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)])
+    } else if (prior.alpha$type=="gamma"){
+      combinations <- as.matrix(expand.grid(replicate(sum(B), 0:1, simplify=FALSE)))
+      sign <- ifelse(B.ID==1, 1, (-1)^(apply(combinations, 1, sum)%%2))
+      params <- matrix(TRUE, 2^sum(B), length(l))
+      params[, which(B)] <- as.logical(combinations)
+      half.l <- 0.5*l
+      b.prime <- prior.alpha.rate + apply(params, 1, function(x){sum(half.l[x])})
+      
+      ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
+    } else if (prior.alpha$type=="beta.prime"){
+      density.ewens.beta.prime <- Vectorize(function(x, high.precision=F, x.as.p=F, scale=1){
+        x <- ifelse(x.as.p, prior.alpha.q*x/(1-x), x)
+        
+        ln.p <- cbind(-x*l[-length(l)]/2, NA)
+        
+        if (high.precision){
+          ln.p[B,2] <- TIMBR:::log1mexp(ln.p[B,1])
+        } else {
+          ln.p[B,2] <- log(1-exp(ln.p[B,1]))
+        }
+        
+        exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]) - log(scale))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
+      })
+      
+      ln.prob <- tryCatch(log(integrate(density.ewens.beta.prime, lower=0, upper=Inf)$value), 
+                          error = function(e) {
+                            func.max <- optimize(density.ewens.beta.prime, c(0,1), high.precision=T, x.as.p=T, maximum=T)$objective
+                            log(integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, scale=func.max, rel.tol=.Machine$double.eps^0.50)$value) + log(func.max) 
+                          }) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
+    }
+    
+    c(M.ID, ln.prob)
+  }
+  
+  if (is.numeric(tree)){
+    #enumerate all set partitions by partition class
+    partitions.all <- apply(partitions::parts(tree), 2, partitions::setparts)
+    
+    #calculate probabilities for each partition class
+    ln.probs <- unlist(sapply(1:length(partitions.all), function(x){rep(dcrp(partitions.all[[x]][,1], prior.alpha), ncol(partitions.all[[x]]))}))
+    
+    #normalize total to correct for approximation
+    if (prior.alpha$type!="fixed"){
+      ln.probs <- ln.probs - matrixStats::logSumExp(ln.probs)
+    }
+    
+    #generate partition names and prior.M object
+    M.IDs <- apply(do.call(cbind, partitions.all), 2, m.rename)
+    list(model.type="list", M.IDs=M.IDs, ln.probs=ln.probs, hash.names=T)
+  } else {
+    #decompose tree into basis V and lengths l
+    tree.decomposed <- decompose.tree(tree)
+    V <- tree.decomposed$V
+    l <- tree.decomposed$l
+    
+    if (prior.alpha$type=="fixed"){
+      #store mutation probabilities for each branch
+      ln.p <- -prior.alpha$alpha*l[-length(l)]/2
+      ln.p <- cbind(ln.p, log1mexp(ln.p))
+    } else if (prior.alpha$type=="gamma"){
+      prior.alpha.shape <- prior.alpha$shape
+      prior.alpha.rate <- prior.alpha$rate
+    } else if (prior.alpha$type=="beta.prime"){
+      prior.alpha.a <- prior.alpha$a
+      prior.alpha.b <- prior.alpha$b
+      prior.alpha.q <- ifelse(is.null(prior.alpha$q), 1, prior.alpha$q)
+    }
+    
+    #calculate probabilties for all combinations of branch mutations and collapse by M.ID
+    df <- do.call(rbind, lapply(1:(2^(ncol(V)-1)), ln.prob.and.M.ID.from.B.ID))
+    df <- data.frame(M.IDs=df[,1], ln.probs=as.numeric(df[,2]), stringsAsFactors=F)
+    df <- dplyr::summarize(dplyr::group_by(df, M.IDs), ln.probs = matrixStats::logSumExp(ln.probs))
+    df <- dplyr::arrange(df, dplyr::desc(ln.probs))
+    
+    #normalize total to correct for approximation
+    if (prior.alpha$type=="beta.prime"){
+      df$ln.probs <- df$ln.probs - matrixStats::logSumExp(df$ln.probs)
+    }
+    
+    list(model.type="list", M.IDs=df$M.IDs, ln.probs=df$ln.probs, hash.names=T)
+  }
+}
