@@ -1221,7 +1221,9 @@ ewenss.calc <- function(tree, prior.alpha){
       
       ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
     } else if (prior.alpha$type=="beta.prime"){
-      density.ewens.beta.prime <- Vectorize(function(x, high.precision=F){
+      density.ewens.beta.prime <- Vectorize(function(x, high.precision=F, x.as.p=F, scale=1){
+        x <- ifelse(x.as.p, prior.alpha.q*x/(1-x), x)
+        
         ln.p <- cbind(-x*l[-length(l)]/2, NA)
         
         if (high.precision){
@@ -1230,13 +1232,14 @@ ewenss.calc <- function(tree, prior.alpha){
           ln.p[B,2] <- log(1-exp(ln.p[B,1]))
         }
         
-        exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
+        exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]) - log(scale))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
       })
       
-      ln.prob <- log(tryCatch(integrate(density.ewens.beta.prime, lower=0, upper=Inf), 
-                              error = function(e) {
-                                integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, rel.tol=.Machine$double.eps)
-                              })$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
+      ln.prob <- tryCatch(log(integrate(density.ewens.beta.prime, lower=0, upper=Inf)$value), 
+                          error = function(e) {
+                            func.max <- optimize(density.ewens.beta.prime, c(0,1), high.precision=T, x.as.p=T, maximum=T)$objective
+                            log(integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, scale=func.max, rel.tol=.Machine$double.eps^0.50)$value) + log(func.max) 
+                          }) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
     }
     
     c(M.ID, ln.prob)
@@ -1531,7 +1534,7 @@ log1mexp <- function(ln.p){
 
 
 #' @keywords internal
-ewenss.calc2 <- function(tree, prior.alpha){
+ewenss.calc.old <- function(tree, prior.alpha){
   ln.prob.and.M.ID.from.B.ID <- function(B.ID){
     #function to calculate probability of branch mutation configuration
     B <- as.logical(intToBits(B.ID-1)[1:(ncol(V)-1)])
@@ -1549,25 +1552,22 @@ ewenss.calc2 <- function(tree, prior.alpha){
       
       ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
     } else if (prior.alpha$type=="beta.prime"){
-      density.ewens.beta.prime <- Vectorize(function(x, high.precision=F, x.as.p=F, scale=1){
-        x <- ifelse(x.as.p, prior.alpha.q*x/(1-x), x)
-        
+      density.ewens.beta.prime <- Vectorize(function(x, high.precision=F){
         ln.p <- cbind(-x*l[-length(l)]/2, NA)
         
         if (high.precision){
-          ln.p[B,2] <- TIMBR:::log1mexp(ln.p[B,1])
+          ln.p[B,2] <- log1mexp(ln.p[B,1])
         } else {
           ln.p[B,2] <- log(1-exp(ln.p[B,1]))
         }
         
-        exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]) - log(scale))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
+        exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
       })
       
-      ln.prob <- tryCatch(log(integrate(density.ewens.beta.prime, lower=0, upper=Inf)$value), 
-                          error = function(e) {
-                            func.max <- optimize(density.ewens.beta.prime, c(0,1), high.precision=T, x.as.p=T, maximum=T)$objective
-                            log(integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, scale=func.max, rel.tol=.Machine$double.eps^0.50)$value) + log(func.max) 
-                          }) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
+      ln.prob <- log(tryCatch(integrate(density.ewens.beta.prime, lower=0, upper=Inf), 
+                              error = function(e) {
+                                integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, rel.tol=.Machine$double.eps)
+                              })$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
     }
     
     c(M.ID, ln.prob)
