@@ -1233,9 +1233,9 @@ ewenss.calc <- function(tree, prior.alpha){
         exp(sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)]))*x^(prior.alpha.a-1)*(1+x/prior.alpha.q)^(-prior.alpha.a-prior.alpha.b)
       })
       
-      ln.prob <- log(tryCatch(integrate(density.ewens.beta.prime, lower=0, upper=Inf), 
+      ln.prob <- log(tryCatch(integrate(density.ewens.beta.prime, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.50), 
                               error = function(e) {
-                                integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, rel.tol=.Machine$double.eps^0.5)
+                                integrate(density.ewens.beta.prime, lower=0, upper=Inf, high.precision=T, rel.tol=.Machine$double.eps^0.75, stop.on.error=F)
                               })$value) - lbeta(prior.alpha.a, prior.alpha.b) - log(prior.alpha.q) - (prior.alpha.a-1)*log(prior.alpha.q)
     }
     
@@ -1283,9 +1283,9 @@ ewenss.calc <- function(tree, prior.alpha){
     df <- dplyr::arrange(df, dplyr::desc(ln.probs))
     
     #normalize total to correct for approximation
-    if (prior.alpha$type=="beta.prime"){
-      df$ln.probs <- df$ln.probs - matrixStats::logSumExp(df$ln.probs)
-    }
+    #if (prior.alpha$type=="beta.prime"){
+    #  df$ln.probs <- df$ln.probs - matrixStats::logSumExp(df$ln.probs)
+    #}
     
     list(model.type="list", M.IDs=df$M.IDs, ln.probs=df$ln.probs, hash.names=T)
   }
