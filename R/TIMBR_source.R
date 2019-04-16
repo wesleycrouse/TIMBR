@@ -1214,7 +1214,13 @@ ewenss.calc <- function(tree, prior.alpha, stop.on.error=F){
       ln.prob <- sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)])
     } else if (prior.alpha$type=="gamma"){
       combinations <- as.matrix(expand.grid(replicate(sum(B), 0:1, simplify=FALSE)))
-      sign <- ifelse(B.ID==1, 1, (-1)^(apply(combinations, 1, sum)%%2))
+      
+      if (B.ID==1){
+        sign <- 1
+      } else {
+        sign <- (-1)^(apply(combinations, 1, sum)%%2)
+      }
+      
       params <- matrix(TRUE, 2^sum(B), length(l))
       params[, which(B)] <- as.logical(combinations)
       half.l <- 0.5*l
