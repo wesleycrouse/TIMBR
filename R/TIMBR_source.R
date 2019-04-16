@@ -1179,7 +1179,7 @@ dcrp <- function(m, prior.alpha, log.p=T){
 #'
 #' Directly calculates probabilties for allelic series (paritions) under Ewen's sampling formula, optionally informed by a user-specified tree. Trees must be in coalescent units for appropriate inference.
 #'
-#' @param trees either a user-specified tree of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
+#' @param tree either a user-specified tree of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
 #' @param prior.alpha prior type c("fixed","gamma","beta.prime") for the concentration parameter, see examples for format
 #' @param stop.on.error stop function if error is encountered during 'integrate' when using "beta.prime" prior. errors related to roundoff and small values may occur during edge cases. Note that function returns warning if error in total probability is >1% regardless of this setting
 #'
