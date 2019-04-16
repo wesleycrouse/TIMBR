@@ -9,7 +9,7 @@ ewenss.calc(tree, prior.alpha, stop.on.error = F)
 \arguments{
 \item{prior.alpha}{prior type c("fixed","gamma","beta.prime") for the concentration parameter, see examples for format}
 
-\item{stop.on.error}{stop function if error is encountered during 'integrate' when using "beta.prime" prior; errors related to roundoff and small values may occur during edge cases; if overall error in the probabilities is >1% a warning is returned in addition to the results}
+\item{stop.on.error}{stop function if error is encountered during 'integrate' when using "beta.prime" prior. errors related to roundoff and small values may occur during edge cases. Note that function returns warning if error in total probability is >1% regardless of this setting}
 
 \item{trees}{either a user-specified tree of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned}
 }
