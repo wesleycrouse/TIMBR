@@ -1291,7 +1291,7 @@ ewenss.calc <- function(tree, prior.alpha, stop.on.error=F){
   }
   
   if (abs(sum(exp(output$ln.probs)) - 1) > 0.01){
-    warning("Overall error in the probabilities is >1%")
+    warning("Overall error in the probabilities is >1%.")
   } 
   
   output
