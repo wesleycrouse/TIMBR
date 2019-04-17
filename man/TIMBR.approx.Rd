@@ -4,12 +4,15 @@
 \alias{TIMBR.approx}
 \title{Approximate Bayes Factors from TIMBR Output}
 \usage{
-TIMBR.approx(TIMBR.output, type = "all", ln.ml = F, return.prior = F)
+TIMBR.approx(TIMBR.output, type = "all", ln.ml = F, return.prior = F,
+  stop.on.error = F)
 }
 \arguments{
 \item{TIMBR.output}{results object from the TIMBR function, prior.M method must be CRP or uniform}
 
 \item{type}{"all" - report BFs for all allelic series; "merge" - report BFs for biallelic series (i.e. merge analysis); "consistent" - report BFs for consistent merge analysis; prior.M - report BF for list-type prior.M}
+
+\item{stop.on.error}{stop function if error is encountered when using 'integrate'. errors related to roundoff and small values may occur during edge cases}
 }
 \value{
 a named vector of approximate Bayes Factors; appoximations that underflow are not reported

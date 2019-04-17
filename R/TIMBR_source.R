@@ -1009,6 +1009,7 @@ consistency.index <- function(J, return.setparts=F){
 #'
 #' @param TIMBR.output results object from the TIMBR function, prior.M method must be CRP or uniform
 #' @param type "all" - report BFs for all allelic series; "merge" - report BFs for biallelic series (i.e. merge analysis); "consistent" - report BFs for consistent merge analysis; prior.M - report BF for list-type prior.M
+#' @param stop.on.error stop function if error is encountered when using 'integrate'. errors related to roundoff and small values may occur during edge cases
 #'
 #' @return a named vector of approximate Bayes Factors; appoximations that underflow are not reported
 #' 

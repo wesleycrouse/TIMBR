@@ -5,7 +5,8 @@
 \title{Tree-based Inference of Multiallelism via Bayesian Regression}
 \usage{
 TIMBR(y, prior.D, prior.M, prior.phi.b = 1, samples = 10000,
-  samples.ml = 10000, Z = NULL, W = NULL, verbose = T)
+  samples.ml = 10000, Z = NULL, W = NULL, verbose = T,
+  stop.on.error = F)
 }
 \arguments{
 \item{y}{vector of phenotype values for each strain}
@@ -25,6 +26,8 @@ TIMBR(y, prior.D, prior.M, prior.phi.b = 1, samples = 10000,
 \item{W}{vector of replicates for each strain; one replicate per strain by default}
 
 \item{verbose}{optionally report function progress}
+
+\item{stop.on.error}{stop function if error is encountered when using 'integrate'. errors related to roundoff and small values may occur during edge cases}
 }
 \value{
 a list of input parameters, posterior samples and marginal densities, and the marginal likelihood
