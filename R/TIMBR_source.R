@@ -91,7 +91,7 @@ ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.phi.b, prior.phi.a=
 #' colMeans(results$post.hap.effects)
 #'
 #' @export
-TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=10000, Z=NULL, W=NULL, verbose=T){
+TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=10000, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
   
   TIMBR.sampler <- function(iterations, calc.null.ml=T, update.M=T, update.alpha=T){
     
@@ -267,7 +267,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
                 #compute mixture prior for new M
                 missing.weighted.input <- sapply(M.space.key[M.ln.prior.null], function(x){prior.M.input[[x]]})
                 missing.weighted.input <- sapply(missing.weighted.input, function(x){ifelse(is.null(x), -Inf, x + prior.M.weight.ln)})
-                missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], dcrp, prior.alpha=list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate)) + prior.M.weight.ln.1minus
+                missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], dcrp, prior.alpha=list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate), stop.on.error=stop.on.error) + prior.M.weight.ln.1minus
                 missing.mixture <- sapply(1:length(M.ln.prior.null), function(x){matrixStats::logSumExp(c(missing.weighted.input[x], missing.weighted.crp[x]))})
                 
                 #update hash table with mixture prior for new M
@@ -583,11 +583,11 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
   if (names(post.M.ranked[1])==paste(rep(0, J), collapse=",") | post.M.null>=0.01){
     if (model.type=="crp"){
       if (prior.alpha.type=="gamma"){
-        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate)) - log(post.M.null)
+        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate), stop.on.error=stop.on.error) - log(post.M.null)
       } else if (prior.alpha.type=="fixed"){
-        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="fixed", alpha=prior.M$prior.alpha)) - log(post.M.null)
+        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="fixed", alpha=prior.M$prior.alpha), stop.on.error=stop.on.error) - log(post.M.null)
       } else if (prior.alpha.type=="beta.prime"){
-        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="beta.prime", a=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q)) - log(post.M.null)
+        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="beta.prime", a=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q), stop.on.error=stop.on.error) - log(post.M.null)
       }
     } else if (model.type=="fixed"){
       ln.ml <- ln.ml.null
@@ -675,11 +675,11 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
     
     if (model.type=="crp"){
       if (prior.alpha.type=="gamma"){
-        p3 <- dcrp(apply(M, 1, match, x=1), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate))
+        p3 <- dcrp(apply(M, 1, match, x=1), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate), stop.on.error=stop.on.error)
       } else if (prior.alpha.type=="fixed"){
-        p3 <- dcrp(apply(M, 1, match, x=1), list(type="fixed", alpha=prior.M$prior.alpha))
+        p3 <- dcrp(apply(M, 1, match, x=1), list(type="fixed", alpha=prior.M$prior.alpha), stop.on.error=stop.on.error)
       } else if (prior.alpha.type=="beta.prime"){
-        p3 <- dcrp(apply(M, 1, match, x=1), list(type="beta.prime", a=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q))
+        p3 <- dcrp(apply(M, 1, match, x=1), list(type="beta.prime", a=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q), stop.on.error=stop.on.error)
       }
       p6 <- log(post.M.ranked[1])
     } else if (model.type=="fixed"){
@@ -1023,7 +1023,7 @@ consistency.index <- function(J, return.setparts=F){
 #' TIMBR.approx(results)
 #'
 #' @export
-TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F){
+TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F, stop.on.error=F){
   if (TIMBR.output$prior.M$model.type=="crp"){
     if (TIMBR.output$prior.M$prior.alpha.type=="gamma"){
       prior.alpha <- list(type="gamma", shape=TIMBR.output$prior.M$prior.alpha.shape, rate=TIMBR.output$prior.M$prior.alpha.rate)
@@ -1044,7 +1044,7 @@ TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F){
   if (class(type)!="list"){
     if (type=="all"){
       if (TIMBR.output$prior.M$model.type=="crp"){
-        ln.prior <- sapply(names(TIMBR.output$p.M.given.y), function(x){dcrp(m.from.M.ID(x), prior.alpha)})
+        ln.prior <- sapply(names(TIMBR.output$p.M.given.y), function(x){dcrp(m.from.M.ID(x), prior.alpha, stop.on.error=stop.on.error)})
       } else if (TIMBR.output$prior.M$model.type=="uniform"){
         ln.prior <- rep(ln.prior.uniform, length(TIMBR.output$p.M.given.y))
         names(ln.prior) <- names(TIMBR.output$p.M.given.y)
@@ -1056,7 +1056,7 @@ TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F){
       biallelic <- sapply(m.list, max)==2
       
       if (TIMBR.output$prior.M$model.type=="crp"){
-        ln.prior <- sapply(m.list[biallelic], dcrp, prior.alpha=prior.alpha)
+        ln.prior <- sapply(m.list[biallelic], dcrp, prior.alpha=prior.alpha, stop.on.error=stop.on.error)
       } else if (TIMBR.output$prior.M$model.type=="uniform"){
         ln.prior <- rep(ln.prior.uniform, length(m.list[biallelic]))
         names(ln.prior) <- names(m.list)[biallelic]
@@ -1066,7 +1066,7 @@ TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F){
     } else if (type=="consistent"){
       index <- consistency.index(ncol(TIMBR.output$prior.D$A), T)
       if (TIMBR.output$prior.M$model.type=="crp"){
-        ln.prior <- apply(index$setparts, 2, dcrp, prior.alpha=prior.alpha)
+        ln.prior <- apply(index$setparts, 2, dcrp, prior.alpha=prior.alpha, stop.on.error=stop.on.error)
       } else if (TIMBR.output$prior.M$model.type=="uniform"){
         ln.prior <- rep(ln.prior.uniform, ncol(index$setparts))
         names(ln.prior) <- colnames(index$setparts)
@@ -1089,7 +1089,7 @@ TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F){
     }
   } else {
     if (TIMBR.output$prior.M$model.type=="crp"){
-      ln.prior <- apply(sapply(names(TIMBR.output$p.M.given.y), TIMBR:::m.from.M.ID), 2, TIMBR:::dcrp, prior.alpha=prior.alpha)
+      ln.prior <- apply(sapply(names(TIMBR.output$p.M.given.y), TIMBR:::m.from.M.ID), 2, TIMBR:::dcrp, prior.alpha=prior.alpha, stop.on.error=stop.on.error)
     } else if (TIMBR.output$prior.M$model.type=="uniform"){
       ln.prior <- rep(ln.prior.uniform, length(TIMBR.output$p.M.given.y))
       names(ln.prior) <- colnames(TIMBR.output$p.M.given.y)
@@ -1141,7 +1141,7 @@ decompose.tree <- function(tree){
 }
 
 #' @keywords internal
-dcrp <- function(m, prior.alpha, log.p=T, stop.on.error=F){
+dcrp <- function(m, prior.alpha, log.p=T, stop.on.error=T){
   J <- length(m)
   J.k <- table(m, dnn=NULL)
   K <- length(J.k)
