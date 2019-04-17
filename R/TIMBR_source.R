@@ -739,6 +739,7 @@ ln.K.prior.crp.marginalized <- function(K, J, a, b, stop.on.error=T){
 #' @param J number of customers (haplotypes) to be partitioned
 #' @param p.1.target prior probability of 1 partition
 #' @param p.J.target prior probability of J partitions
+#' @param stop.on.error stop function if error is encountered when using 'integrate'. errors related to roundoff and small values may occur during edge cases
 #'
 #' @return vector of c(shape, rate) hyperparamters for the gamma distribution
 #' 
