@@ -1225,14 +1225,15 @@ ewenss.calc <- function(tree, prior.alpha, stop.on.error=F){
       params[, which(B)] <- as.logical(combinations)
       half.l <- 0.5*l
       b.prime <- prior.alpha.rate + apply(params, 1, function(x){sum(half.l[x])})
+      integral <- sum(sign*b.prime^(-prior.alpha.shape))
       
-      ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(sum(sign*b.prime^(-prior.alpha.shape)))
+      ln.prob <- prior.alpha.shape*log(prior.alpha.rate) + log(ifelse(integral < 0, 0, integral))
     } else if (prior.alpha$type=="beta.prime"){
       density.ewens.beta.prime <- Vectorize(function(x, high.precision=F){
         ln.p <- cbind(-x*l[-length(l)]/2, NA)
         
         if (high.precision){
-          ln.p[B,2] <- log1mexp(ln.p[B,1])
+          ln.p[B,2] <- VGAM::log1mexp(-ln.p[B,1])
         } else {
           ln.p[B,2] <- log(1-exp(ln.p[B,1]))
         }
@@ -1271,7 +1272,7 @@ ewenss.calc <- function(tree, prior.alpha, stop.on.error=F){
     if (prior.alpha$type=="fixed"){
       #store mutation probabilities for each branch
       ln.p <- -prior.alpha$alpha*l[-length(l)]/2
-      ln.p <- cbind(ln.p, log1mexp(ln.p))
+      ln.p <- cbind(ln.p, VGAM::log1mexp(-ln.p))
     } else if (prior.alpha$type=="gamma"){
       prior.alpha.shape <- prior.alpha$shape
       prior.alpha.rate <- prior.alpha$rate
@@ -1523,9 +1524,4 @@ simulate.population <- function(M, N.J, var.exp, spacing="equal"){
   
   #return list of formatted input for TIMBR
   list(y=y, prior.D=list(P=D, A=A, fixed.diplo=T), B=B)
-}
-
-#' @keywords internal
-log1mexp <- function(ln.p){
-  sapply(ln.p, function(x){ifelse(x < -log(2), log1p(-exp(x)), log(-expm1(x)))})
 }
