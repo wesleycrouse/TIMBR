@@ -722,14 +722,14 @@ stirling.first.unsigned <- function(J){
 }
 
 #' @keywords internal
-ln.K.prior.crp.marginalized <- function(K, J, a, b){
+ln.K.prior.crp.marginalized <- function(K, J, a, b, stop.on.error=T){
   s <- stirling.first.unsigned(J)
   
   density.K.concentration <- Vectorize(function(x){
     exp(K*log(x) + lgamma(x) - lgamma(x + J) + dgamma(x, a, b, log=T))
   })
   
-  log(integrate(density.K.concentration, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.75)$value) + log(s[K]) - log(sum(s)) + lfactorial(J)
+  log(integrate(density.K.concentration, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.75, stop.on.error=stop.on.error)$value) + log(s[K]) - log(sum(s)) + lfactorial(J)
 }
 
 #' Calculate hyperparameters for Chinese restaurant process with gamma prior distribution on the concentration parameter
@@ -746,10 +746,10 @@ ln.K.prior.crp.marginalized <- function(K, J, a, b){
 #' calc.concentration.prior(8, 0.05, 0.01)
 #'
 #' @export
-calc.concentration.prior <- function(J, p.1.target, p.J.target){
+calc.concentration.prior <- function(J, p.1.target, p.J.target, stop.on.error=F){
   distance <- function(c){
-    p1 <- exp(ln.K.prior.crp.marginalized(1, J, c[1], c[2]))
-    pJ <- exp(ln.K.prior.crp.marginalized(J, J, c[1], c[2]))
+    p1 <- exp(ln.K.prior.crp.marginalized(1, J, c[1], c[2], stop.on.error=stop.on.error))
+    pJ <- exp(ln.K.prior.crp.marginalized(J, J, c[1], c[2], stop.on.error=stop.on.error))
     
     (1/2)*log((p1-p.1.target)^2 + (pJ-p.J.target)^2)
   }
