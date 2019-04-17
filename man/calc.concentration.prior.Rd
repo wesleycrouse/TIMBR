@@ -4,7 +4,7 @@
 \alias{calc.concentration.prior}
 \title{Calculate hyperparameters for Chinese restaurant process with gamma prior distribution on the concentration parameter}
 \usage{
-calc.concentration.prior(J, p.1.target, p.J.target)
+calc.concentration.prior(J, p.1.target, p.J.target, stop.on.error = F)
 }
 \arguments{
 \item{J}{number of customers (haplotypes) to be partitioned}
@@ -12,6 +12,8 @@ calc.concentration.prior(J, p.1.target, p.J.target)
 \item{p.1.target}{prior probability of 1 partition}
 
 \item{p.J.target}{prior probability of J partitions}
+
+\item{stop.on.error}{stop function if error is encountered when using 'integrate'. errors related to roundoff and small values may occur during edge cases}
 }
 \value{
 vector of c(shape, rate) hyperparamters for the gamma distribution
