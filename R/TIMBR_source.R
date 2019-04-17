@@ -1141,7 +1141,7 @@ decompose.tree <- function(tree){
 }
 
 #' @keywords internal
-dcrp <- function(m, prior.alpha, log.p=T, stop.on.error=T){
+dcrp <- function(m, prior.alpha, log.p=T, stop.on.error=F){
   J <- length(m)
   J.k <- table(m, dnn=NULL)
   K <- length(J.k)
