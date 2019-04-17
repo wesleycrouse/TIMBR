@@ -1141,7 +1141,7 @@ decompose.tree <- function(tree){
 }
 
 #' @keywords internal
-dcrp <- function(m, prior.alpha, log.p=T){
+dcrp <- function(m, prior.alpha, log.p=T, stop.on.error=T){
   J <- length(m)
   J.k <- table(m, dnn=NULL)
   K <- length(J.k)
@@ -1154,7 +1154,7 @@ dcrp <- function(m, prior.alpha, log.p=T){
       exp(lgamma(x) - lgamma(x+J) + (shape+K-1)*log(x) - rate*x)
     })
     
-    ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.75)$value) + sum(lgamma(J.k)) + shape*log(rate) - lgamma(shape)
+    ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.75, stop.on.error=stop.on.error)$value) + sum(lgamma(J.k)) + shape*log(rate) - lgamma(shape)
     
   } else if (prior.alpha$type=="fixed"){
     alpha <- prior.alpha$alpha
@@ -1169,7 +1169,7 @@ dcrp <- function(m, prior.alpha, log.p=T){
       exp(lgamma(x) - lgamma(x+J) + (a+K-1)*log(x) - (a+b)*log(1+x/q))
     })
     
-    ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.75)$value) + sum(lgamma(J.k)) - a*log(q) - lbeta(a,b)
+    ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.75, stop.on.error=stop.on.error)$value) + sum(lgamma(J.k)) - a*log(q) - lbeta(a,b)
   }
   
   ifelse(log.p, ln.p, exp(ln.p))
@@ -1181,7 +1181,7 @@ dcrp <- function(m, prior.alpha, log.p=T){
 #'
 #' @param tree either a user-specified tree of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
 #' @param prior.alpha prior type c("fixed","gamma","beta.prime") for the concentration parameter, see examples for format
-#' @param stop.on.error stop function if error is encountered during 'integrate' when using "beta.prime" prior. errors related to roundoff and small values may occur during edge cases. Note that function returns warning if error in total probability is >1 percent regardless of this setting
+#' @param stop.on.error stop function if error is encountered when using 'integrate'. errors related to roundoff and small values may occur during edge cases. Note that function returns warning if error in total probability is >1 percent regardless of this setting
 #'
 #' @return list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
 #' 
@@ -1249,7 +1249,7 @@ ewenss.calc <- function(tree, prior.alpha, stop.on.error=F){
     partitions.all <- apply(partitions::parts(tree), 2, partitions::setparts)
     
     #calculate probabilities for each partition class
-    ln.probs <- unlist(sapply(1:length(partitions.all), function(x){rep(dcrp(partitions.all[[x]][,1], prior.alpha), ncol(partitions.all[[x]]))}))
+    ln.probs <- unlist(sapply(1:length(partitions.all), function(x){rep(dcrp(partitions.all[[x]][,1], prior.alpha, stop.on.error=stop.on.error), ncol(partitions.all[[x]]))}))
     
     #generate partition names and prior.M object
     M.IDs <- apply(do.call(cbind, partitions.all), 2, m.rename)
