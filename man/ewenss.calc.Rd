@@ -11,7 +11,7 @@ ewenss.calc(tree, prior.alpha, stop.on.error = F)
 
 \item{prior.alpha}{prior type c("fixed","gamma","beta.prime") for the concentration parameter, see examples for format}
 
-\item{stop.on.error}{stop function if error is encountered during 'integrate' when using "beta.prime" prior. errors related to roundoff and small values may occur during edge cases. Note that function returns warning if error in total probability is >1 percent regardless of this setting}
+\item{stop.on.error}{stop function if error is encountered when using 'integrate'. errors related to roundoff and small values may occur during edge cases. Note that function returns warning if error in total probability is >1 percent regardless of this setting}
 }
 \value{
 list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
