@@ -728,7 +728,7 @@ ln.K.prior.crp.marginalized <- function(K, J, a, b){
     exp(K*log(x) + lgamma(x) - lgamma(x + J) + dgamma(x, a, b, log=T))
   })
   
-  log(integrate(density.K.concentration, lower=0, upper=Inf)$value) + log(s[K]) - log(sum(s)) + lfactorial(J)
+  log(integrate(density.K.concentration, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.75)$value) + log(s[K]) - log(sum(s)) + lfactorial(J)
 }
 
 #' Calculate hyperparameters for Chinese restaurant process with gamma prior distribution on the concentration parameter
@@ -1154,7 +1154,7 @@ dcrp <- function(m, prior.alpha, log.p=T){
       exp(lgamma(x) - lgamma(x+J) + (shape+K-1)*log(x) - rate*x)
     })
     
-    ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf)$value) + sum(lgamma(J.k)) + shape*log(rate) - lgamma(shape)
+    ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.75)$value) + sum(lgamma(J.k)) + shape*log(rate) - lgamma(shape)
     
   } else if (prior.alpha$type=="fixed"){
     alpha <- prior.alpha$alpha
@@ -1169,7 +1169,7 @@ dcrp <- function(m, prior.alpha, log.p=T){
       exp(lgamma(x) - lgamma(x+J) + (a+K-1)*log(x) - (a+b)*log(1+x/q))
     })
     
-    ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf)$value) + sum(lgamma(J.k)) - a*log(q) - lbeta(a,b)
+    ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.75)$value) + sum(lgamma(J.k)) - a*log(q) - lbeta(a,b)
   }
   
   ifelse(log.p, ln.p, exp(ln.p))
