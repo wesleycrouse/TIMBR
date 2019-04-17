@@ -70,6 +70,7 @@ ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.phi.b, prior.phi.a=
 #' @param Z design matrix for intercept and covariates; first column must be a vector of ones, which is the default
 #' @param W vector of replicates for each strain; one replicate per strain by default
 #' @param verbose optionally report function progress
+#' @param stop.on.error stop function if error is encountered when using 'integrate'. errors related to roundoff and small values may occur during edge cases
 #'
 #' @return a list of input parameters, posterior samples and marginal densities, and the marginal likelihood
 #' 
@@ -1089,7 +1090,7 @@ TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F, st
     }
   } else {
     if (TIMBR.output$prior.M$model.type=="crp"){
-      ln.prior <- apply(sapply(names(TIMBR.output$p.M.given.y), TIMBR:::m.from.M.ID), 2, TIMBR:::dcrp, prior.alpha=prior.alpha, stop.on.error=stop.on.error)
+      ln.prior <- apply(sapply(names(TIMBR.output$p.M.given.y), m.from.M.ID), 2, dcrp, prior.alpha=prior.alpha, stop.on.error=stop.on.error)
     } else if (TIMBR.output$prior.M$model.type=="uniform"){
       ln.prior <- rep(ln.prior.uniform, length(TIMBR.output$p.M.given.y))
       names(ln.prior) <- colnames(TIMBR.output$p.M.given.y)
@@ -1372,9 +1373,9 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
                               post.summary="mean", colors=c("blue", "white", "red"), color.res=1000){
   #calculate pairwise probabilities for haplotype groupings
   if (is.null(TIMBR.object$y)){
-    E.MMt <- lapply(1:length(TIMBR.object$ln.probs), function(x){M <- TIMBR:::M.matrix.from.ID(TIMBR.object$M.IDs[x]); exp(TIMBR.object$ln.probs[x])*tcrossprod(M)})
+    E.MMt <- lapply(1:length(TIMBR.object$ln.probs), function(x){M <- M.matrix.from.ID(TIMBR.object$M.IDs[x]); exp(TIMBR.object$ln.probs[x])*tcrossprod(M)})
   } else {
-    E.MMt <- lapply(1:length(TIMBR.object$p.M.given.y), function(x){M <- TIMBR:::M.matrix.from.ID(names(TIMBR.object$p.M.given.y)[x]); TIMBR.object$p.M.given.y[x]*tcrossprod(M)})
+    E.MMt <- lapply(1:length(TIMBR.object$p.M.given.y), function(x){M <- M.matrix.from.ID(names(TIMBR.object$p.M.given.y)[x]); TIMBR.object$p.M.given.y[x]*tcrossprod(M)})
   }
   
   E.MMt <- Reduce("+", E.MMt)
