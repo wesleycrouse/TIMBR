@@ -10,7 +10,11 @@ TIMBR.approx(TIMBR.output, type = "all", ln.ml = F, return.prior = F,
 \arguments{
 \item{TIMBR.output}{results object from the TIMBR function, prior.M method must be CRP or uniform}
 
-\item{type}{"all" - report BFs for all allelic series; "merge" - report BFs for biallelic series (i.e. merge analysis); "consistent" - report BFs for consistent merge analysis; prior.M - report BF for list-type prior.M}
+\item{type}{"all" - report BFs for all allelic series; "merge" - report BFs for biallelic series (i.e. merge analysis); "consistent" - report BFs for consistent merge analysis; "prior.M" - report BF for list-type prior.M}
+
+\item{ln.ml}{return ln.ml instead of BF}
+
+\item{return.prior}{include prior in output}
 
 \item{stop.on.error}{stop function if error is encountered when using 'integrate'. errors related to roundoff and small values may occur during edge cases}
 }
