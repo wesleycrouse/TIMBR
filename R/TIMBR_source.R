@@ -1097,6 +1097,8 @@ TIMBR.approx <- function(TIMBR.output, type="all", ln.ml = F, return.prior=F, st
       ln.BF <- rev(sort(TIMBR.output$ln.BF + apply(index.by.ln.prior, 1, function(x){matrixStats::logSumExp(x + log(TIMBR.output$p.M.given.y) - ln.prior)})))
     }
   } else {
+    prior.M <- type
+    
     if (TIMBR.output$prior.M$model.type=="crp"){
       ln.prior <- apply(sapply(names(TIMBR.output$p.M.given.y), m.from.M.ID), 2, dcrp, prior.alpha=prior.alpha, stop.on.error=stop.on.error)
     } else if (TIMBR.output$prior.M$model.type=="uniform"){
