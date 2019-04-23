@@ -961,7 +961,11 @@ TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plo
   Axis(side=1)
   
   if (is.null(colors)){
-    colors <- ifelse(J==8, c("#9000E0","#F00000","#00A000","#00A0F0","#1010F0","#F08080","#808080","#F0F000"), rep("#4D4D4D", J))
+    if (J==8){
+      colors <- c("#9000E0","#F00000","#00A000","#00A0F0","#1010F0","#F08080","#808080","#F0F000")
+    } else {
+      colors <- rep("#4D4D4D", J)
+    }
   }
   
   
