@@ -1132,7 +1132,7 @@ decompose.tree <- function(tree){
   J <- length(tree$tip.label)
   
   #store basis matrix V
-  V <- matrix(0, J, 2*J-1)
+  V <- matrix(0, J, J+tree$Nnode)
   rownames(V) <- tree$tip.label
   nodepaths <- ape::nodepath(tree)
   V[cbind(unlist(lapply(1:J, function(i) rep(i, length(nodepaths[[i]])))), unlist(nodepaths))] <- 1
@@ -1146,6 +1146,10 @@ decompose.tree <- function(tree){
   order.colSums.V <- order(colSums.V)
   l <- l[order.colSums.V]
   V <- V[sort(rownames(V)), order.colSums.V]
+  
+  #remove branches with zero length, excluding final node
+  V <- V[,c(l[1:length(l)-1]!=0, TRUE)]
+  l <- l[c(l[1:length(l)-1]!=0, TRUE)]
   
   #return V and l
   list(V=V, l=l)
