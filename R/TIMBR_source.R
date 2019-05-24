@@ -1536,7 +1536,12 @@ simulate.population <- function(M, N.J, var.exp, spacing="equal"){
 TIMBR.scan <- function(y, prior.D.all, prior.M=NULL, prior.phi.b=1, samples=100, samples.ml=100, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
   P.all <- prior.D.all$P.all
   intervals <- prior.D.all$intervals
-  scan.range <- prior.D.all$scan.range
+  
+  if (is.null(prior.D.all$scan.range)){
+    scan.range <- c(1, intervals[nrow(intervals),2]+1)
+  } else {
+    scan.range <- prior.D.all$scan.range
+  }
   
   prior.D <- prior.D.all[!(names(prior.D.all) %in% c("P.all", "intervals", "scan.range"))]
   loci <- which(intervals[,1] >= scan.range[1] & intervals[,2] < scan.range[2])
@@ -1555,5 +1560,5 @@ TIMBR.scan <- function(y, prior.D.all, prior.M=NULL, prior.phi.b=1, samples=100,
     ln.BFs[j] <- results$ln.BF
   }
 
-  ln.BFs
+  list(intervals=intervals[loci,], ln.BFs=ln.BFs)
 }
