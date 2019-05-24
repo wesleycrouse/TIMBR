@@ -1545,7 +1545,9 @@ TIMBR.scan <- function(y, prior.D.all, prior.M=NULL, prior.phi.b=1, samples=100,
   
   prior.D <- prior.D.all[!(names(prior.D.all) %in% c("P.all", "intervals", "scan.range"))]
   loci <- which(intervals[,1] >= scan.range[1] & intervals[,2] < scan.range[2])
+  
   ln.BFs <- rep(NA, length(loci))
+  post.hap.effects <- matrix(NA, length(loci), ncol(prior.D.all$A))
   
   for (j in 1:length(loci)){
     i <- loci[j]
@@ -1558,7 +1560,8 @@ TIMBR.scan <- function(y, prior.D.all, prior.M=NULL, prior.phi.b=1, samples=100,
     results <- TIMBR(y, prior.D, prior.M, prior.phi.b, samples, samples.ml, Z, W, F, stop.on.error)
     
     ln.BFs[j] <- results$ln.BF
+    post.hap.effects[j,] <- colMeans(results$post.hap.effects)
   }
 
-  list(intervals=intervals[loci,], ln.BFs=ln.BFs)
+  list(intervals=intervals[loci,], ln.BFs=ln.BFs, post.hap.effects=post.hap.effects)
 }
