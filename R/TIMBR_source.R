@@ -1531,3 +1531,29 @@ simulate.population <- function(M, N.J, var.exp, spacing="equal"){
   #return list of formatted input for TIMBR
   list(y=y, prior.D=list(P=D, A=A, fixed.diplo=T), B=B)
 }
+
+#' @keywords internal
+TIMBR.scan <- function(y, prior.D.all, prior.M=NULL, prior.phi.b=1, samples=100, samples.ml=100, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
+  P.all <- prior.D.all$P.all
+  intervals <- prior.D.all$intervals
+  scan.range <- prior.D.all$scan.range
+  
+  prior.D <- prior.D.all[!(names(mcv.data$prior.D) %in% c("P.all", "intervals", "scan.range"))]
+  loci <- which(intervals[,1] >= scan.range[1] & intervals[,2] < scan.range[2])
+  ln.BFs <- rep(NA, length(loci))
+  
+  for (j in 1:length(loci)){
+    i <- loci[j]
+    
+    if (verbose){
+      print(paste("Locus", j, "of", length(loci)))
+    }
+    
+    prior.D$P <- P.all[,,i]
+    results <- TIMBR(y, prior.D, prior.M, prior.phi.b, samples, samples.ml, Z, W, F, stop.on.error)
+    
+    ln.BFs[j] <- results$ln.BF
+  }
+
+  ln.BFs
+}
