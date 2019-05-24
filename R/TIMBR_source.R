@@ -1538,7 +1538,7 @@ TIMBR.scan <- function(y, prior.D.all, prior.M=NULL, prior.phi.b=1, samples=100,
   intervals <- prior.D.all$intervals
   scan.range <- prior.D.all$scan.range
   
-  prior.D <- prior.D.all[!(names(mcv.data$prior.D) %in% c("P.all", "intervals", "scan.range"))]
+  prior.D <- prior.D.all[!(names(prior.D.all) %in% c("P.all", "intervals", "scan.range"))]
   loci <- which(intervals[,1] >= scan.range[1] & intervals[,2] < scan.range[2])
   ln.BFs <- rep(NA, length(loci))
   
