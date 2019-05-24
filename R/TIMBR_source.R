@@ -1568,7 +1568,7 @@ TIMBR.scan <- function(y, prior.D.all, prior.M=NULL, prior.phi.b=1, samples=100,
 
 #' @keywords internal
 TIMBR.scan.plot <- function(TIMBR.scan.output){
-  plot.data <- c(TIMBR.scan.output$intervals[,1], TIMBR.scan.output$intervals[,2])
+  plot.data <- c(TIMBR.scan.output$intervals[,1], TIMBR.scan.output$intervals[,2]-1)
   plot.data <- cbind(plot.data, c(TIMBR.scan.output$ln.BFs, TIMBR.scan.output$ln.BFs))
   plot.data <- plot.data[order(plot.data[,1]),]
   plot(plot.data[,1], plot.data[,2], type="l")
