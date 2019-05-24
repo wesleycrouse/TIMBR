@@ -1563,7 +1563,7 @@ TIMBR.scan <- function(y, prior.D.all, prior.M=NULL, prior.phi.b=1, samples=100,
     post.hap.effects[j,] <- colMeans(results$post.hap.effects)
   }
 
-  list(intervals=intervals[loci,], ln.BFs=ln.BFs, post.hap.effects=post.hap.effects)
+  list(intervals=intervals[loci,], ln.BFs=ln.BFs, post.hap.effects=post.hap.effects, interval.indices=loci)
 }
 
 #' @keywords internal
