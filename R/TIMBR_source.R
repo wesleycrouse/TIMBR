@@ -2073,7 +2073,8 @@ TIMBR2 <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml
   }
   
   #if posterior probability of null model is relatively high, use this to calculate marginal likelihood
-  if (names(post.M.ranked[1])==paste(rep(0, J), collapse=",")){
+  #if (names(post.M.ranked[1])==paste(rep(0, J), collapse=",")){
+  if (F){
     if (model.type=="crp"){
       if (prior.alpha.type=="gamma"){
         ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate), stop.on.error=stop.on.error) - log(post.M.null)
