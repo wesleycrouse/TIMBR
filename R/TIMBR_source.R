@@ -635,7 +635,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
     m.star <- lapply(nglm.hyperparameters, function(x){x$m.star})
     V.star <- lapply(nglm.hyperparameters, function(x){x$V.star})
     
-    if (p+d>1){
+    if (p+d > 1){
       theta <- matrixStats::rowMeans2(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
     } else {
       theta <- mean(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
@@ -663,7 +663,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
     
     p1 <- sum(dnorm(y, AMCbeta[D.list] + Zdelta, sqrt(sigma.sq*W^(-1)), log=T))
     p4 <- log(sigma.sq)
-    p5 <- ln.beta.prior.marginalized(beta, sigma.sq, prior.phi.b)
+    p5 <- ln.beta.prior.marginalized(beta, sigma.sq, prior.phi.b) - 0.5*p*(log(2)+log(pi)+log(sigma.sq))
     p7 <- matrixStats::logSumExp(dgamma(sigma.sq^(-1), 0.5*kappa.star, 0.5*psi.star, log=T))-log(samples.ml)
     p8 <- matrixStats::logSumExp(sapply(1:samples.ml, function(x){mvtnorm::dmvnorm(theta, m.star[[x]], V.star[[x]]*sigma.sq, log=T)}))-log(samples.ml)
     c <- -0.5*n*log(pi) + lgamma(0.5*kappa.star) - 0.5*sum(-log(W))
