@@ -578,6 +578,8 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
   
   if(length(post.M.null)==0){
     post.M.null <- 0
+  } else {
+    names(post.M.null) <- NULL
   }
   
   #if posterior probability of null model is relatively high, use this to calculate marginal likelihood
