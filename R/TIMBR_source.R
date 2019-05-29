@@ -635,7 +635,11 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
     m.star <- lapply(nglm.hyperparameters, function(x){x$m.star})
     V.star <- lapply(nglm.hyperparameters, function(x){x$V.star})
     
-    theta <- matrixStats::rowMeans2(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
+    if (p+d>1){
+      theta <- matrixStats::rowMeans2(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
+    } else {
+      theta <- mean(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
+    }
     
     if (p > 0){
       delta <- theta[1:p]
