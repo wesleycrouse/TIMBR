@@ -1581,7 +1581,7 @@ TIMBR.scan.plot <- function(TIMBR.scan.output, col="black", add=F, ylim=NULL){
   if (add){
     lines(plot.data[,1], plot.data[,2], col=col)
   } else {
-    if (ylim=NULL){
+    if (is.null(ylim)){
       plot(plot.data[,1], plot.data[,2], type="l", col=col, ylab="lnBF", xlab="Location")
     } else {
       plot(plot.data[,1], plot.data[,2], type="l", col=col, ylab="lnBF", xlab="Location", ylim=ylim)
