@@ -922,6 +922,7 @@ additive.design <- function(J, type){
 #' @param TIMBR.output.bkgrd optional second results object for background plot
 #' @param colors.bkgrd optional colors for background plot
 #' @param transparency optional vector of transparencies for foreground and background plots, ignored if second results object is not specified
+#' @param hap.labels optional labels for haplotypes
 #'
 #' @return plot of the posterior haplotype effect densities
 #' 
@@ -938,9 +939,13 @@ additive.design <- function(J, type){
 #'
 #' @export
 TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960, plot.height=480, TIMBR.output.bkgrd=NULL,
-                                  colors.bkgrd=NULL, transparency=c(0.7,0.4)){
+                                  colors.bkgrd=NULL, transparency=c(0.7,0.4), hap.labels=NULL){
   densities <- apply(TIMBR.output$post.hap.effect, 2, density)
   J <- length(densities)
+  
+  if (is.null(hap.labels)){
+    hap.labels <- LETTERS[J:1]
+  }
   
   scale.y <- max(sapply(densities, function(x){max(x$y)})*1.2)
   min.x <- min(sapply(densities, function(x){min(x$x)}))
@@ -963,7 +968,7 @@ TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plo
   }
   
   plot(1, type="n", xlab="Phenotype", ylab="Haplotype", xlim=c(min.x, max.x), ylim=c(0, scale.y*J), axes=FALSE)
-  Axis(side=2, at=scale.y*(0:(J-1)+0.5), labels=LETTERS[J:1], las=1, tick=F)
+  Axis(side=2, at=scale.y*(0:(J-1)+0.5), labels=hap.labels, las=1, tick=F)
   Axis(side=1)
   
   if (is.null(colors)){
@@ -973,7 +978,6 @@ TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plo
       colors <- rep("#4D4D4D", J)
     }
   }
-  
   
   if (!is.null(TIMBR.output.bkgrd)){
     if (is.null(colors.bkgrd)){
