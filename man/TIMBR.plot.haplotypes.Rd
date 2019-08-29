@@ -6,7 +6,8 @@
 \usage{
 TIMBR.plot.haplotypes(TIMBR.output, colors = NULL, file.path = NULL,
   plot.width = 960, plot.height = 480, TIMBR.output.bkgrd = NULL,
-  colors.bkgrd = NULL, transparency = c(0.7, 0.4), hap.labels = NULL)
+  colors.bkgrd = NULL, transparency = c(0.7, 0.4), hap.labels = NULL,
+  x.lim = NULL)
 }
 \arguments{
 \item{TIMBR.output}{results object from the TIMBR function}
@@ -26,6 +27,8 @@ TIMBR.plot.haplotypes(TIMBR.output, colors = NULL, file.path = NULL,
 \item{transparency}{optional vector of transparencies for foreground and background plots, ignored if second results object is not specified}
 
 \item{hap.labels}{optional labels for haplotypes}
+
+\item{x.lim}{optional limits for x axis}
 }
 \value{
 plot of the posterior haplotype effect densities
