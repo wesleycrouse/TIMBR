@@ -945,6 +945,8 @@ TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plo
   
   if (is.null(hap.labels)){
     hap.labels <- LETTERS[J:1]
+  } else {
+    hap.labels <- rev(hap.labels)
   }
   
   scale.y <- max(sapply(densities, function(x){max(x$y)})*1.2)
