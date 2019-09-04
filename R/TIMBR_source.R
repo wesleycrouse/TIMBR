@@ -1391,6 +1391,7 @@ TIMBR.consistent <- function(prior.M, M.ID){
 #' @param post.summary posterior summary for relative effect size; select from c("mean", "median", "mode")
 #' @param colors colors for heatmap of relative effect sizes
 #' @param color.res number of colors to use for the heatmap color ramp
+#' @param fixed.order vector of letters to specify plot order
 #'
 #' @return circos plot of pairwise partition probabilities
 #' 
@@ -1407,7 +1408,7 @@ TIMBR.consistent <- function(prior.M, M.ID){
 #'
 #' @export
 TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot.height=480,
-                              post.summary="mean", colors=c("blue", "white", "red"), color.res=1000){
+                              post.summary="mean", colors=c("blue", "white", "red"), color.res=1000, fixed.order=NULL){
   #calculate pairwise probabilities for haplotype groupings
   if (is.null(TIMBR.object$y)){
     E.MMt <- lapply(1:length(TIMBR.object$ln.probs), function(x){M <- M.matrix.from.ID(TIMBR.object$M.IDs[x]); exp(TIMBR.object$ln.probs[x])*tcrossprod(M)})
@@ -1421,15 +1422,20 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
   colnames(E.MMt) <- rownames(E.MMt)
   
   #optimize order by minimizing distance of lines drawn on unit circle, weighed by probabilities
-  orders <- combinat::permn(2:J, function(x){c(1,x)})
-  locations <- cbind(sinpi(2/J*(0:(J-1))), cospi(2/J*(0:(J-1))))
+  if (is.null(fixed.order)){
+    orders <- combinat::permn(2:J, function(x){c(1,x)})
+    locations <- cbind(sinpi(2/J*(0:(J-1))), cospi(2/J*(0:(J-1))))
+    
+    distance <- diag(0,J)
+    distance[t(combn(1:J, 2))] <- apply(combn(1:8, 2), 2, function(x){sqrt(sum((locations[x[1],] - locations[x[2],])^2))})
+    distance <- distance[upper.tri(distance)]
+    
+    order.dist <- sapply(orders, function(x){E.MMt.order <- E.MMt[x, x]; sum(E.MMt.order[upper.tri(E.MMt.order)]*distance)})
+    best.order <- unlist(orders[which.min(order.dist)])
+  } else {
+    best.order <- order(fixed.order)
+  }
   
-  distance <- diag(0,J)
-  distance[t(combn(1:J, 2))] <- apply(combn(1:8, 2), 2, function(x){sqrt(sum((locations[x[1],] - locations[x[2],])^2))})
-  distance <- distance[upper.tri(distance)]
-  
-  order.dist <- sapply(orders, function(x){E.MMt.order <- E.MMt[x, x]; sum(E.MMt.order[upper.tri(E.MMt.order)]*distance)})
-  best.order <- unlist(orders[which.min(order.dist)])
   E.MMt <- E.MMt[best.order, best.order]
   
   #plot connnections

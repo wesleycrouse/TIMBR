@@ -6,7 +6,7 @@
 \usage{
 TIMBR.plot.circos(TIMBR.object, file.path = NULL, plot.width = 480,
   plot.height = 480, post.summary = "mean", colors = c("blue",
-  "white", "red"), color.res = 1000)
+  "white", "red"), color.res = 1000, fixed.order = NULL)
 }
 \arguments{
 \item{TIMBR.object}{results object from the TIMBR function; or prior.M object of "list" type}
@@ -22,6 +22,8 @@ TIMBR.plot.circos(TIMBR.object, file.path = NULL, plot.width = 480,
 \item{colors}{colors for heatmap of relative effect sizes}
 
 \item{color.res}{number of colors to use for the heatmap color ramp}
+
+\item{fixed.order}{vector of letters to specify plot order}
 }
 \value{
 circos plot of pairwise partition probabilities
