@@ -1433,7 +1433,7 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
     order.dist <- sapply(orders, function(x){E.MMt.order <- E.MMt[x, x]; sum(E.MMt.order[upper.tri(E.MMt.order)]*distance)})
     best.order <- unlist(orders[which.min(order.dist)])
   } else {
-    best.order <- order(fixed.order)
+    best.order <- sapply(fixed.order, function(x){which(x==LETTERS)})
   }
   
   E.MMt <- E.MMt[best.order, best.order]
