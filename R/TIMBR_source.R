@@ -1589,7 +1589,7 @@ TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.b=1, samples=100, samp
     ln.BFs[j] <- results$ln.BF
   }
 
-  list(intervals=intervals[loci,], ln.BFs=ln.BFs, interval.indices=loci)
+  list(intervals=intervals[loci,], ln.BFs=ln.BFs)
 }
 
 #' #' @keywords internal
