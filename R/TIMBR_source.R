@@ -1562,21 +1562,19 @@ simulate.population <- function(M, N.J, var.exp, spacing="equal"){
 }
 
 #' @keywords internal
-TIMBR.scan <- function(y, prior.D.all, prior.M=NULL, prior.phi.b=1, samples=100, samples.ml=100, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
+TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.b=1, samples=100, samples.ml=100, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
   P.all <- prior.D.all$P.all
   intervals <- prior.D.all$intervals
+  scan.range <- prior.D.all$scan.range
   
-  if (is.null(prior.D.all$scan.range)){
-    scan.range <- c(1, intervals[nrow(intervals),2])
+  if (is.null(scan.range)){
+    loci <- 1:nrow(intervals)
   } else {
-    scan.range <- prior.D.all$scan.range
+    loci <- which(scan.range$chr==intervals$chr & scan.range$end >= intervals$start & scan.range$start <= intervals$end)
   }
   
   prior.D <- prior.D.all[!(names(prior.D.all) %in% c("P.all", "intervals", "scan.range"))]
-  loci <- which(intervals[,2] > scan.range[1] & intervals[,1] < scan.range[2])
-  
   ln.BFs <- rep(NA, length(loci))
-  post.hap.effects <- matrix(NA, length(loci), ncol(prior.D.all$A))
   
   for (j in 1:length(loci)){
     i <- loci[j]
@@ -1589,25 +1587,58 @@ TIMBR.scan <- function(y, prior.D.all, prior.M=NULL, prior.phi.b=1, samples=100,
     results <- TIMBR(y, prior.D, prior.M, prior.phi.b, samples, samples.ml, Z, W, F, stop.on.error)
     
     ln.BFs[j] <- results$ln.BF
-    post.hap.effects[j,] <- colMeans(results$post.hap.effects)
   }
 
-  list(intervals=intervals[loci,], ln.BFs=ln.BFs, post.hap.effects=post.hap.effects, interval.indices=loci)
+  list(intervals=intervals[loci,], ln.BFs=ln.BFs, interval.indices=loci)
 }
 
-#' @keywords internal
-TIMBR.scan.plot <- function(TIMBR.scan.output, col="black", add=F, ylim=NULL){
-  plot.data <- c(TIMBR.scan.output$intervals[,1], TIMBR.scan.output$intervals[,2]-1)
-  plot.data <- cbind(plot.data, c(TIMBR.scan.output$ln.BFs, TIMBR.scan.output$ln.BFs))
-  plot.data <- plot.data[order(plot.data[,1]),]
-  
-  if (add){
-    lines(plot.data[,1], plot.data[,2], col=col)
-  } else {
-    if (is.null(ylim)){
-      plot(plot.data[,1], plot.data[,2], type="l", col=col, ylab="lnBF", xlab="Location")
-    } else {
-      plot(plot.data[,1], plot.data[,2], type="l", col=col, ylab="lnBF", xlab="Location", ylim=ylim)
-    }
-  }
-}
+#' #' @keywords internal
+#' TIMBR.scan.plot <- function(TIMBR.scan.output, col="black", add=F, ylim=NULL){
+#'   plot.data <- c(TIMBR.scan.output$intervals[,1], TIMBR.scan.output$intervals[,2]-1)
+#'   plot.data <- cbind(plot.data, c(TIMBR.scan.output$ln.BFs, TIMBR.scan.output$ln.BFs))
+#'   plot.data <- plot.data[order(plot.data[,1]),]
+#'   
+#'   if (add){
+#'     lines(plot.data[,1], plot.data[,2], col=col)
+#'   } else {
+#'     if (is.null(ylim)){
+#'       plot(plot.data[,1], plot.data[,2], type="l", col=col, ylab="lnBF", xlab="Location")
+#'     } else {
+#'       plot(plot.data[,1], plot.data[,2], type="l", col=col, ylab="lnBF", xlab="Location", ylim=ylim)
+#'     }
+#'   }
+#' }
+#' 
+#' #' @keywords internal
+#' TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.b=1, samples=100, samples.ml=100, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
+#'   P.all <- prior.D.all$P.all
+#'   intervals <- prior.D.all$intervals
+#'   
+#'   if (is.null(prior.D.all$scan.range)){
+#'     scan.range <- c(1, intervals[nrow(intervals),2])
+#'   } else {
+#'     scan.range <- prior.D.all$scan.range
+#'   }
+#'   
+#'   prior.D <- prior.D.all[!(names(prior.D.all) %in% c("P.all", "intervals", "scan.range"))]
+#'   loci <- which(intervals[,2] > scan.range[1] & intervals[,1] < scan.range[2])
+#'   
+#'   ln.BFs <- rep(NA, length(loci))
+#'   post.hap.effects <- matrix(NA, length(loci), ncol(prior.D.all$A))
+#'   
+#'   for (j in 1:length(loci)){
+#'     i <- loci[j]
+#'     
+#'     if (verbose){
+#'       print(paste("Locus", j, "of", length(loci)))
+#'     }
+#'     
+#'     prior.D$P <- P.all[,,i]
+#'     results <- TIMBR(y, prior.D, prior.M, prior.phi.b, samples, samples.ml, Z, W, F, stop.on.error)
+#'     
+#'     ln.BFs[j] <- results$ln.BF
+#'     post.hap.effects[j,] <- colMeans(results$post.hap.effects)
+#'   }
+#'   
+#'   list(intervals=intervals[loci,], ln.BFs=ln.BFs, post.hap.effects=post.hap.effects, interval.indices=loci)
+#' }
