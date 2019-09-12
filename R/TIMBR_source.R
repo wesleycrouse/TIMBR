@@ -1609,36 +1609,3 @@ TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.b=1, samples=100, samp
 #'   }
 #' }
 #' 
-#' #' @keywords internal
-#' TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.b=1, samples=100, samples.ml=100, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
-#'   P.all <- prior.D.all$P.all
-#'   intervals <- prior.D.all$intervals
-#'   
-#'   if (is.null(prior.D.all$scan.range)){
-#'     scan.range <- c(1, intervals[nrow(intervals),2])
-#'   } else {
-#'     scan.range <- prior.D.all$scan.range
-#'   }
-#'   
-#'   prior.D <- prior.D.all[!(names(prior.D.all) %in% c("P.all", "intervals", "scan.range"))]
-#'   loci <- which(intervals[,2] > scan.range[1] & intervals[,1] < scan.range[2])
-#'   
-#'   ln.BFs <- rep(NA, length(loci))
-#'   post.hap.effects <- matrix(NA, length(loci), ncol(prior.D.all$A))
-#'   
-#'   for (j in 1:length(loci)){
-#'     i <- loci[j]
-#'     
-#'     if (verbose){
-#'       print(paste("Locus", j, "of", length(loci)))
-#'     }
-#'     
-#'     prior.D$P <- P.all[,,i]
-#'     results <- TIMBR(y, prior.D, prior.M, prior.phi.b, samples, samples.ml, Z, W, F, stop.on.error)
-#'     
-#'     ln.BFs[j] <- results$ln.BF
-#'     post.hap.effects[j,] <- colMeans(results$post.hap.effects)
-#'   }
-#'   
-#'   list(intervals=intervals[loci,], ln.BFs=ln.BFs, post.hap.effects=post.hap.effects, interval.indices=loci)
-#' }
