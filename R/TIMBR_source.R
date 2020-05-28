@@ -13,7 +13,11 @@ sumtozero.contrast <- function(K){
 m.rename <- function(m, string=T){
   unique.m <- unique(m)
   output <- sapply(m, function(y){match(x=y, unique.m)-1})
-  ifelse(string, paste(output, collapse=","), output)
+  if (string){
+    paste(output, collapse=",")
+  } else {
+    output
+  }
 }
 
 #' @keywords internal
