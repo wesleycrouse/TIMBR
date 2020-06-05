@@ -1,2 +1,11 @@
 # TIMBR
-Tree-based Inference of Multiallelism via Bayesian Regression (TIMBR) is an R package for inferring the allelic series in multiparental populations. The allelic series is the partition of haplotypes into subsets that are functionally distinct with respect to a phenotype. TIMBR is a generalization of the typical haplotype-based genetic model that accounts for the allelic series in a Bayesian nonparametric framework. TIMBR models the allelic series using a Chinese restaurant process (CRP) prior distribution. The CRP is described by Ewens's sampling formula as the distribution of leaf partitions induced by functional mutations on random coalescent trees. Optionally, this sampling formula can be used to construct allelic series prior distributions that are informed by haplotype sequence phylogeny.
+'TIMBR' is an R package for inferring an allelic series of haplotypes in a multiparental population. 
+
+Read the preprint on [bioRxiv](https://www.biorxiv.org/content/10.1101/2020.05.23.112326v2).
+
+Get started:
+```
+devtools::install_github("wesleycrouse/TIMBR")
+library(TIMBR)
+vignette('use_TIMBR')
+```
