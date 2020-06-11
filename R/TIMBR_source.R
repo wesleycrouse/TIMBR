@@ -811,7 +811,7 @@ ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
     l <- tree.decomposed$l
     L <- sum(l)
     
-    #optionally sample the mutation rates for the poisson process
+    #optionally sample the mutation rates for the Poisson process
     if (prior.alpha$type!="fixed"){
       if (prior.alpha$type=="beta.prime"){
         prior.alpha.rate <- rgamma(1, prior.alpha.b, prior.alpha.q)
@@ -820,7 +820,7 @@ ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
     }
     lambda <- alpha*L/2
     
-    #calculate null probabilities and sample non-zero numbers of mutations from truncated poisson
+    #calculate null probabilities and sample non-zero numbers of mutations from truncated Poisson
     p.null <- dpois(0, lambda)
     theta <- rpois(iter, lambda + log(1 - runif(iter)*(1 - exp(-lambda)))) + 1
     
