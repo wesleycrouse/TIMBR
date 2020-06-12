@@ -68,7 +68,7 @@ ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.phi.b, prior.phi.a=
 #' @param y vector of phenotype values for each strain
 #' @param prior.D list of inputs for the prior distribution of strain diplotype states; see data(mcv.data) for an example
 #' @param prior.M list of inputs for the prior distribution of the allelic series model; see data(mcv.data) for examples
-#' @param prior.phi.b shape parameter for the beta prime prior distribution on the variance component
+#' @param prior.phi.v degrees of freedom for the half-t prior distribution on the variance component
 #' @param samples number of samples to draw from the full posterior
 #' @param samples.ml number of samples to draw from the condtiional posterior (if necessary)
 #' @param Z design matrix for intercept and covariates; first column must be a vector of ones, which is the default
@@ -96,7 +96,7 @@ ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.phi.b, prior.phi.a=
 #' colMeans(results$post.hap.effects)
 #'
 #' @export
-TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=10000, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
+TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=10000, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
   
   TIMBR.sampler <- function(iterations, calc.null.ml=T, update.M=T, update.alpha=T){
     
@@ -156,6 +156,9 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
       
       alpha
     }
+    
+    #convert prior.phi.v to prior.phi.b
+    prior.phi.b <- 0.5*prior.phi.v
     
     #precompute matrix products if model and diplotypes are fixed
     if (!update.M & fixed.diplo){
@@ -709,7 +712,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.b=1, samples=10000, samples.ml=
   }
   
   #return posterior samples, marginal densities, and marginal likelihood
-  output <- list(y=y, prior.D=prior.D, prior.M=prior.M, prior.phi.b=prior.phi.b, samples=samples, samples.ml=samples.ml, Z=Z, W=W)
+  output <- list(y=y, prior.D=prior.D, prior.M=prior.M, prior.phi.v=prior.phi.v, samples=samples, samples.ml=samples.ml, Z=Z, W=W)
   output <- c(output, results[names(results) != "post.hyperparameters"], ln.ml=ln.ml, ln.BF=ln.ml-ln.ml.null, p.M.given.y=list(post.M.ranked), 
               post.var.exp=list(results$post.phi.sq/(results$post.phi.sq + 1)), post.hap.effects=list(results$post.MCbeta+results$post.delta[,1]),
               p.K.given.y=list(table(results$post.K)/samples))
@@ -1575,7 +1578,9 @@ simulate.population <- function(M, N.J, var.exp, spacing="equal"){
 }
 
 #' @keywords internal
-TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.b=1, samples=100, samples.ml=100, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
+TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.v=2, samples=100, samples.ml=100, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
+  prior.phi.b <- 0.5*prior.phi.v
+  
   P.all <- prior.D.all$P.all
   intervals <- prior.D.all$intervals
   scan.range <- prior.D.all$scan.range
@@ -1597,7 +1602,7 @@ TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.b=1, samples=100, samp
     }
     
     prior.D$P <- P.all[,,i]
-    results <- TIMBR(y, prior.D, prior.M, prior.phi.b, samples, samples.ml, Z, W, F, stop.on.error)
+    results <- TIMBR(y, prior.D, prior.M, prior.phi.v, samples, samples.ml, Z, W, F, stop.on.error)
     
     ln.BFs[j] <- results$ln.BF
   }
