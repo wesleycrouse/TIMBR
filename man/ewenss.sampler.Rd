@@ -19,7 +19,7 @@ ewenss.sampler(samples, trees, prior.alpha, verbose = T)
 list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
 }
 \description{
-Sample allelic series (paritions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Trees must be in coalescent units for appropriate inference.
+Sample allelic series (partions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Trees must be in coalescent units for appropriate inference.
 }
 \examples{
 #specifying hyperparameters for gamma prior using calc.concentration.prior

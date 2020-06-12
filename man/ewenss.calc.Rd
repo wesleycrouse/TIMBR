@@ -17,7 +17,7 @@ ewenss.calc(tree, prior.alpha, stop.on.error = F)
 list of allelic series IDs and probabilities, formatted as prior.M object for TIMBR function
 }
 \description{
-Directly calculates probabilties for allelic series (paritions) under Ewen's sampling formula, optionally informed by a user-specified tree. Trees must be in coalescent units for appropriate inference.
+Directly calculates probabilties for allelic series (partions) under Ewen's sampling formula, optionally informed by a user-specified tree. Trees must be in coalescent units for appropriate inference.
 }
 \examples{
 #specifying hyperparameters for gamma prior using calc.concentration.prior
