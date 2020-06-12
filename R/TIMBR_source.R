@@ -771,7 +771,7 @@ calc.concentration.prior <- function(J, p.1.target, p.J.target, stop.on.error=F)
 
 #' Ewens's sampling formula with optional gamma prior on the concentration parameter
 #'
-#' Sample allelic series (partions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Trees must be in coalescent units for appropriate inference.
+#' Sample allelic series (partitions) from Ewen's sampling formula, optionally informed by user-specified tree(s). Trees must be in coalescent units for appropriate inference.
 #'
 #' @param samples number of samples
 #' @param trees either a user-specified tree(s) of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
@@ -1229,7 +1229,7 @@ dcrp <- function(m, prior.alpha, log.p=T, stop.on.error=T){
 
 #' Direct calculation of Ewens's sampling formula with optional gamma or beta prime prior on the concentration parameter
 #'
-#' Directly calculates probabilties for allelic series (partions) under Ewen's sampling formula, optionally informed by a user-specified tree. Trees must be in coalescent units for appropriate inference.
+#' Directly calculates probabilties for allelic series (partitions) under Ewen's sampling formula, optionally informed by a user-specified tree. Trees must be in coalescent units for appropriate inference.
 #'
 #' @param tree either a user-specified tree of class "phylo" ("multiPhylo"), detailed in the 'ape' package, or an integer with the number of leaves to be partitioned
 #' @param prior.alpha prior type c("fixed","gamma","beta.prime") for the concentration parameter, see examples for format
