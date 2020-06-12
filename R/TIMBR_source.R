@@ -890,12 +890,13 @@ ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
 #' Returns the additive design matrix for the number of specified haplotypes, in the specified format.
 #'
 #' @param J number of haplotypes
-#' @param type format of the diplotype matrix, currently only supports "happy"
+#' @param type format of the diplotype matrix, currently supports "happy" and "qtl2"
 #'
 #' @return matrix of (half) haplotype dosages corresponding to each diplotype state
 #' 
 #' @examples
 #' additive.design(8, "happy")
+#' additive.design(8, "qtl2")
 #'
 #' @export
 additive.design <- function(J, type){
@@ -909,6 +910,14 @@ additive.design <- function(J, type){
         A[nrow(A),j] <- 0.5
       }
     }    
+  } else if (type=="qtl2"){
+    for (j in 1:(J-1)){
+      for (k in (j+1):J){
+        A <- rbind(A, 0)
+        A[nrow(A),k] <- 0.5
+        A[nrow(A),j] <- 0.5
+      }
+    }
   }
   
   A

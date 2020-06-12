@@ -9,7 +9,7 @@ additive.design(J, type)
 \arguments{
 \item{J}{number of haplotypes}
 
-\item{type}{format of the diplotype matrix, currently only supports "happy"}
+\item{type}{format of the diplotype matrix, currently supports "happy" and "qtl2"}
 }
 \value{
 matrix of (half) haplotype dosages corresponding to each diplotype state
@@ -19,5 +19,6 @@ Returns the additive design matrix for the number of specified haplotypes, in th
 }
 \examples{
 additive.design(8, "happy")
+additive.design(8, "qtl2")
 
 }

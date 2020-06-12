@@ -4,7 +4,9 @@
 \name{mcv.data}
 \alias{mcv.data}
 \title{Collaborative Cross QTL data for mean red blood cell volume (MCV)}
-\format{A list of inputs formatted for use with TIMBR.}
+\format{
+A list of inputs formatted for use with TIMBR.
+}
 \source{
 MCV data from Kelada et al. (2012); recomputed diplotype state probabilities using similar methods
 }

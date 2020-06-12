@@ -4,9 +4,18 @@
 \alias{TIMBR}
 \title{Tree-based Inference of Multiallelism via Bayesian Regression}
 \usage{
-TIMBR(y, prior.D, prior.M, prior.phi.b = 1, samples = 10000,
-  samples.ml = 10000, Z = NULL, W = NULL, verbose = T,
-  stop.on.error = F)
+TIMBR(
+  y,
+  prior.D,
+  prior.M,
+  prior.phi.b = 1,
+  samples = 10000,
+  samples.ml = 10000,
+  Z = NULL,
+  W = NULL,
+  verbose = T,
+  stop.on.error = F
+)
 }
 \arguments{
 \item{y}{vector of phenotype values for each strain}

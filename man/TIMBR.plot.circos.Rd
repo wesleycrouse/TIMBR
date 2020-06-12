@@ -4,9 +4,16 @@
 \alias{TIMBR.plot.circos}
 \title{Circos Plot of Pairwise Partition Probabilities from TIMBR Object}
 \usage{
-TIMBR.plot.circos(TIMBR.object, file.path = NULL, plot.width = 480,
-  plot.height = 480, post.summary = "mean", colors = c("blue",
-  "white", "red"), color.res = 1000, fixed.order = NULL)
+TIMBR.plot.circos(
+  TIMBR.object,
+  file.path = NULL,
+  plot.width = 480,
+  plot.height = 480,
+  post.summary = "mean",
+  colors = c("blue", "white", "red"),
+  color.res = 1000,
+  fixed.order = NULL
+)
 }
 \arguments{
 \item{TIMBR.object}{results object from the TIMBR function; or prior.M object of "list" type}

@@ -4,10 +4,19 @@
 \alias{TIMBR.plot.haplotypes}
 \title{Plot Haplotype Effects from TIMBR Output}
 \usage{
-TIMBR.plot.haplotypes(TIMBR.output, colors = NULL, file.path = NULL,
-  plot.width = 960, plot.height = 480, TIMBR.output.bkgrd = NULL,
-  colors.bkgrd = NULL, transparency = c(0.7, 0.4), hap.labels = NULL,
-  x.lim = NULL, x.lab = NULL)
+TIMBR.plot.haplotypes(
+  TIMBR.output,
+  colors = NULL,
+  file.path = NULL,
+  plot.width = 960,
+  plot.height = 480,
+  TIMBR.output.bkgrd = NULL,
+  colors.bkgrd = NULL,
+  transparency = c(0.7, 0.4),
+  hap.labels = NULL,
+  x.lim = NULL,
+  x.lab = NULL
+)
 }
 \arguments{
 \item{TIMBR.output}{results object from the TIMBR function}
