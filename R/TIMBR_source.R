@@ -157,9 +157,6 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
       alpha
     }
     
-    #convert prior.phi.v to prior.phi.b
-    prior.phi.b <- 0.5*prior.phi.v
-    
     #precompute matrix products if model and diplotypes are fixed
     if (!update.M & fixed.diplo){
       DAMC <- DA%*%MC
@@ -483,6 +480,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
   ytWy <- sum(y*Wy)
   kappa.star <- n
   
+  prior.phi.b <- 0.5*prior.phi.v
   phi.sq <- 0.5/prior.phi.b
   lambda <- 1
   tau.sq <- phi.sq/(lambda^2)
