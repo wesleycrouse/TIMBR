@@ -8,7 +8,7 @@ TIMBR(
   y,
   prior.D,
   prior.M,
-  prior.phi.b = 1,
+  prior.phi.v = 2,
   samples = 10000,
   samples.ml = 10000,
   Z = NULL,
@@ -24,7 +24,7 @@ TIMBR(
 
 \item{prior.M}{list of inputs for the prior distribution of the allelic series model; see data(mcv.data) for examples}
 
-\item{prior.phi.b}{shape parameter for the beta prime prior distribution on the variance component}
+\item{prior.phi.v}{degrees of freedom for the half-t prior distribution on the variance component}
 
 \item{samples}{number of samples to draw from the full posterior}
 
