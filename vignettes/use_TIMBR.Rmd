@@ -1,5 +1,5 @@
 ---
-title: "use_TIMBR"
+title: "Getting Started with TIMBR"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{use_TIMBR}
@@ -7,13 +7,22 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=5, fig.height=5) 
 ```
 
-```{r setup}
+## Overview
+
+TIMBR is an R package for inferring an allelic series of haplotypes at a locus in a multiparental population. This vignette demonstrates how to get started using data from the first example in the [manuscript](https://www.biorxiv.org/content/10.1101/2020.05.23.112326v2).
+
+## Installing from GitHub
+```{r, eval=F}
+devtools::install_github("wesleycrouse/TIMBR", build_vignettes=T)
+```
+
+## Loading the package and example data
+```{r}
 library(TIMBR)
+data(mcv.data)
 ```
