@@ -57,7 +57,8 @@ str(prior.M.hap)
 
 We call TIMBR using this prior and visualize the haplotype effects.
 ```{r}
-results.hap <- TIMBR(y, prior.D, prior.M.hap, verbose=F, samples=100, samples.ml=100)
+#results.hap <- TIMBR(y, prior.D, prior.M.hap, verbose=F, samples=100, samples.ml=100)
+results.hap <- TIMBR(y, prior.D, prior.M.hap, verbose=F)
 TIMBR.plot.haplotypes(results.hap)
 ```
 
