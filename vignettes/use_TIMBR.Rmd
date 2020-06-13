@@ -26,3 +26,42 @@ devtools::install_github("wesleycrouse/TIMBR", build_vignettes=T)
 library(TIMBR)
 data(mcv.data)
 ```
+
+## Formatting data
+The input data for TIMBR includes a vector `y` of quantitative trait observations
+```{r}
+y <- mcv.data$y
+head(y, 10)
+```
+and a list `prior.D` which specifies prior haplotype-pair (diplotype) state probabilities.
+```{r}
+prior.D <- mcv.data$prior.D
+str(prior.D)
+```
+`prior.D` includes a matrix of diplotype state probabilities `P` for all individuals and an additive design matrix `A` that maps diplotype states to half-counts of haplotype dosages. The option `fixed.diplo=TRUE` fixes each diplotype state to its prior maximum to speed computation. In this example, there are 131 individuals, 36 possible diplotype states, 8 different haplotypes, and diplotype states will be sampled rather than fixed.
+
+The order of rows in `P` must match the order of observations in `y`. When inputting your own data, make sure that `A` is correctly specified to match the order of columns in `P`.  Here, the columns in `P` (and consequently, the rows in `A`) use the default order in 'HAPPY'. For example, the first rows of `A` are:
+```{r}
+prior.D$A[1:14,]
+```
+The default order in 'qtl2' is different. To generate an additive design matrix for use with 'qtl2' data, use the function `additive.design`. The row and column names in `P` and `A` are for clarity; they are not used by TIMBR.
+
+## Haplotype-based association
+
+TIMBR requires a prior distribution for the allelic series. To begin, we implement a standard haplotype-based association model that assumes the allelic series is known and that all haplotypes are functionally distinct from one another. 
+```{r}
+prior.M.hap <- mcv.data$prior.M$fixed
+str(prior.M.hap)
+```
+`prior.M` is a list where `model.type="fixed"` specifies that the allelic series is fixed to a single value, and `M.IDs="0,1,2,3,4,5,6,7"`specifies an allelic series where all 8 haplotypes are functionally distinct. 
+
+We call TIMBR using this prior and visualize the haplotype effects.
+```{r}
+results.hap <- TIMBR(y, prior.D, prior.M.hap, verbose=F, samples=100, samples.ml=100)
+TIMBR.plot.haplotypes(results.hap)
+```
+
+We also report the natural log Bayes factor (lnBF) in favor of this model against a null where all haplotypes are functionally identical (i.e. there is no genetic effet).
+```{r}
+results.hap$ln.BF
+```
