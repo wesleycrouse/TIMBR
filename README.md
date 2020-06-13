@@ -7,5 +7,5 @@ Get started:
 ```
 devtools::install_github("wesleycrouse/TIMBR", build_vignettes=T)
 library(TIMBR)
-vignette('use_TIMBR')
+vignette("use_TIMBR")
 ```
