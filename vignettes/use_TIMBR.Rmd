@@ -57,7 +57,7 @@ str(prior.M.hap)
 
 We call TIMBR using this prior and visualize the haplotype effects. Throughout this vignette, we only draw 1000 samples so that everything runs quickly. Note that many analyses will require additional samples. 
 ```{r}
-results.hap <- TIMBR(y, prior.D, prior.M.hap, verbose=F, samples=1000, samples.ml=1000)
+results.hap <- TIMBR(y, prior.D, prior.M.hap, verbose=F)
 TIMBR.plot.haplotypes(results.hap)
 ```
 
@@ -70,13 +70,12 @@ results.hap$ln.BF
 
 Based on the previous result, it may be reasonable to assume that the allelic series is actually biallelic, with one functional allele comprised of haplotypes B,D,E and the other allele comprised of the other haplotypes. We can specify this allelic series similarly. 
 ```{r}
-prior.M.biallelic <- list(model.type="fixed", 
-                          M.IDs="0,1,0,1,1,0,0,0")
+prior.M.biallelic <- list(model.type="fixed", M.IDs="0,1,0,1,1,0,0,0")
 ```
 
 We call TIMBR assuming this biallelic contrast, report the first ten posterior samples of the haplotype effects, and visualize the haplotype effects against the previous haplotype-based model.
 ```{r}
-results.biallelic <- TIMBR(y, prior.D, prior.M.biallelic, verbose=F, samples=1000, samples.ml=1000)
+results.biallelic <- TIMBR(y, prior.D, prior.M.biallelic, verbose=F)
 results.biallelic$post.hap.effects[1:10,]
 TIMBR.plot.haplotypes(results.biallelic, TIMBR.output.bkgrd=results.hap)
 ```
@@ -98,7 +97,7 @@ str(prior.M.uniform)
 
 We call TIMBR assuming a uniform prior distribution and report the top ten posterior allelic series.
 ```{r}
-results.uniform <- TIMBR(y, prior.D, prior.M.uniform, verbose=F, samples=1000, samples.ml=1000)
+results.uniform <- TIMBR(y, prior.D, prior.M.uniform, verbose=F)
 as.matrix(head(results.uniform$p.M.given.y, 10))
 ```
 
@@ -115,7 +114,7 @@ It is also possible to set $\alpha$ to a fixed value, see `mcv.data$prior.M$crp.
 
 We call TIMBR using the CRP and this gamma prior distribution for the concentration parameter and report the top ten posterior allelic series.
 ```{r}
-results.crp <- TIMBR(y, prior.D, prior.M.crp, verbose=F, samples=1000, samples.ml=1000)
+results.crp <- TIMBR(y, prior.D, prior.M.crp, verbose=F)
 as.matrix(head(results.crp$p.M.given.y, 10))
 ```
 
@@ -141,9 +140,7 @@ The tree indicates that haplotypes B,D,E are more closely related to each other 
 
 We use the same prior on the concentration parameter $\alpha$ (in this context, the functional mutation rate on the branches) as before, examine the output, and we display the ten allelic series with the highest prior probability.
 ```{r}
-prior.alpha <- list(type="gamma", 
-                    shape=1, 
-                    rate=2.333415)
+prior.alpha <- list(type="gamma", shape=1, rate=2.333415)
 prior.M.tree.1 <- ewenss.calc(trees[[1]], prior.alpha)
 str(prior.M.tree.1)
 data.frame(M=prior.M.tree.1$M.IDs[1:10], post.prob=exp(prior.M.tree.1$ln.probs[1:10]))
@@ -172,14 +169,14 @@ prior.M.crp.list <- ewenss.calc(8, prior.alpha)
 
 To convince yourself of the relationship between the CRP and Ewens's sampling formula, try sampling a collection of random coalescent trees using the code below, compute and average their prior distributions as we just described, and compare the result with `prior.M.crp.list`. 
 ```{r}
-# trees.coal <- replicate(1000, rcoal(8, LETTERS[1:8]), simplify=F)
+trees.coal <- replicate(1000, rcoal(8, LETTERS[1:8]), simplify=F)
 ```
 
 ## Modeling the allelic series with a tree-informed prior distribution
 
 It is straightforward to call TIMBR with a tree-informed prior distribution and reporting the posterior allelic series.
 ```{r}
-results.crp.trees <- TIMBR(y, prior.D, prior.M.trees, verbose=F, samples=1000, samples.ml=1000)
+results.crp.trees <- TIMBR(y, prior.D, prior.M.trees, verbose=F)
 as.matrix(head(results.crp.trees$p.M.given.y, 10))
 ```
 
@@ -222,7 +219,7 @@ TIMBR.approx(results.crp, "merge")
 results.biallelic$ln.BF
 ```
 
-Note that this is only an approximation. In this case, only one biallelic series was observed in the CRP posterior, so approximations for all other biallelic contrasts underflow and are not reported.
+Note that this is only an approximation. In this case, most biallelic series are not observed in the CRP posterior, so their approximations underflow and are not reported.
 
 ## Other options
 
