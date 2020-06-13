@@ -102,11 +102,12 @@ str(prior.M.hap)
 We call TIMBR using this prior and visualize the haplotype effects. Throughout this vignette, we only draw 1000 samples so that everything runs quickly. Note that many analyses will require additional samples. 
 
 ```r
+set.seed(84627)
 results.hap <- TIMBR(y, prior.D, prior.M.hap, verbose=F)
 TIMBR.plot.haplotypes(results.hap)
 ```
 
-![](figure/effects-hap-1.png)
+![plot of chunk effects-hap](figure/effects-hap-1.png)
 
 We also report the natural log Bayes factor (lnBF) in favor of this model against a null where all haplotypes are functionally identical (i.e. there is no genetic effet).
 
@@ -115,7 +116,7 @@ results.hap$ln.BF
 ```
 
 ```
-## [1] 30.25961
+## [1] 30.25378
 ```
 
 ## Setting the allelic series to a specific value
@@ -135,23 +136,23 @@ results.biallelic$post.hap.effects[1:10,]
 
 ```
 ##           [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]     [,8]
-##  [1,] 58.81412 47.35295 58.81412 47.35295 47.35295 58.81412 58.81412 58.81412
-##  [2,] 59.33509 47.66489 59.33509 47.66489 47.66489 59.33509 59.33509 59.33509
-##  [3,] 58.72291 46.81218 58.72291 46.81218 46.81218 58.72291 58.72291 58.72291
-##  [4,] 58.52690 47.07728 58.52690 47.07728 47.07728 58.52690 58.52690 58.52690
-##  [5,] 58.32652 46.86259 58.32652 46.86259 46.86259 58.32652 58.32652 58.32652
-##  [6,] 59.04195 46.60730 59.04195 46.60730 46.60730 59.04195 59.04195 59.04195
-##  [7,] 59.00586 46.09110 59.00586 46.09110 46.09110 59.00586 59.00586 59.00586
-##  [8,] 59.48680 48.17944 59.48680 48.17944 48.17944 59.48680 59.48680 59.48680
-##  [9,] 58.47911 48.20291 58.47911 48.20291 48.20291 58.47911 58.47911 58.47911
-## [10,] 58.52057 46.88753 58.52057 46.88753 46.88753 58.52057 58.52057 58.52057
+##  [1,] 58.43129 46.23003 58.43129 46.23003 46.23003 58.43129 58.43129 58.43129
+##  [2,] 58.87551 46.72605 58.87551 46.72605 46.72605 58.87551 58.87551 58.87551
+##  [3,] 59.39938 47.72288 59.39938 47.72288 47.72288 59.39938 59.39938 59.39938
+##  [4,] 59.11622 48.73836 59.11622 48.73836 48.73836 59.11622 59.11622 59.11622
+##  [5,] 60.06851 46.52514 60.06851 46.52514 46.52514 60.06851 60.06851 60.06851
+##  [6,] 59.19687 47.62551 59.19687 47.62551 47.62551 59.19687 59.19687 59.19687
+##  [7,] 60.86075 47.19279 60.86075 47.19279 47.19279 60.86075 60.86075 60.86075
+##  [8,] 59.22061 48.27640 59.22061 48.27640 48.27640 59.22061 59.22061 59.22061
+##  [9,] 59.16915 47.33180 59.16915 47.33180 47.33180 59.16915 59.16915 59.16915
+## [10,] 58.36191 48.54553 58.36191 48.54553 48.54553 58.36191 58.36191 58.36191
 ```
 
 ```r
 TIMBR.plot.haplotypes(results.biallelic, TIMBR.output.bkgrd=results.hap)
 ```
 
-![](figure/effects-biallelic-1.png)
+![plot of chunk effects-biallelic](figure/effects-biallelic-1.png)
 
 The posterior samples show that haplotype effects are now identical within alleles. The visualization shows that they are also estimated with more certainty because there are fewer effect parameters (two) than in the haplotype-based model (eight). We also calculate the lnBF in favor of this biallelic model against the previous haplotype-based model.
 
@@ -160,7 +161,7 @@ results.biallelic$ln.BF - results.hap$ln.BF
 ```
 
 ```
-## [1] 7.420843
+## [1] 7.422492
 ```
 
 In this way, TIMBR can be used for a fully-Bayesian implementaiton of merge analysis. See the manuscript for more details.
@@ -188,16 +189,16 @@ as.matrix(head(results.uniform$p.M.given.y, 10))
 
 ```
 ##                   [,1]
-## 0,1,2,1,1,2,0,0 0.1340
-## 0,1,0,1,1,0,2,2 0.0629
-## 0,1,0,1,1,2,0,0 0.0625
-## 0,1,0,1,1,0,0,0 0.0477
-## 0,1,2,1,1,3,0,0 0.0433
-## 0,1,2,1,1,2,3,3 0.0324
-## 0,1,2,1,1,0,2,2 0.0265
-## 0,1,2,1,1,2,3,0 0.0252
-## 0,1,0,1,1,2,3,3 0.0243
-## 0,1,2,1,1,2,0,3 0.0186
+## 0,1,2,1,1,2,0,0 0.1404
+## 0,1,0,1,1,0,2,2 0.0602
+## 0,1,0,1,1,2,0,0 0.0573
+## 0,1,0,1,1,0,0,0 0.0445
+## 0,1,2,1,1,3,0,0 0.0444
+## 0,1,2,1,1,2,3,3 0.0346
+## 0,1,2,1,1,0,2,2 0.0255
+## 0,1,0,1,1,2,3,3 0.0254
+## 0,1,2,1,1,2,3,0 0.0242
+## 0,1,2,1,1,2,0,3 0.0192
 ```
 
 The top allelic series configuration has three functional alleles (A,G,H vs. B,D,E vs. C,F), the biallelic contrast from the previous section is ranked fourth, and posterior certainty is generally low.
@@ -229,16 +230,16 @@ as.matrix(head(results.crp$p.M.given.y, 10))
 
 ```
 ##                   [,1]
-## 0,1,0,1,1,0,0,0 0.5414
-## 0,1,0,1,1,2,0,0 0.0819
-## 0,1,2,1,1,2,0,0 0.0657
-## 0,1,0,1,1,0,2,2 0.0284
-## 0,1,0,1,1,0,2,0 0.0209
-## 0,1,2,1,1,0,0,0 0.0204
-## 0,1,0,2,1,0,0,0 0.0195
-## 0,1,0,1,2,0,0,0 0.0183
-## 0,1,0,2,2,0,0,0 0.0155
-## 0,1,2,1,1,3,0,0 0.0138
+## 0,1,0,1,1,0,0,0 0.5476
+## 0,1,0,1,1,2,0,0 0.0785
+## 0,1,2,1,1,2,0,0 0.0675
+## 0,1,0,1,1,0,2,2 0.0263
+## 0,1,0,1,1,0,2,0 0.0221
+## 0,1,0,2,1,0,0,0 0.0215
+## 0,1,2,1,1,0,0,0 0.0186
+## 0,1,0,2,2,0,0,0 0.0170
+## 0,1,2,1,1,3,0,0 0.0144
+## 0,1,0,1,1,0,0,2 0.0139
 ```
 
 The biallelic contrast from earlier is now the top posterior allelic series with over 50% probability. This is because our prior distribution places considerable weight on smaller numbers of functional alleles. We also visualize the haplotype effects against haplotype-based approach from earlier.
@@ -247,7 +248,7 @@ The biallelic contrast from earlier is now the top posterior allelic series with
 TIMBR.plot.haplotypes(results.crp, TIMBR.output.bkgrd=results.hap)
 ```
 
-![](figure/effects-crp-1.png)
+![plot of chunk effects-crp](figure/effects-crp-1.png)
 
 The haplotype effects using the CRP are again more certain, but they retain long tails that span much of the range of the effect estimates from the haplotype-based model.
 
@@ -263,7 +264,7 @@ trees <- mcv.data$trees
 plot.phylo(trees[[1]])
 ```
 
-![](figure/tree-1.png)
+![plot of chunk tree](figure/tree-1.png)
 
 The tree indicates that haplotypes B,D,E are more closely related to each other and then the other haplotypes. Based on this relationship, and before observing any additional phenotype data, we intuitively expect that haplotypes B,D,E are more likely to be functionally identical and distinct from the other haplotypes. Ewens's sampling formula formalizes this intuition by assuming that functional mutations occur on the tree in proportion to branch length. The function `ewenss.calc` enumerates all possible combinations of mutated tree branch, calculates prior probabilities, and returns a prior distribution over allelic series that is conditional on this tree. 
 
@@ -341,16 +342,16 @@ as.matrix(head(results.crp.trees$p.M.given.y, 10))
 
 ```
 ##                   [,1]
-## 0,1,0,1,1,0,0,0 0.6742
-## 0,1,0,1,1,2,0,0 0.1375
-## 0,1,0,1,1,0,2,0 0.0883
-## 0,1,0,1,1,2,3,0 0.0629
-## 0,1,0,1,1,2,2,0 0.0131
-## 0,1,0,2,2,0,0,0 0.0031
+## 0,1,0,1,1,0,0,0 0.6791
+## 0,1,0,1,1,2,0,0 0.1307
+## 0,1,0,1,1,0,2,0 0.0863
+## 0,1,0,1,1,2,3,0 0.0692
+## 0,1,0,1,1,2,2,0 0.0121
+## 0,1,0,2,2,0,0,0 0.0027
 ## 0,1,2,1,1,3,4,0 0.0027
-## 0,1,2,1,1,0,0,0 0.0026
-## 0,1,2,1,1,3,0,0 0.0023
-## 0,1,0,1,1,0,0,2 0.0017
+## 0,1,2,1,1,0,0,0 0.0024
+## 0,1,2,1,1,3,0,0 0.0020
+## 0,1,0,1,1,0,0,2 0.0013
 ```
 
 Posterior certainty is higher relative to the CRP because we have introduced additional prior information about haplotype relatedness. We calculate a lnBF in favor of this tree-informed prior against the CRP, which implictly assumes an unknown coalescent tree.
@@ -360,7 +361,7 @@ results.crp.trees$ln.BF - results.crp$ln.BF
 ```
 
 ```
-## [1] 4.793967
+## [1] 4.795758
 ```
 
 ## Visualizing the prior distribution of number of alleles
@@ -390,7 +391,7 @@ points(1:8, prior.number.alleles.uniform, pch=22, bg="darkcyan")
 legend(1, legend=c("Uniform", "CRP"), col=c("darkcyan", "orange"), lty=5)
 ```
 
-![](figure/prior-1.png)
+![plot of chunk prior](figure/prior-1.png)
 
 ## Approximating Bayes factors for alternative prior distributions from previous results
 
@@ -401,8 +402,9 @@ TIMBR.approx(results.crp, "merge")
 ```
 
 ```
-## 0,1,0,1,1,0,0,0 
-##         37.6785
+## 
+## 0,1,0,1,1,0,0,0 0,1,0,1,1,1,0,0 
+##        37.68478        29.36433
 ```
 
 ```r
@@ -410,7 +412,7 @@ results.biallelic$ln.BF
 ```
 
 ```
-## [1] 37.68045
+## [1] 37.67627
 ```
 
 Note that this is only an approximation. In this case, most biallelic series are not observed in the CRP posterior, so their approximations underflow and are not reported.
