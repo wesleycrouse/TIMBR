@@ -5,7 +5,7 @@ Read the preprint on [bioRxiv](https://www.biorxiv.org/content/10.1101/2020.05.2
 
 Get started:
 ```
-devtools::install_github("wesleycrouse/TIMBR")
+devtools::install_github("wesleycrouse/TIMBR", build_vignettes=T)
 library(TIMBR)
 vignette('use_TIMBR')
 ```
