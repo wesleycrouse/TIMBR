@@ -55,9 +55,9 @@ str(prior.M.hap)
 ```
 `prior.M` is a list where `model.type="fixed"` specifies that the allelic series is fixed to a single value, and `M.IDs="0,1,2,3,4,5,6,7"`specifies an allelic series where all 8 haplotypes are functionally distinct. 
 
-We call TIMBR using this prior and visualize the haplotype effects.
+We call TIMBR using this prior and visualize the haplotype effects. Throughout this vignette, we only draw 1000 samples so that everything runs quickly. Note that many analyses will require additional samples. 
 ```{r}
-results.hap <- TIMBR(y, prior.D, prior.M.hap, verbose=F, samples=100, samples.ml=100)
+results.hap <- TIMBR(y, prior.D, prior.M.hap, verbose=F, samples=1000, samples.ml=1000)
 TIMBR.plot.haplotypes(results.hap)
 ```
 
@@ -76,7 +76,7 @@ prior.M.biallelic <- list(model.type="fixed",
 
 We call TIMBR assuming this biallelic contrast, report the first ten posterior samples of the haplotype effects, and visualize the haplotype effects against the previous haplotype-based model.
 ```{r}
-results.biallelic <- TIMBR(y, prior.D, prior.M.biallelic, verbose=F, samples=100, samples.ml=100)
+results.biallelic <- TIMBR(y, prior.D, prior.M.biallelic, verbose=F, samples=1000, samples.ml=1000)
 results.biallelic$post.hap.effects[1:10,]
 TIMBR.plot.haplotypes(results.biallelic, TIMBR.output.bkgrd=results.hap)
 ```
@@ -98,7 +98,7 @@ str(prior.M.uniform)
 
 We call TIMBR assuming a uniform prior distribution and report the top ten posterior allelic series.
 ```{r}
-results.uniform <- TIMBR(y, prior.D, prior.M.uniform, verbose=F, samples=100, samples.ml=100)
+results.uniform <- TIMBR(y, prior.D, prior.M.uniform, verbose=F, samples=1000, samples.ml=1000)
 as.matrix(head(results.uniform$p.M.given.y, 10))
 ```
 
@@ -115,7 +115,7 @@ It is also possible to set $\alpha$ to a fixed value, see `mcv.data$prior.M$crp.
 
 We call TIMBR using the CRP and this gamma prior distribution for the concentration parameter and report the top ten posterior allelic series.
 ```{r}
-results.crp <- TIMBR(y, prior.D, prior.M.crp, verbose=F, samples=100, samples.ml=100)
+results.crp <- TIMBR(y, prior.D, prior.M.crp, verbose=F, samples=1000, samples.ml=1000)
 as.matrix(head(results.crp$p.M.given.y, 10))
 ```
 
