@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Getting Started with TIMBR</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Getting Started with TIMBR</h1>
+
+
+
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>TIMBR is an R package for inferring an allelic series of haplotypes at a locus in a multiparental population. This vignette demonstrates how to get started using data from the first example in the <a href="https://www.biorxiv.org/content/10.1101/2020.05.23.112326v2">manuscript</a>.</p>
+</div>
+<div id="installing-from-github" class="section level2">
+<h2>Installing from GitHub</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;wesleycrouse/TIMBR&quot;</span>)</a></code></pre></div>
+</div>
+<div id="loading-the-package-and-example-data" class="section level2">
+<h2>Loading the package and example data</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">library</span>(TIMBR)</a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="kw">data</span>(mcv.data)</a></code></pre></div>
+</div>
+<div id="formatting-data" class="section level2">
+<h2>Formatting data</h2>
+<p>The input data for TIMBR includes a vector <code>y</code> of quantitative trait observations</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">y &lt;-<span class="st"> </span>mcv.data<span class="op">$</span>y</a>
+<a class="sourceLine" id="cb3-2" title="2"><span class="kw">head</span>(y, <span class="dv">10</span>)</a></code></pre></div>
+<pre><code>##  [1] 44.6 48.5 46.3 61.5 47.0 60.9 51.7 51.4 55.1 70.5</code></pre>
+<p>and a list <code>prior.D</code> which specifies prior haplotype-pair (diplotype) state probabilities.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1">prior.D &lt;-<span class="st"> </span>mcv.data<span class="op">$</span>prior.D</a>
+<a class="sourceLine" id="cb5-2" title="2"><span class="kw">str</span>(prior.D)</a></code></pre></div>
+<pre><code>## List of 3
+##  $ P          : num [1:131, 1:36] 3.33e-08 1.12e-04 1.45e-05 1.00e-02 3.68e-08 ...
+##   ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. ..$ : NULL
+##   .. ..$ : chr [1:36] &quot;AA&quot; &quot;BB&quot; &quot;CC&quot; &quot;DD&quot; ...
+##  $ A          : num [1:36, 1:8] 1 0 0 0 0 0 0 0 0.5 0.5 ...
+##   ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. ..$ : chr [1:36] &quot;AA&quot; &quot;BB&quot; &quot;CC&quot; &quot;DD&quot; ...
+##   .. ..$ : chr [1:8] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; ...
+##  $ fixed.diplo: logi FALSE</code></pre>
+<p><code>prior.D</code> includes a matrix of diplotype state probabilities <code>P</code> for all individuals and an additive design matrix <code>A</code> that maps diplotype states to half-counts of haplotype dosages. The option <code>fixed.diplo=TRUE</code> fixes each diplotype state to its prior maximum to speed computation. In this example, there are 131 individuals, 36 possible diplotype states, 8 different haplotypes, and diplotype states will be sampled rather than fixed.</p>
+<p>The order of rows in <code>P</code> must match the order of observations in <code>y</code>. When inputting your own data, make sure that <code>A</code> is correctly specified to match the order of columns in <code>P</code>. Here, the columns in <code>P</code> (and consequently, the rows in <code>A</code>) use the default order in ‘HAPPY’. For example, the first rows of <code>A</code> are:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">prior.D<span class="op">$</span>A[<span class="dv">1</span><span class="op">:</span><span class="dv">14</span>,]</a></code></pre></div>
+<pre><code>##      A   B   C   D E F G H
+## AA 1.0 0.0 0.0 0.0 0 0 0 0
+## BB 0.0 1.0 0.0 0.0 0 0 0 0
+## CC 0.0 0.0 1.0 0.0 0 0 0 0
+## DD 0.0 0.0 0.0 1.0 0 0 0 0
+## EE 0.0 0.0 0.0 0.0 1 0 0 0
+## FF 0.0 0.0 0.0 0.0 0 1 0 0
+## GG 0.0 0.0 0.0 0.0 0 0 1 0
+## HH 0.0 0.0 0.0 0.0 0 0 0 1
+## AB 0.5 0.5 0.0 0.0 0 0 0 0
+## AC 0.5 0.0 0.5 0.0 0 0 0 0
+## BC 0.0 0.5 0.5 0.0 0 0 0 0
+## AD 0.5 0.0 0.0 0.5 0 0 0 0
+## BD 0.0 0.5 0.0 0.5 0 0 0 0
+## CD 0.0 0.0 0.5 0.5 0 0 0 0</code></pre>
+<p>The default order in ‘qtl2’ is different. To generate an additive design matrix for use with ‘qtl2’ data, use the function <code>additive.design</code>. The row and column names in <code>P</code> and <code>A</code> are for clarity; they are not used by TIMBR.</p>
+</div>
+<div id="haplotype-based-association" class="section level2">
+<h2>Haplotype-based association</h2>
+<p>TIMBR requires a prior distribution for the allelic series. To begin, we implement a standard haplotype-based association model that assumes the allelic series is known and that all haplotypes are functionally distinct from one another.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">prior.M.hap &lt;-<span class="st"> </span>mcv.data<span class="op">$</span>prior.M<span class="op">$</span>fixed</a>
+<a class="sourceLine" id="cb9-2" title="2"><span class="kw">str</span>(prior.M.hap)</a></code></pre></div>
+<pre><code>## List of 2
+##  $ model.type: chr &quot;fixed&quot;
+##  $ M.IDs     : chr &quot;0,1,2,3,4,5,6,7&quot;</code></pre>
+<p><code>prior.M</code> is a list where <code>model.type=&quot;fixed&quot;</code> specifies that the allelic series is fixed to a single value, and <code>M.IDs=&quot;0,1,2,3,4,5,6,7&quot;</code>specifies an allelic series where all 8 haplotypes are functionally distinct.</p>
+<p>We call TIMBR using this prior and visualize the haplotype effects.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1">results.hap &lt;-<span class="st"> </span><span class="kw">TIMBR</span>(y, prior.D, prior.M.hap, <span class="dt">verbose=</span>F, <span class="dt">samples=</span><span class="dv">100</span>, <span class="dt">samples.ml=</span><span class="dv">100</span>)</a>
+<a class="sourceLine" id="cb11-2" title="2"><span class="kw">TIMBR.plot.haplotypes</span>(results.hap)</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>We also report the natural log Bayes factor (lnBF) in favor of this model against a null where all haplotypes are functionally identical (i.e. there is no genetic effet).</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1">results.hap<span class="op">$</span>ln.BF</a></code></pre></div>
+<pre><code>## [1] 30.20379</code></pre>
+</div>
+<div id="setting-the-allelic-series-to-a-specific-value" class="section level2">
+<h2>Setting the allelic series to a specific value</h2>
+<p>Based on the previous result, it may be reasonable to assume that the allelic series is actually biallelic, with one functional allele comprised of haplotypes B,D,E and the other allele comprised of the other haplotypes. We can specify this allelic series similarly.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1">prior.M.biallelic &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">model.type=</span><span class="st">&quot;fixed&quot;</span>, </a>
+<a class="sourceLine" id="cb14-2" title="2">                          <span class="dt">M.IDs=</span><span class="st">&quot;0,1,0,1,1,0,0,0&quot;</span>)</a></code></pre></div>
+<p>We call TIMBR assuming this biallelic contrast, report the first ten posterior samples of the haplotype effects, and visualize the haplotype effects against the previous haplotype-based model.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1">results.biallelic &lt;-<span class="st"> </span><span class="kw">TIMBR</span>(y, prior.D, prior.M.biallelic, <span class="dt">verbose=</span>F, <span class="dt">samples=</span><span class="dv">100</span>, <span class="dt">samples.ml=</span><span class="dv">100</span>)</a>
+<a class="sourceLine" id="cb15-2" title="2">results.biallelic<span class="op">$</span>post.hap.effects[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>,]</a></code></pre></div>
+<pre><code>##           [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]     [,8]
+##  [1,] 58.68579 47.64234 58.68579 47.64234 47.64234 58.68579 58.68579 58.68579
+##  [2,] 58.92473 47.78026 58.92473 47.78026 47.78026 58.92473 58.92473 58.92473
+##  [3,] 59.82236 47.45386 59.82236 47.45386 47.45386 59.82236 59.82236 59.82236
+##  [4,] 59.13885 46.68805 59.13885 46.68805 46.68805 59.13885 59.13885 59.13885
+##  [5,] 59.30469 46.73715 59.30469 46.73715 46.73715 59.30469 59.30469 59.30469
+##  [6,] 60.51929 48.85057 60.51929 48.85057 48.85057 60.51929 60.51929 60.51929
+##  [7,] 60.84485 47.95739 60.84485 47.95739 47.95739 60.84485 60.84485 60.84485
+##  [8,] 58.69031 46.84959 58.69031 46.84959 46.84959 58.69031 58.69031 58.69031
+##  [9,] 58.32905 47.08136 58.32905 47.08136 47.08136 58.32905 58.32905 58.32905
+## [10,] 58.44619 47.25386 58.44619 47.25386 47.25386 58.44619 58.44619 58.44619</code></pre>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1"><span class="kw">TIMBR.plot.haplotypes</span>(results.biallelic, <span class="dt">TIMBR.output.bkgrd=</span>results.hap)</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>The posterior samples show that haplotype effects are now identical within alleles. The visualization shows that they are also estimated with more certainty because there are fewer effect parameters (two) than in the haplotype-based model (eight). We also calculate the lnBF in favor of this biallelic model against the previous haplotype-based model.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" title="1">results.biallelic<span class="op">$</span>ln.BF <span class="op">-</span><span class="st"> </span>results.hap<span class="op">$</span>ln.BF</a></code></pre></div>
+<pre><code>## [1] 7.425822</code></pre>
+<p>In this way, TIMBR can be used for a fully-Bayesian implementaiton of merge analysis. See the manuscript for more details.</p>
+</div>
+<div id="modeling-the-allelic-series-with-a-uniform-prior-distribution" class="section level2">
+<h2>Modeling the allelic series with a uniform prior distribution</h2>
+<p>Often, we do not expect all haplotypes to be functionally distint, but we also do not know the correct allelic series configuration with certainty. Using TIMBR, we can set a prior distribution over all possible allelic series configurations and estimate a posterior distribution. A naive first approach is to assume a uniform distribution where all allelic series are equally likely <em>a priori</em>. This is specifed as</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" title="1">prior.M.uniform &lt;-<span class="st"> </span>mcv.data<span class="op">$</span>prior.M<span class="op">$</span>uniform</a>
+<a class="sourceLine" id="cb20-2" title="2"><span class="kw">str</span>(prior.M.uniform)</a></code></pre></div>
+<pre><code>## List of 1
+##  $ model.type: chr &quot;uniform&quot;</code></pre>
+<p>We call TIMBR assuming a uniform prior distribution and report the top ten posterior allelic series.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" title="1">results.uniform &lt;-<span class="st"> </span><span class="kw">TIMBR</span>(y, prior.D, prior.M.uniform, <span class="dt">verbose=</span>F, <span class="dt">samples=</span><span class="dv">100</span>, <span class="dt">samples.ml=</span><span class="dv">100</span>)</a>
+<a class="sourceLine" id="cb22-2" title="2"><span class="kw">as.matrix</span>(<span class="kw">head</span>(results.uniform<span class="op">$</span>p.M.given.y, <span class="dv">10</span>))</a></code></pre></div>
+<pre><code>##                 [,1]
+## 0,1,2,1,1,2,0,0 0.13
+## 0,1,2,1,1,3,0,0 0.07
+## 0,1,0,1,1,0,2,2 0.05
+## 0,1,0,1,1,0,0,0 0.04
+## 0,1,0,2,1,0,0,0 0.04
+## 0,1,2,1,1,0,2,2 0.04
+## 0,1,2,3,1,2,0,0 0.04
+## 0,1,0,1,1,2,0,0 0.03
+## 0,1,0,1,1,2,3,3 0.03
+## 0,1,2,1,1,3,4,4 0.03</code></pre>
+<p>The top allelic series configuration has three functional alleles (A,G,H vs. B,D,E vs. C,F), the biallelic contrast from the previous section is ranked fourth, and posterior certainty is generally low.</p>
+</div>
+<div id="modeling-the-allelic-series-with-a-chinese-restaurant-process-prior-distribution" class="section level2">
+<h2>Modeling the allelic series with a Chinese restaurant process prior distribution</h2>
+<p>A uniform distribution over allelic series implies a strong prior belief in an intermediate number of alleles, but this is unreasonable, for example, if we have a prior expectation that many allelic series are biallelic. TIMBR implements a flexible prior distribution over allelic series called a Chinese restaurant process (CRP). The CRP has a concentration parameter <span class="math inline">\(\alpha\)</span> that controls the prior number of functional alleles. At the limits, <span class="math inline">\(\alpha=0\)</span> implies a null model with only one functional allele, and <span class="math inline">\(\alpha=\infty\)</span> implies the haplotype-based model where all haplotypes are functionally distinct. The approach used in the manuscript places a gamma prior distribution on the concentration parameter with the following parameters.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" title="1">prior.M.crp &lt;-<span class="st"> </span>mcv.data<span class="op">$</span>prior.M<span class="op">$</span>crp</a>
+<a class="sourceLine" id="cb24-2" title="2"><span class="kw">str</span>(prior.M.crp)</a></code></pre></div>
+<pre><code>## List of 4
+##  $ model.type       : chr &quot;crp&quot;
+##  $ prior.alpha.type : chr &quot;gamma&quot;
+##  $ prior.alpha.shape: num 1
+##  $ prior.alpha.rate : num 2.33</code></pre>
+<p>It is also possible to set <span class="math inline">\(\alpha\)</span> to a fixed value, see <code>mcv.data$prior.M$crp.fixed</code> for an example.</p>
+<p>We call TIMBR using the CRP and this gamma prior distribution for the concentration parameter and report the top ten posterior allelic series.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" title="1">results.crp &lt;-<span class="st"> </span><span class="kw">TIMBR</span>(y, prior.D, prior.M.crp, <span class="dt">verbose=</span>F, <span class="dt">samples=</span><span class="dv">100</span>, <span class="dt">samples.ml=</span><span class="dv">100</span>)</a>
+<a class="sourceLine" id="cb26-2" title="2"><span class="kw">as.matrix</span>(<span class="kw">head</span>(results.crp<span class="op">$</span>p.M.given.y, <span class="dv">10</span>))</a></code></pre></div>
+<pre><code>##                 [,1]
+## 0,1,0,1,1,0,0,0 0.75
+## 0,1,0,1,1,2,0,0 0.05
+## 0,1,0,1,1,0,0,2 0.03
+## 0,1,0,1,1,0,2,2 0.02
+## 0,1,0,1,1,2,3,0 0.02
+## 0,1,0,2,2,0,0,0 0.02
+## 0,1,0,1,1,2,0,3 0.01
+## 0,1,0,1,1,2,2,2 0.01
+## 0,1,0,1,1,2,3,4 0.01
+## 0,1,0,1,2,0,0,0 0.01</code></pre>
+<p>The biallelic contrast from earlier is now the top posterior allelic series with over 50% probability. This is because our prior distribution places considerable weight on smaller numbers of functional alleles. We also visualize the haplotype effects against haplotype-based approach from earlier.</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" title="1"><span class="kw">TIMBR.plot.haplotypes</span>(results.crp, <span class="dt">TIMBR.output.bkgrd=</span>results.hap)</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>The haplotype effects using the CRP are again more certain, but they retain long tails that span much of the range of the effect estimates from the haplotype-based model.</p>
+</div>
+<div id="computing-the-prior-distribution-with-ewenss-sampling-formula" class="section level2">
+<h2>Computing the prior distribution with Ewens’s sampling formula</h2>
+<p>The CRP implictly assumes that the haplotypes are equally related and that the relationship between them is unknown. Specifically, Ewens’s sampling formula describes the CRP as the distribution over partitions (i.e. allelic series) induced by functional mutations on an unknown coalescent tree with the haplotypes at the leaves. TIMBR leverages this relationship to define a prior distribution for the allelic series that is conditional on a single tree (or set of trees), rather than an unknown coalescent tree.</p>
+<p>The example data includes samples of coalescent trees at the causal locus for this QTL in <code>mcv.data$trees</code>. This is an object of class <code>multiphylo</code>, which is defined by the ‘ape’ package. We visualize the first tree sample using ‘ape’.</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" title="1"><span class="kw">library</span>(ape)</a>
+<a class="sourceLine" id="cb29-2" title="2">trees &lt;-<span class="st"> </span>mcv.data<span class="op">$</span>trees</a>
+<a class="sourceLine" id="cb29-3" title="3"><span class="kw">plot.phylo</span>(trees[[<span class="dv">1</span>]])</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>The tree indicates that haplotypes B,D,E are more closely related to each other and then the other haplotypes. Based on this relationship, and before observing any additional phenotype data, we intuitively expect that haplotypes B,D,E are more likely to be functionally identical and distinct from the other haplotypes. Ewens’s sampling formula formalizes this intuition by assuming that functional mutations occur on the tree in proportion to branch length. The function <code>ewenss.calc</code> enumerates all possible combinations of mutated tree branch, calculates prior probabilities, and returns a prior distribution over allelic series that is conditional on this tree.</p>
+<p>We use the same prior on the concentration parameter <span class="math inline">\(\alpha\)</span> (in this context, the functional mutation rate on the branches) as before, examine the output, and we display the ten allelic series with the highest prior probability.</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" title="1">prior.alpha &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">type=</span><span class="st">&quot;gamma&quot;</span>, </a>
+<a class="sourceLine" id="cb30-2" title="2">                    <span class="dt">shape=</span><span class="dv">1</span>, </a>
+<a class="sourceLine" id="cb30-3" title="3">                    <span class="dt">rate=</span><span class="fl">2.333415</span>)</a>
+<a class="sourceLine" id="cb30-4" title="4">prior.M.tree<span class="fl">.1</span> &lt;-<span class="st"> </span><span class="kw">ewenss.calc</span>(trees[[<span class="dv">1</span>]], prior.alpha)</a>
+<a class="sourceLine" id="cb30-5" title="5"><span class="kw">str</span>(prior.M.tree<span class="fl">.1</span>)</a></code></pre></div>
+<pre><code>## List of 4
+##  $ model.type: chr &quot;list&quot;
+##  $ M.IDs     : chr [1:610] &quot;0,0,0,0,0,0,0,0&quot; &quot;0,1,0,1,1,0,0,0&quot; &quot;0,1,0,1,1,0,2,0&quot; &quot;0,0,0,0,0,0,1,0&quot; ...
+##  $ ln.probs  : num [1:610] -0.596 -1.849 -3.112 -3.118 -3.527 ...
+##  $ hash.names: logi TRUE</code></pre>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" title="1"><span class="kw">data.frame</span>(<span class="dt">M=</span>prior.M.tree<span class="fl">.1</span><span class="op">$</span>M.IDs[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>], <span class="dt">post.prob=</span><span class="kw">exp</span>(prior.M.tree<span class="fl">.1</span><span class="op">$</span>ln.probs[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>]))</a></code></pre></div>
+<pre><code>##                  M  post.prob
+## 1  0,0,0,0,0,0,0,0 0.55099481
+## 2  0,1,0,1,1,0,0,0 0.15732748
+## 3  0,1,0,1,1,0,2,0 0.04449096
+## 4  0,0,0,0,0,0,1,0 0.04423335
+## 5  0,0,0,0,0,1,0,0 0.02938894
+## 6  0,1,0,1,1,1,1,0 0.02432615
+## 7  0,1,0,1,1,2,3,0 0.02339047
+## 8  0,1,0,1,1,2,0,0 0.01993024
+## 9  0,1,0,1,1,2,2,0 0.01638841
+## 10 0,1,0,1,1,0,1,0 0.01336181</code></pre>
+<p>As expected, there is now considerable prior weight given to allelic series that results from functional mutations on longer branches of the tree. It is possible (though somewhat computationally intensive) to compute the prior distribution for all the samples in <code>trees</code> and average them to accomodate uncertainty in the tree. We provide code for this here, and it is also precomputed in <code>mcv.data$prior.M$list</code>.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" title="1"><span class="co"># trees.prior &lt;- lapply(trees, ewenss.calc, prior.alpha=prior.alpha)</span></a>
+<a class="sourceLine" id="cb34-2" title="2"><span class="co"># trees.prior &lt;- unlist(lapply(trees.prior, function(x){ln.probs &lt;- x$ln.probs; </span></a>
+<a class="sourceLine" id="cb34-3" title="3"><span class="co">#                                                       names(ln.probs) &lt;- x$M.IDs; </span></a>
+<a class="sourceLine" id="cb34-4" title="4"><span class="co">#                                                       ln.probs}))</span></a>
+<a class="sourceLine" id="cb34-5" title="5"><span class="co"># trees.prior &lt;- tapply(trees.prior, names(trees.prior), matrixStats::logSumExp) - log(length(trees))</span></a>
+<a class="sourceLine" id="cb34-6" title="6"><span class="co"># prior.M.trees &lt;- list(model.type=&quot;list&quot;, </span></a>
+<a class="sourceLine" id="cb34-7" title="7"><span class="co">#                       M.IDs=names(trees.prior), </span></a>
+<a class="sourceLine" id="cb34-8" title="8"><span class="co">#                       ln.probs=as.numeric(unname(trees.prior)), </span></a>
+<a class="sourceLine" id="cb34-9" title="9"><span class="co">#                       hash.names=T)</span></a>
+<a class="sourceLine" id="cb34-10" title="10"></a>
+<a class="sourceLine" id="cb34-11" title="11">prior.M.trees &lt;-<span class="st"> </span>mcv.data<span class="op">$</span>prior.M<span class="op">$</span>list</a></code></pre></div>
+<p>We can also use <code>ewenss.calc</code> to precompute the prior distribution under the CRP, alternatively formatted as this list-type input. Calling TIMBR with this prior is equivalent to using <code>prior.M.crp</code> from earlier.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" title="1">prior.M.crp.list &lt;-<span class="st"> </span><span class="kw">ewenss.calc</span>(<span class="dv">8</span>, prior.alpha)</a></code></pre></div>
+<p>To convince yourself of the relationship between the CRP and Ewens’s sampling formula, try sampling a collection of random coalescent trees using the code below, compute and average their prior distributions as we just described, and compare the result with <code>prior.M.crp.list</code>.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" title="1"><span class="co"># trees.coal &lt;- replicate(1000, rcoal(8, LETTERS[1:8]), simplify=F)</span></a></code></pre></div>
+</div>
+<div id="modeling-the-allelic-series-with-a-tree-informed-prior-distribution" class="section level2">
+<h2>Modeling the allelic series with a tree-informed prior distribution</h2>
+<p>It is straightforward to call TIMBR with a tree-informed prior distribution and reporting the posterior allelic series.</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb37-1" title="1">results.crp.trees &lt;-<span class="st"> </span><span class="kw">TIMBR</span>(y, prior.D, prior.M.trees, <span class="dt">verbose=</span>F, <span class="dt">samples=</span><span class="dv">1000</span>, <span class="dt">samples.ml=</span><span class="dv">1000</span>)</a>
+<a class="sourceLine" id="cb37-2" title="2"><span class="kw">as.matrix</span>(<span class="kw">head</span>(results.crp.trees<span class="op">$</span>p.M.given.y, <span class="dv">10</span>))</a></code></pre></div>
+<pre><code>##                  [,1]
+## 0,1,0,1,1,0,0,0 0.652
+## 0,1,0,1,1,2,0,0 0.166
+## 0,1,0,1,1,0,2,0 0.081
+## 0,1,0,1,1,2,3,0 0.065
+## 0,1,0,1,1,2,2,0 0.016
+## 0,1,0,1,1,0,0,2 0.003
+## 0,1,0,2,2,0,0,0 0.003
+## 0,1,2,1,1,3,0,0 0.002
+## 0,1,2,1,1,3,4,0 0.002
+## 0,1,0,1,1,2,3,4 0.001</code></pre>
+<p>Posterior certainty is higher relative to the CRP because we have introduced additional prior information about haplotype relatedness. We calculate a lnBF in favor of this tree-informed prior against the CRP, which implictly assumes an unknown coalescent tree.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" title="1">results.crp.trees<span class="op">$</span>ln.BF <span class="op">-</span><span class="st"> </span>results.crp<span class="op">$</span>ln.BF</a></code></pre></div>
+<pre><code>## [1] 5.16773</code></pre>
+</div>
+<div id="visualizing-the-prior-distribution-of-number-of-alleles" class="section level2">
+<h2>Visualizing the prior distribution of number of alleles</h2>
+<p>Earlier, we mentioned that our specified CRP prior distribution favors fewer alleles relative to the uniform prior distribution. Here, we provide code to visualize the prior distribution of number of alleles using the CRP. Try changing the parameters of the gamma prior for <span class="math inline">\(\alpha\)</span> (or fixing <span class="math inline">\(\alpha\)</span> to a single value) and see how the prior distribution changes.</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" title="1">prior.alpha &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">type=</span><span class="st">&quot;gamma&quot;</span>, <span class="dt">shape=</span><span class="dv">1</span>, <span class="dt">rate=</span><span class="fl">2.333415</span>)</a>
+<a class="sourceLine" id="cb41-2" title="2"><span class="co"># prior.alpha &lt;- list(type=&quot;fixed&quot;, alpha=1)</span></a>
+<a class="sourceLine" id="cb41-3" title="3"></a>
+<a class="sourceLine" id="cb41-4" title="4">prior.M.crp.list &lt;-<span class="st"> </span><span class="kw">ewenss.calc</span>(<span class="dv">8</span>, prior.alpha)</a>
+<a class="sourceLine" id="cb41-5" title="5">number.alleles &lt;-<span class="st"> </span><span class="kw">sapply</span>(prior.M.crp.list<span class="op">$</span>M.IDs, </a>
+<a class="sourceLine" id="cb41-6" title="6">                         <span class="cf">function</span>(x){<span class="kw">max</span>(<span class="kw">as.numeric</span>(<span class="kw">unlist</span>(<span class="kw">strsplit</span>(x, <span class="dt">split=</span><span class="st">&quot;,&quot;</span>))))<span class="op">+</span><span class="dv">1</span>})</a>
+<a class="sourceLine" id="cb41-7" title="7">prior.number.alleles.uniform &lt;-<span class="st"> </span><span class="kw">table</span>(number.alleles) <span class="op">/</span><span class="st"> </span><span class="kw">length</span>(number.alleles)</a>
+<a class="sourceLine" id="cb41-8" title="8">prior.number.alleles.crp &lt;-<span class="st"> </span><span class="kw">exp</span>(<span class="kw">tapply</span>(prior.M.crp.list<span class="op">$</span>ln.probs, number.alleles, </a>
+<a class="sourceLine" id="cb41-9" title="9">                                       matrixStats<span class="op">::</span>logSumExp))</a>
+<a class="sourceLine" id="cb41-10" title="10"></a>
+<a class="sourceLine" id="cb41-11" title="11"><span class="kw">plot</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">8</span>, prior.number.alleles.crp, <span class="dt">type=</span><span class="st">&quot;l&quot;</span>, <span class="dt">lty=</span><span class="dv">5</span>, <span class="dt">col=</span><span class="st">&quot;white&quot;</span>, </a>
+<a class="sourceLine" id="cb41-12" title="12">     <span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">1</span>), <span class="dt">ylab=</span><span class="st">&quot;Prior Probability&quot;</span>, <span class="dt">xlab=</span><span class="st">&quot;Number of Alleles&quot;</span>, </a>
+<a class="sourceLine" id="cb41-13" title="13">     <span class="dt">main=</span><span class="st">&quot;Prior Distribution of Alleles&quot;</span>)</a>
+<a class="sourceLine" id="cb41-14" title="14"><span class="kw">lines</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">8</span>, prior.number.alleles.crp, <span class="dt">lty=</span><span class="dv">5</span>, <span class="dt">col=</span><span class="st">&quot;orange&quot;</span>)</a>
+<a class="sourceLine" id="cb41-15" title="15"><span class="kw">points</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">8</span>, prior.number.alleles.crp, <span class="dt">pch=</span><span class="dv">22</span>, <span class="dt">bg=</span><span class="st">&quot;orange&quot;</span>)</a>
+<a class="sourceLine" id="cb41-16" title="16"><span class="kw">lines</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">8</span>, prior.number.alleles.uniform, <span class="dt">lty=</span><span class="dv">5</span>, <span class="dt">col=</span><span class="st">&quot;darkcyan&quot;</span>)</a>
+<a class="sourceLine" id="cb41-17" title="17"><span class="kw">points</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">8</span>, prior.number.alleles.uniform, <span class="dt">pch=</span><span class="dv">22</span>, <span class="dt">bg=</span><span class="st">&quot;darkcyan&quot;</span>)</a>
+<a class="sourceLine" id="cb41-18" title="18"></a>
+<a class="sourceLine" id="cb41-19" title="19"><span class="kw">legend</span>(<span class="dv">1</span>, <span class="dt">legend=</span><span class="kw">c</span>(<span class="st">&quot;Uniform&quot;</span>, <span class="st">&quot;CRP&quot;</span>), <span class="dt">col=</span><span class="kw">c</span>(<span class="st">&quot;darkcyan&quot;</span>, <span class="st">&quot;orange&quot;</span>), <span class="dt">lty=</span><span class="dv">5</span>)</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="approximating-bayes-factors-for-alternative-prior-distributions-from-previous-results" class="section level2">
+<h2>Approximating Bayes factors for alternative prior distributions from previous results</h2>
+<p>It is possible to approximate lnBFs for alternative allelic series prior distributions using the results of a previous TIMBR run and the <code>TIMBR.approx</code> function. This is useful for analyses that must be repeated many times for a single locus (e.g. evaluating multiple variants for merge analysis), or more generally, for quickly evaluating evidence in favor of alternative priors. For illustration, we approximate the lnBF for all possible biallelic contrasts using our CRP results, and we compare these with the biallelic result we generated earlier.</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" title="1"><span class="kw">TIMBR.approx</span>(results.crp, <span class="st">&quot;merge&quot;</span>)</a></code></pre></div>
+<pre><code>## 0,1,0,1,1,0,0,0 
+##        37.66408</code></pre>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" title="1">results.biallelic<span class="op">$</span>ln.BF</a></code></pre></div>
+<pre><code>## [1] 37.62961</code></pre>
+<p>Note that this is only an approximation. In this case, only one biallelic series was observed in the CRP posterior, so approximations for all other biallelic contrasts underflow and are not reported.</p>
+</div>
+<div id="other-options" class="section level2">
+<h2>Other options</h2>
+<p>The <code>TIMBR</code> function has several other useful options. Covariates can be specified using the <code>Z</code> matrix; just make sure that the first column of the matrix is a vector of ones. It is also possible to use strain means for <code>y</code> and specify the number of replicates using vector <code>W</code>. Finally, it is possible to control shrinkage in the allele effects by varying <code>prior.phi.v</code>; see the manuscript for a description of the hyperparameter <span class="math inline">\(\nu\)</span>.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
