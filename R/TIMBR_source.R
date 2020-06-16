@@ -1298,7 +1298,8 @@ ewenss.calc <- function(tree, prior.alpha, stop.on.error=F){
   
   if (is.numeric(tree)){
     #enumerate all set partitions by partition class
-    partitions.all <- apply(partitions::parts(tree), 2, partitions::setparts)
+    partitions.all <- partitions::parts(tree)
+    partitions.all <- lapply(1:ncol(partitions.all), function(x){partitions::setparts(partitions.all[,x])})
     
     #calculate probabilities for each partition class
     ln.probs <- unlist(sapply(1:length(partitions.all), function(x){rep(dcrp(partitions.all[[x]][,1], prior.alpha, stop.on.error=stop.on.error), ncol(partitions.all[[x]]))}))
