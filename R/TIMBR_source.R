@@ -1627,3 +1627,26 @@ TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.v=2, samples=100, samp
 #'   }
 #' }
 #' 
+
+#' @keywords internal
+approx.alpha.mle <- function(TIMBR.output, ln.BF.full=NULL){
+  lnBFs <- TIMBR.approx(TIMBR.output)
+  
+  J <- ncol(TIMBR.output$post.hap.effects)
+  M.ID.null <- paste(rep(0, J), collapse=",")
+  lnBFs[M.ID.null] <- 0
+  
+  if (!is.null(ln.BF.full)){
+    M.ID.full <- paste(0:(J-1), collapse=",")
+    lnBFs[M.ID.full] <- ln.BF.full
+  }
+
+  m.list <- lapply(names(lnBFs), m.from.M.ID)
+  
+  likelihood <- function(alpha){
+    ln.p.M <- sapply(m.list, dcrp, prior.alpha=list(type="fixed", alpha=alpha))
+    -matrixStats::logSumExp(lnBFs + ln.p.M)
+  }
+  
+  optim(1, likelihood, lower=0, method="L-BFGS-B")$par
+}
