@@ -1207,11 +1207,12 @@ dcrp <- function(m, prior.alpha, log.p=T, stop.on.error=T){
     })
     
     ln.p <- log(integrate(density.crp.concentration, lower=0, upper=Inf, rel.tol=.Machine$double.eps^0.75, stop.on.error=stop.on.error)$value) + sum(lgamma(J.k)) + shape*log(rate) - lgamma(shape)
-    
   } else if (prior.alpha$type=="fixed"){
     alpha <- prior.alpha$alpha
     
     ln.p <- lgamma(alpha) - lgamma(alpha+J) + K*log(alpha) + sum(lgamma(J.k))
+    if (alpha==0){ln.p <- ifelse(K==1, 0, -Inf)}
+    if (alpha==Inf){ln.p <- ifelse(K==J, 0, -Inf)}
   } else if (prior.alpha$type=="beta.prime"){
     a <- prior.alpha$a
     b <- prior.alpha$b
