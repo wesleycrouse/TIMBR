@@ -1632,7 +1632,7 @@ TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.v=2, samples=100, samp
 approx.alpha.mle <- function(TIMBR.output, ln.BF.full=NULL){
   lnBFs <- TIMBR.approx(TIMBR.output)
   
-  J <- ncol(TIMBR.output$post.hap.effects)
+  J <- length(lnBFs[1])
   M.ID.null <- paste(rep(0, J), collapse=",")
   lnBFs[M.ID.null] <- 0
   
