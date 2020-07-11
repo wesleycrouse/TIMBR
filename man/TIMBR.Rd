@@ -10,9 +10,10 @@ TIMBR(
   prior.M,
   prior.phi.v = 2,
   samples = 10000,
-  samples.ml = 10000,
   Z = NULL,
   W = NULL,
+  calc.lnBF = T,
+  samples.ml = 1000,
   verbose = T,
   stop.on.error = F
 )
@@ -28,11 +29,13 @@ TIMBR(
 
 \item{samples}{number of samples to draw from the full posterior}
 
-\item{samples.ml}{number of samples to draw from the condtiional posterior (if necessary)}
-
 \item{Z}{design matrix for intercept and covariates; first column must be a vector of ones, which is the default}
 
 \item{W}{vector of replicates for each strain; one replicate per strain by default}
+
+\item{calc.lnBF}{option to calculate the lnBF, which is often computationally demanding}
+
+\item{samples.ml}{number of samples to draw from the conditional posterior (if necessary) when calc.lnBF=T}
 
 \item{verbose}{optionally report function progress}
 

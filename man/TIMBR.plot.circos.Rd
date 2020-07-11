@@ -11,7 +11,6 @@ TIMBR.plot.circos(
   plot.height = 480,
   post.summary = "mean",
   colors = c("blue", "white", "red"),
-  color.res = 1000,
   fixed.order = NULL
 )
 }
@@ -27,8 +26,6 @@ TIMBR.plot.circos(
 \item{post.summary}{posterior summary for relative effect size; select from c("mean", "median", "mode")}
 
 \item{colors}{colors for heatmap of relative effect sizes}
-
-\item{color.res}{number of colors to use for the heatmap color ramp}
 
 \item{fixed.order}{vector of letters to specify plot order}
 }
