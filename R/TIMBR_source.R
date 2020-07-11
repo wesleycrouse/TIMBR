@@ -70,9 +70,10 @@ ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.phi.b, prior.phi.a=
 #' @param prior.M list of inputs for the prior distribution of the allelic series model; see data(mcv.data) for examples
 #' @param prior.phi.v degrees of freedom for the half-t prior distribution on the variance component
 #' @param samples number of samples to draw from the full posterior
-#' @param samples.ml number of samples to draw from the condtiional posterior (if necessary)
 #' @param Z design matrix for intercept and covariates; first column must be a vector of ones, which is the default
 #' @param W vector of replicates for each strain; one replicate per strain by default
+#' @param calc.lnBF option to calculate the lnBF, which is often computationally demanding
+#' @param samples.ml number of samples to draw from the conditional posterior (if necessary) when calc.lnBF=T
 #' @param verbose optionally report function progress
 #' @param stop.on.error stop function if error is encountered when using 'integrate'. errors related to roundoff and small values may occur during edge cases
 #'
@@ -96,7 +97,7 @@ ln.beta.prior.marginalized <- function(beta, sigma.sq, prior.phi.b, prior.phi.a=
 #' colMeans(results$post.hap.effects)
 #'
 #' @export
-TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=10000, Z=NULL, W=NULL, verbose=T, stop.on.error=F){
+TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, Z=NULL, W=NULL, calc.lnBF=T, samples.ml=1000, verbose=T, stop.on.error=F){
   
   TIMBR.sampler <- function(iterations, calc.null.ml=T, update.M=T, update.alpha=T){
     
@@ -157,6 +158,24 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
       alpha
     }
     
+    sample.ewenss.concentration <- function(){
+      #sample latent number of mutations from zero-truncated poisson then sum for total
+      theta <- sum(sapply(1:length(B), function(x){
+        if(B[x]){
+          lambda <- 0.5*alpha*l[x]
+          rpois(1, lambda + log(1-runif(1)*(1-exp(-lambda)))) + 1
+        } else {
+          0
+        }
+      }))
+      
+      #sample concentration parameter from conjugate gamma distribution
+      shape.star <- theta + prior.alpha.shape
+      rate.star <- 0.5*L + prior.alpha.rate
+      
+      rgamma(1, shape.star, rate.star)
+    }
+    
     #precompute matrix products if model and diplotypes are fixed
     if (!update.M & fixed.diplo){
       DAMC <- DA%*%MC
@@ -165,6 +184,7 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
       ZtWDAMC <- ZtWDA%*%MC
       CtMtAtDtWDAMC <- crossprod(MC, AtDtWDA)%*%MC
       V.star.inv <- rbind(cbind(ZtWZ, ZtWDAMC),cbind(t(ZtWDAMC),CtMtAtDtWDAMC))
+      
     }
     
     #create objects to store results
@@ -178,6 +198,11 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
     post.K <- rep(NA, iterations)
     post.y.hat <- matrix(NA, iterations, n)
     p.D.given.y <- matrix(0, n, ncol.P)
+    
+    if (model.type=="tree"){
+      post.B <- matrix(NA, iterations, length(B))
+      p.B.given.y <- rep(0, length(B))
+    }
     
     #iterate sampler
     for (i in 1:iterations){
@@ -195,129 +220,204 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
       
       #sample allelic series matrix M
       if (update.M){
-        if (model.type=="crp"){
-          j.order <- 1:J
-        } else {
-          #randomize order due to non-exchangeable prior
-          j.order <- sample(1:J)
-        }
         
-        #sample each row of M conditional on the other rows
-        for (j in j.order){
-          
-          if (j!=j.order[1]){
-            M.current <- list(M=M, M.list=M.list, M.posteriors=M.posteriors[[M.indicator]], new.index=M.list[j])
-          } else {
-            M.current <- list()
-          }
-          
-          #set current row to zero and update matrix columns if necessary
-          M[j,] <- 0
-          
-          if (!(1 %in% M[,M.list[j]])){
-            M.update.index <- M.list[-j] > M.list[j]
-            M.list[-j][M.update.index] <- M.list[-j][M.update.index] - 1
-            M <- M[,-M.list[j],drop=F]
-            M.current$new.index <- ncol(M)+1
-          }
-          
-          M.list[j] <- NA
-          K <- ncol(M)
-          C <- contrast.list[[K]]
-          
-          #enumerate all possible assignments of current row of M
-          M.list.space <- lapply(1:(K+1), function(x){M.list[j] <- x; M.list})
-          MC.space <- lapply(1:K, function(x){C[M.list.space[[x]],,drop=F]})
-          MC.space[[K+1]] <- contrast.list[[K+1]][M.list.space[[K+1]],,drop=F]
-          
-          #calculate prior for all possible assignments of current row of M
-          if (model.type=="crp"){
-            #analytic form for exchangeable prior
-            colsums.M <- matrixStats::colSums2(M)
-            M.ln.prior <- log(c(colsums.M, alpha))
-          } else if (model.type=="uniform"){
-            #constant non-exchangeable prior
-            M.ln.prior <- rep(0, K+1)
-          } else if (model.type=="list" | model.type=="mixture"){
-            #arbitrary non-exchangeable prior or a mixture of that prior with the CRP
-            #requires looking up priors via hash table using a unique naming scheme for M
-            M.space.vec <- lapply(1:(K+1), function(x){M.list[j] <- x; M.list})
+        if (model.type=="tree"){
+          for (b in 1:length(B)){
+            #alternative B with b mutation state switched
+            B.alt <- B
+            B.alt[b] <- !B.alt[b]
             
-            #compute unique names for possible values of M
+            B.ID.alt <- paste(as.numeric(B.alt), collapse=",")
+            
+            #convert from branches B to allelic series M
             if (hash.names){
-              #use a hash table to map string IDs of M to their unique names
-              M.space.name <- sapply(M.space.vec, paste, collapse=",")
-              M.space.key <- lapply(M.space.name, function(x){prior.M.names[[x]]})
-              M.space.key.null <- which(sapply(M.space.key, is.null))
-              
-              #compute unique names for new string IDs and update hash table
-              if (length(M.space.key.null) != 0){
-                M.space.key[M.space.key.null] <- sapply(M.space.vec[M.space.key.null], m.rename)
-                list2env(setNames(M.space.key[M.space.key.null], M.space.name[M.space.key.null]), envir = prior.M.names)
+              M.ID.alt <- B.to.M.hash[[B.ID.alt]]
+              if (is.null(M.ID.alt)){
+                M.ID.alt <- M.ID.from.B(B.alt, V)
+                list2env(setNames(as.list(M.ID.alt), B.ID.alt), envi=B.to.M.hash)
               }
             } else {
-              #compute unique names for possible settings of M
-              M.space.key <- lapply(M.space.vec, m.rename)
+              M.ID.alt <- M.ID.from.B(B.alt, V)
+            }
+            M.alt <- M.matrix.from.ID(M.ID.alt)
+            K.alt <- ncol(M.alt)
+            
+            #prior for branch mutation state
+            b.ln.prior <- -0.5*alpha*l[b]
+            
+            b.ln.prior <- c(b.ln.prior, log(-expm1(b.ln.prior)))
+            
+            #likelihood for branch mutation state
+            if (b==1){
+              K <- ncol(M)
+              b.posteriors <- nglm.hyperparameters.ml(M%*%contrast.list[[K]])
+              b.ln.ml <- b.posteriors$partial.ln.ml
             }
             
-            #use the unique names to look up priors for possible settings of M using hash table
-            M.ln.prior <- lapply(M.space.key, function(x){prior.M.hash[[x]]})
-            M.ln.prior.null <- which(sapply(M.ln.prior, is.null))
+            if (M.ID==M.ID.alt){
+              #likelihood is invariant
+              b.posteriors.alt <- b.posteriors
+              b.ln.ml.alt <- b.ln.ml
+            } else {
+              b.posteriors.alt <- nglm.hyperparameters.ml(M.alt%*%contrast.list[[K.alt]])
+              b.ln.ml.alt <- b.posteriors.alt$partial.ln.ml
+            }	  
             
-            if (length(M.ln.prior.null)!=0){
-              if (model.type=="list"){
-                #values of M that are not in the hash table have probability zero
-                M.ln.prior[M.ln.prior.null] <- -Inf
-              } else {
-                #compute mixture prior for new M
-                missing.weighted.input <- sapply(M.space.key[M.ln.prior.null], function(x){prior.M.input[[x]]})
-                missing.weighted.input <- sapply(missing.weighted.input, function(x){ifelse(is.null(x), -Inf, x + prior.M.weight.ln)})
-                missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], dcrp, prior.alpha=list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate), stop.on.error=stop.on.error) + prior.M.weight.ln.1minus
-                missing.mixture <- sapply(1:length(M.ln.prior.null), function(x){matrixStats::logSumExp(c(missing.weighted.input[x], missing.weighted.crp[x]))})
+            #combine likelihoods with priors and scale by normalizing constant, store branch mutation probability
+            if (!B[b]){
+              b.prob <- c(b.ln.ml, b.ln.ml.alt) + b.ln.prior
+            } else {
+              b.prob <- c(b.ln.ml.alt, b.ln.ml) + b.ln.prior
+            }
+            
+            b.prob <- exp(b.prob - matrixStats::logSumExp(b.prob))
+            p.B.given.y[b] <- p.B.given.y[b] + b.prob[2]
+            
+            #sample branch mutation state and update dependent quantities
+            b.indicator <- sample(0:1, 1, prob=b.prob)
+            
+            if (B[b]!=b.indicator){
+              B <- B.alt
+              B.ID <- B.ID.alt
+              M.ID <- M.ID.alt
+              M <- M.alt
+              K <- K.alt
+              b.posteriors <- b.posteriors.alt
+              b.ln.ml <- b.ln.ml.alt
+            }
+          }
+          
+          M.list <- apply(M, 1, match, x=1)
+          
+        } else {
+          
+          if (model.type=="crp"){
+            j.order <- 1:J
+          } else {
+            #randomize order due to non-exchangeable prior
+            j.order <- sample(1:J)
+          }
+          
+          #sample each row of M conditional on the other rows
+          for (j in j.order){
+            
+            if (j!=j.order[1]){
+              M.current <- list(M=M, M.list=M.list, M.posteriors=M.posteriors[[M.indicator]], new.index=M.list[j])
+            } else {
+              M.current <- list()
+            }
+            
+            #set current row to zero and update matrix columns if necessary
+            M[j,] <- 0
+            
+            if (!(1 %in% M[,M.list[j]])){
+              M.update.index <- M.list[-j] > M.list[j]
+              M.list[-j][M.update.index] <- M.list[-j][M.update.index] - 1
+              M <- M[,-M.list[j],drop=F]
+              M.current$new.index <- ncol(M)+1
+            }
+            
+            M.list[j] <- NA
+            K <- ncol(M)
+            C <- contrast.list[[K]]
+            
+            #enumerate all possible assignments of current row of M
+            M.list.space <- lapply(1:(K+1), function(x){M.list[j] <- x; M.list})
+            MC.space <- lapply(1:K, function(x){C[M.list.space[[x]],,drop=F]})
+            MC.space[[K+1]] <- contrast.list[[K+1]][M.list.space[[K+1]],,drop=F]
+            
+            
+            
+            #calculate prior for all possible assignments of current row of M
+            if (model.type=="crp"){
+              #analytic form for exchangeable prior
+              colsums.M <- matrixStats::colSums2(M)
+              M.ln.prior <- log(c(colsums.M, alpha))
+            } else if (model.type=="uniform"){
+              #constant non-exchangeable prior
+              M.ln.prior <- rep(0, K+1)
+            } else if (model.type=="list" | model.type=="mixture"){
+              #arbitrary non-exchangeable prior or a mixture of that prior with the CRP
+              #requires looking up priors via hash table using a unique naming scheme for M
+              M.space.vec <- lapply(1:(K+1), function(x){M.list[j] <- x; M.list})
+              
+              #compute unique names for possible values of M
+              if (hash.names){
+                #use a hash table to map string IDs of M to their unique names
+                M.space.name <- sapply(M.space.vec, paste, collapse=",")
+                M.space.key <- lapply(M.space.name, function(x){prior.M.names[[x]]})
+                M.space.key.null <- which(sapply(M.space.key, is.null))
                 
-                #update hash table with mixture prior for new M
-                M.ln.prior[M.ln.prior.null] <- missing.mixture
-                list2env(setNames(M.ln.prior[M.ln.prior.null], M.space.key[M.ln.prior.null]), envir = prior.M.hash)
+                #compute unique names for new string IDs and update hash table
+                if (length(M.space.key.null) != 0){
+                  M.space.key[M.space.key.null] <- sapply(M.space.vec[M.space.key.null], m.rename)
+                  list2env(setNames(M.space.key[M.space.key.null], M.space.name[M.space.key.null]), envir = prior.M.names)
+                }
+              } else {
+                #compute unique names for possible settings of M
+                M.space.key <- lapply(M.space.vec, m.rename)
               }
+              
+              #use the unique names to look up priors for possible settings of M using hash table
+              M.ln.prior <- lapply(M.space.key, function(x){prior.M.hash[[x]]})
+              M.ln.prior.null <- which(sapply(M.ln.prior, is.null))
+              
+              if (length(M.ln.prior.null)!=0){
+                if (model.type=="list"){
+                  #values of M that are not in the hash table have probability zero
+                  M.ln.prior[M.ln.prior.null] <- -Inf
+                } else {
+                  #compute mixture prior for new M
+                  missing.weighted.input <- sapply(M.space.key[M.ln.prior.null], function(x){prior.M.input[[x]]})
+                  missing.weighted.input <- sapply(missing.weighted.input, function(x){ifelse(is.null(x), -Inf, x + prior.M.weight.ln)})
+                  missing.weighted.crp <- sapply(M.space.vec[M.ln.prior.null], dcrp, prior.alpha=list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate), stop.on.error=stop.on.error) + prior.M.weight.ln.1minus
+                  missing.mixture <- sapply(1:length(M.ln.prior.null), function(x){matrixStats::logSumExp(c(missing.weighted.input[x], missing.weighted.crp[x]))})
+                  
+                  #update hash table with mixture prior for new M
+                  M.ln.prior[M.ln.prior.null] <- missing.mixture
+                  list2env(setNames(M.ln.prior[M.ln.prior.null], M.space.key[M.ln.prior.null]), envir = prior.M.hash)
+                }
+              }
+              M.ln.prior <- unlist(M.ln.prior)
             }
-            M.ln.prior <- unlist(M.ln.prior)
-          }
-          
-          #calculate t-distributed likelihood for all possible assignments of current row of M
-          if (j==j.order[1]){
-            M.posteriors <- lapply(1:(K+1), function(x){if (M.ln.prior[x]==-Inf){list(partial.ln.ml=0)} else {nglm.hyperparameters.ml(MC.space[[x]])}})
-          } else {
-            M.posteriors <- vector("list", K+1)
-            M.posteriors[[M.current$new.index]] <- M.current$M.posteriors
-            M.posteriors[-M.current$new.index] <- lapply((1:(K+1))[-M.current$new.index], function(x){if (M.ln.prior[x]==-Inf){list(partial.ln.ml=0)} else {nglm.hyperparameters.ml(MC.space[[x]])}})
-          }
-          
-          M.ln.ml <- unlist(lapply(M.posteriors, function(x){x$partial.ln.ml}))
-          
-          #combine likelihoods with priors and scale by normalizing constant
-          M.prob <- M.ln.ml + M.ln.prior
-          M.prob <- exp(M.prob - matrixStats::logSumExp(M.prob))
-          
-          #sample assignment for current row of M from categorical distribution
-          M.indicator <- match(rmultinom(1,1,M.prob), x=1)
-          
-          if (isTRUE(M.indicator==M.current$new.index) & isTRUE(M.current$M.list[j]!=M.current$new.index)){
-            M.list <- M.current$M.list
-            M <- M.current$M
-            K <- K + 1
-          } else {
-            M.list[j] <- M.indicator
             
-            #update M
-            if (M.indicator > ncol(M)){
-              M <- cbind(M,0)
-              M[j, M.indicator] <- 1
+            #calculate t-distributed likelihood for all possible assignments of current row of M
+            if (j==j.order[1]){
+              M.posteriors <- lapply(1:(K+1), function(x){if (M.ln.prior[x]==-Inf){list(partial.ln.ml=0)} else {nglm.hyperparameters.ml(MC.space[[x]])}})
+            } else {
+              M.posteriors <- vector("list", K+1)
+              M.posteriors[[M.current$new.index]] <- M.current$M.posteriors
+              M.posteriors[-M.current$new.index] <- lapply((1:(K+1))[-M.current$new.index], function(x){if (M.ln.prior[x]==-Inf){list(partial.ln.ml=0)} else {nglm.hyperparameters.ml(MC.space[[x]])}})
+            }
+            
+            M.ln.ml <- unlist(lapply(M.posteriors, function(x){x$partial.ln.ml}))
+            
+            #combine likelihoods with priors and scale by normalizing constant
+            M.prob <- M.ln.ml + M.ln.prior
+            M.prob <- exp(M.prob - matrixStats::logSumExp(M.prob))
+            
+            #sample assignment for current row of M from categorical distribution
+            M.indicator <- match(rmultinom(1,1,M.prob), x=1)
+            
+            if (isTRUE(M.indicator==M.current$new.index) & isTRUE(M.current$M.list[j]!=M.current$new.index)){
+              M.list <- M.current$M.list
+              M <- M.current$M
               K <- K + 1
             } else {
-              M[j, M.indicator] <- 1
+              M.list[j] <- M.indicator
+              
+              #update M
+              if (M.indicator > ncol(M)){
+                M <- cbind(M,0)
+                M[j, M.indicator] <- 1
+                K <- K + 1
+              } else {
+                M[j, M.indicator] <- 1
+              }
             }
           }
         }
+        
         #update quantities that depend on M
         C <- contrast.list[[K]]
         MC <- M%*%C
@@ -325,9 +425,13 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
         d <- ncol(C)
       }
       
-      #sample concentration parameter if using CRP
+      #sample concentration parameter if using CRP or tree
       if (update.alpha){
-        alpha <- sample.crp.concentration()
+        if (model.type=="crp"){
+          alpha <- sample.crp.concentration()
+        } else if (model.type=="tree"){
+          alpha <- sample.ewenss.concentration()
+        }
         if (prior.alpha.type=="beta.prime"){
           prior.alpha.rate <- rgamma(1, prior.alpha.b + prior.alpha.shape, prior.alpha.q + alpha)
         }
@@ -337,7 +441,11 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
       #note that coefficients are scaled as eta=beta/lambda
       #store hyperparameters for normal-gamma distribution 
       if (update.M){
-        M.posteriors <- M.posteriors[[M.indicator]]
+        if (model.type=="tree"){
+          M.posteriors <- b.posteriors
+        } else {
+          M.posteriors <- M.posteriors[[M.indicator]]
+        }
       } else {
         M.posteriors <- nglm.hyperparameters.ml(MC)
       }
@@ -409,14 +517,21 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
       post.sigma.sq[i] <- sigma.sq
       post.alpha[i] <- alpha
       post.hyperparameters[[i]] <- M.posteriors[1:4]
+      
       post.K[i] <- K
       post.y.hat[i,] <- AMCbeta[D.list] + Z.delta
       p.D.given.y <- p.D.given.y + D
+      
+      if (model.type=="tree"){
+        post.B[i,] <- B
+      }
     }
     
     #report unique names for posterior samples of M
     if (update.M==F){
       post.M <- rep(m.rename(post.M[1,]), iterations)
+    } else if (model.type=="tree"){
+      post.M <- apply(post.M-1, 1, paste, collapse=",")
     } else if (hash.names){
       post.M <- apply(post.M, 1, function(x){prior.M.names[[paste(x, collapse=",")]]})
     } else {
@@ -425,6 +540,10 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
     
     #calculate marginal posterior diplotype probabilities
     p.D.given.y <- p.D.given.y/iterations
+    
+    if (model.type=="tree"){
+      p.B.given.y <- p.B.given.y/iterations
+    }
     
     #update variable state for potential reduced run of the sampler
     D <<- D
@@ -439,6 +558,11 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
     
     if (update.alpha){
       posterior.results$post.alpha <- post.alpha
+    }
+    
+    if (model.type=="tree"){
+      posterior.results$post.B <- post.B
+      posterior.results$p.B.given.y <- p.B.given.y
     }
     
     if (calc.null.ml){
@@ -553,6 +677,56 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
     if (hash.names){
       prior.M.names <- new.env(hash = T)
     }
+  } else if (model.type=="tree"){
+    prior.alpha.type <- prior.M$prior.alpha.type
+    #set starting value for alpha
+    if (prior.alpha.type=="gamma"){
+      prior.alpha.shape <- prior.M$prior.alpha.shape
+      prior.alpha.rate <- prior.M$prior.alpha.rate
+      alpha <- prior.alpha.shape/prior.alpha.rate
+      
+      if (calc.lnBF){
+        print("Computing the prior (slow for trees with many branches; try fixed prior.alpha or set calc.lnBF=F)", quote=F)
+        prior.M.list <- ewenss.calc(prior.M$tree, list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate))
+      }
+    } else if (prior.alpha.type=="fixed"){
+      alpha <- prior.M$prior.alpha
+      
+      if (calc.lnBF){
+        print("Computing the prior (slow for trees with many branches; set calc.lnBF=F)", quote=F)
+        prior.M.list <- ewenss.calc(prior.M$tree, list(type="fixed", alpha=alpha))
+      }
+    } else if (prior.alpha.type=="beta.prime"){
+      prior.alpha.shape <- prior.M$prior.alpha.a
+      prior.alpha.b <- prior.M$prior.alpha.b
+      prior.alpha.q <- ifelse(is.null(prior.M$prior.alpha.q), 1, prior.M$prior.alpha.q)
+      prior.alpha.rate <- prior.alpha.b/prior.alpha.q
+      alpha <- prior.alpha.shape/prior.alpha.rate
+      
+      if (calc.lnBF){
+        print("Computing the prior (slow for trees with many branches; try fixed prior.alpha or set calc.lnBF=F)", quote=F)
+        prior.M.list <- ewenss.calc(prior.M$tree, list(type="beta.prime", shape=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q))
+      }
+    }
+
+    #decompose tree and set starting value for b based on max a priori given alpha
+    tree.decomposed <- decompose.tree(prior.M$tree)
+    V <- tree.decomposed$V
+    l <- tree.decomposed$l
+    L <- sum(l)
+    
+    B <- exp(-0.5*l*alpha) < 0.5
+    B <- B[-length(B)]
+    B.ID <- paste(as.numeric(B), collapse=",")
+    
+    M.ID <- M.ID.from.B(B, V)
+    M <- M.matrix.from.ID(M.ID)
+    
+    hash.names <- prior.M$hash.names
+    if (hash.names){
+      B.to.M.hash <- new.env(hash = T)
+      list2env(setNames(as.list(M.ID), B.ID), envi=B.to.M.hash)
+    }
   }
   
   M.list <- apply(M, 1, match, x=1)
@@ -560,10 +734,10 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
   ####################
   #iterate TIMBR sampler
   if (verbose){
-    print("Sampling from the full posterior")
+    print("Sampling from the full posterior", quote=F)
   }
   
-  if (model.type=="crp"){
+  if (model.type=="crp" | model.type=="tree"){
     if (prior.alpha.type=="gamma" | prior.alpha.type=="beta.prime"){
       results <- TIMBR.sampler(samples)
     } else if (prior.alpha.type=="fixed"){
@@ -586,132 +760,153 @@ TIMBR <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, samples.ml=
   } else {
     names(post.M.null) <- NULL
   }
-  
-  #if null model is MAP, use this to calculate marginal likelihood
-  if (names(post.M.ranked[1])==paste(rep(0, J), collapse=",")){
-    if (model.type=="crp"){
-      if (prior.alpha.type=="gamma"){
-        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate), stop.on.error=stop.on.error) - log(post.M.null)
-      } else if (prior.alpha.type=="fixed"){
-        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="fixed", alpha=prior.M$prior.alpha), stop.on.error=stop.on.error) - log(post.M.null)
-      } else if (prior.alpha.type=="beta.prime"){
-        ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="beta.prime", a=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q), stop.on.error=stop.on.error) - log(post.M.null)
+
+  #compute the Bayes factor
+  if (calc.lnBF){
+    #if null model is MAP, use this to calculate marginal likelihood
+    if (names(post.M.ranked[1])==paste(rep(0, J), collapse=",")){
+      if (model.type=="crp"){
+        if (prior.alpha.type=="gamma"){
+          ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate), stop.on.error=stop.on.error) - log(post.M.null)
+        } else if (prior.alpha.type=="fixed"){
+          ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="fixed", alpha=prior.M$prior.alpha), stop.on.error=stop.on.error) - log(post.M.null)
+        } else if (prior.alpha.type=="beta.prime"){
+          ln.ml <- ln.ml.null + dcrp(rep(0,J), list(type="beta.prime", a=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q), stop.on.error=stop.on.error) - log(post.M.null)
+        }
+      } else if (model.type=="tree"){
+        ln.ml <- ln.ml.null + prior.M.list$ln.probs[which(prior.M.list$M.IDs==paste(rep(0,J), collapse=","))] - log(post.M.null)								   																												  
+      } else if (model.type=="fixed"){
+        ln.ml <- ln.ml.null
+      } else if (model.type=="uniform"){
+        ln.ml <- ln.ml.null - ln.bell(J) - log(post.M.null)
+      } else if (model.type=="list" | model.type=="mixture"){
+        ln.ml <- ln.ml.null + prior.M.hash[[paste(rep(0,J), collapse=",")]] - log(post.M.null)
       }
-    } else if (model.type=="fixed"){
-      ln.ml <- ln.ml.null
-    } else if (model.type=="uniform"){
-      ln.ml <- ln.ml.null - ln.bell(J) - log(post.M.null)
-    } else if (model.type=="list" | model.type=="mixture"){
-      ln.ml <- ln.ml.null + prior.M.hash[[paste(rep(0,J), collapse=",")]] - log(post.M.null)
-    }
-  } else {
-    #obtain samples of the normal-gamma hyperparameters conditional on a single model matrix M
-    if (model.type=="fixed"){
-      #these are given when the model.type is fixed
-      nglm.hyperparameters <- results$post.hyperparameters
-      post.phi.sq <- results$post.phi.sq
-      p.D.given.y <- results$p.D.given.y
-      samples.ml <- samples
     } else {
-      #set M to the MAP and update dependent quantities
-      M <- M.matrix.from.ID(names(post.M.ranked)[1])
-      M.list <- apply(M, 1, match, x=1)
-      K <- ncol(M)
-      C <- contrast.list[[K]]
-      MC <- M%*%C
-      AMC <- A%*%MC
-      d <- ncol(C)
-      n.params <- p + d
-      
-      #iterate reduced sampler run with M fixed at MAP
-      if (verbose){
-        print("Sampling from the conditional posterior")
+      #obtain samples of the normal-gamma hyperparameters conditional on a single model matrix M
+      if (model.type=="fixed"){
+        #these are given when the model.type is fixed
+        nglm.hyperparameters <- results$post.hyperparameters
+        post.phi.sq <- results$post.phi.sq
+        p.D.given.y <- results$p.D.given.y
+        samples.ml <- samples
+      } else {
+        #set M to the MAP and update dependent quantities
+        M <- M.matrix.from.ID(names(post.M.ranked)[1])
+        M.list <- apply(M, 1, match, x=1)
+        K <- ncol(M)
+        C <- contrast.list[[K]]
+        MC <- M%*%C
+        AMC <- A%*%MC
+        d <- ncol(C)
+        n.params <- p + d
+        
+        #iterate reduced sampler run with M fixed at MAP
+        if (verbose){
+          print("Sampling from the conditional posterior", quote=F)
+        }
+        
+        reduced.results <- TIMBR.sampler(samples.ml, update.M=F, calc.null.ml=F, update.alpha=F)
+        nglm.hyperparameters <- reduced.results$post.hyperparameters
+        post.phi.sq <- reduced.results$post.phi.sq
+        p.D.given.y <- reduced.results$p.D.given.y
       }
       
-      reduced.results <- TIMBR.sampler(samples.ml, update.M=F, calc.null.ml=F, update.alpha=F)
-      nglm.hyperparameters <- reduced.results$post.hyperparameters
-      post.phi.sq <- reduced.results$post.phi.sq
-      p.D.given.y <- reduced.results$p.D.given.y
-    }
-    
-    #set remaining variables to values with high posterior probability given M fixed at MAP
-    kappa.star <- n
-    psi.star <- sapply(nglm.hyperparameters, function(x){x$psi.star})
-    m.star <- lapply(nglm.hyperparameters, function(x){x$m.star})
-    V.star <- lapply(nglm.hyperparameters, function(x){x$V.star})
-    
-    if (p+d > 1){
-      theta <- matrixStats::rowMeans2(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
-    } else {
-      theta <- mean(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
-    }
-    
-    if (p > 0){
-      delta <- theta[1:p]
-      beta <- theta[-(1:p)]
-    } else {
-      delta <- rep(0,p)
-      beta <- theta
-    }
-    
-    sigma.sq <- mean((kappa.star/psi.star)^(-1))
-    
-    if (!fixed.diplo){
-      D <- matrix(0, n, ncol.P)
-      D.list <- apply(p.D.given.y, 1, which.max)
-      D[cbind(1:n, D.list)] <- 1
-    }
-    
-    #calculate partial marginal likelihood at point of high posterior probability
-    Zdelta <- Z%*%delta
-    AMCbeta <- A%*%MC%*%beta
-    
-    p1 <- sum(dnorm(y, AMCbeta[D.list] + Zdelta, sqrt(sigma.sq*W^(-1)), log=T))
-    p4 <- log(sigma.sq)
-    p5 <- ln.beta.prior.marginalized(beta, sigma.sq, prior.phi.b) - 0.5*p*(log(2)+log(pi)+log(sigma.sq))
-    p7 <- matrixStats::logSumExp(dgamma(sigma.sq^(-1), 0.5*kappa.star, 0.5*psi.star, log=T))-log(samples.ml)
-    p8 <- matrixStats::logSumExp(sapply(1:samples.ml, function(x){mvtnorm::dmvnorm(theta, m.star[[x]], V.star[[x]]*sigma.sq, log=T)}))-log(samples.ml)
-    c <- -0.5*n*log(pi) + lgamma(0.5*kappa.star) - 0.5*sum(-log(W))
-    
-    if (!fixed.diplo){
-      p2 <- sum(ln.P[cbind(1:n, D.list)])
+      #set remaining variables to values with high posterior probability given M fixed at MAP
+      kappa.star <- n
+      psi.star <- sapply(nglm.hyperparameters, function(x){x$psi.star})
+      m.star <- lapply(nglm.hyperparameters, function(x){x$m.star})
+      V.star <- lapply(nglm.hyperparameters, function(x){x$V.star})
       
-      D.ln.ml <- matrix(dnorm(rep((y - Zdelta), each=ncol.P), rep(AMCbeta, n), rep(sqrt(sigma.sq)*sqrt.W^(-1), each=ncol.P), log=T), n, ncol.P, byrow=T)
-      D.ln.prob <- D.ln.ml + ln.P
-      D.ln.prob <-  D.ln.prob - matrixStats::rowLogSumExps(D.ln.prob)
-      p9 <- sum(D.ln.prob[cbind(1:n, D.list)])
-    } else {
-      p2 <- 0
-      p9 <- 0
-    }
-    
-    if (model.type=="crp"){
-      if (prior.alpha.type=="gamma"){
-        p3 <- dcrp(apply(M, 1, match, x=1), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate), stop.on.error=stop.on.error)
-      } else if (prior.alpha.type=="fixed"){
-        p3 <- dcrp(apply(M, 1, match, x=1), list(type="fixed", alpha=prior.M$prior.alpha), stop.on.error=stop.on.error)
-      } else if (prior.alpha.type=="beta.prime"){
-        p3 <- dcrp(apply(M, 1, match, x=1), list(type="beta.prime", a=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q), stop.on.error=stop.on.error)
+      if (p+d > 1){
+        theta <- matrixStats::rowMeans2(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
+      } else {
+        theta <- mean(sapply(1:length(m.star), function(x){sapply(unlist(m.star[x]), function(x){x})}))
       }
-      p6 <- log(post.M.ranked[1])
-    } else if (model.type=="fixed"){
-      p3 <- 0
-      p6 <- 0
-    } else if (model.type=="uniform"){
-      p3 <- -ln.bell(J)
-      p6 <- log(post.M.ranked[1])
-    } else if (model.type=="list" | model.type=="mixture"){
-      p3 <- prior.M.hash[[names(post.M.ranked[1])]]
-      p6 <- log(post.M.ranked[1])
+      
+      if (p > 0){
+        delta <- theta[1:p]
+        beta <- theta[-(1:p)]
+      } else {
+        delta <- rep(0,p)
+        beta <- theta
+      }
+      
+      sigma.sq <- mean((kappa.star/psi.star)^(-1))
+      
+      if (!fixed.diplo){
+        D <- matrix(0, n, ncol.P)
+        D.list <- apply(p.D.given.y, 1, which.max)
+        D[cbind(1:n, D.list)] <- 1
+      }
+      
+      #calculate partial marginal likelihood at point of high posterior probability
+      Zdelta <- Z%*%delta
+      AMCbeta <- A%*%MC%*%beta
+      
+      p1 <- sum(dnorm(y, AMCbeta[D.list] + Zdelta, sqrt(sigma.sq*W^(-1)), log=T))
+      p4 <- log(sigma.sq)
+      p5 <- ln.beta.prior.marginalized(beta, sigma.sq, prior.phi.b) - 0.5*p*(log(2)+log(pi)+log(sigma.sq))
+      p7 <- matrixStats::logSumExp(dgamma(sigma.sq^(-1), 0.5*kappa.star, 0.5*psi.star, log=T))-log(samples.ml)
+      p8 <- matrixStats::logSumExp(sapply(1:samples.ml, function(x){mvtnorm::dmvnorm(theta, m.star[[x]], V.star[[x]]*sigma.sq, log=T)}))-log(samples.ml)
+      c <- -0.5*n*log(pi) + lgamma(0.5*kappa.star) - 0.5*sum(-log(W))
+      
+      if (!fixed.diplo){
+        
+        p2 <- sum(ln.P[cbind(1:n, D.list)])
+        
+        D.ln.ml <- matrix(dnorm(rep((y - Zdelta), each=ncol.P), rep(AMCbeta, n), rep(sqrt(sigma.sq)*sqrt.W^(-1), each=ncol.P), log=T), n, ncol.P, byrow=T)
+        D.ln.prob <- D.ln.ml + ln.P
+        D.ln.prob <-  D.ln.prob - matrixStats::rowLogSumExps(D.ln.prob)
+        p9 <- sum(D.ln.prob[cbind(1:n, D.list)])
+      } else {
+        p2 <- 0
+        p9 <- 0
+      }
+      
+      if (model.type=="crp"){
+        if (prior.alpha.type=="gamma"){
+          p3 <- dcrp(apply(M, 1, match, x=1), list(type="gamma", shape=prior.alpha.shape, rate=prior.alpha.rate), stop.on.error=stop.on.error)
+        } else if (prior.alpha.type=="fixed"){
+          p3 <- dcrp(apply(M, 1, match, x=1), list(type="fixed", alpha=prior.M$prior.alpha), stop.on.error=stop.on.error)
+        } else if (prior.alpha.type=="beta.prime"){
+          p3 <- dcrp(apply(M, 1, match, x=1), list(type="beta.prime", a=prior.alpha.shape, b=prior.alpha.b, q=prior.alpha.q), stop.on.error=stop.on.error)
+        }
+        p6 <- log(post.M.ranked[1])
+      } else if (model.type=="fixed"){
+        p3 <- 0
+        p6 <- 0
+      } else if (model.type=="uniform"){
+        p3 <- -ln.bell(J)
+        p6 <- log(post.M.ranked[1])
+      } else if (model.type=="list" | model.type=="mixture"){
+        p3 <- prior.M.hash[[names(post.M.ranked[1])]]
+        p6 <- log(post.M.ranked[1])
+      } else if (model.type=="tree"){
+        p3 <- prior.M.list$ln.probs[which(prior.M.list$M.IDs==paste(M.list-1, collapse=","))]
+        p6 <- log(post.M.ranked[1])								   						 
+      }
+      
+      names(p6) <- NULL
+      ln.ml <- p1 + p2 + p3 + p4 + p5 - p6 - p7 - p8 - p9 - c
     }
-    
-    names(p6) <- NULL
-    ln.ml <- p1 + p2 + p3 + p4 + p5 - p6 - p7 - p8 - p9 - c
   }
   
   #return posterior samples, marginal densities, and marginal likelihood
   output <- list(y=y, prior.D=prior.D, prior.M=prior.M, prior.phi.v=prior.phi.v, samples=samples, samples.ml=samples.ml, Z=Z, W=W)
-  output <- c(output, results[names(results) != "post.hyperparameters"], ln.ml=ln.ml, ln.BF=ln.ml-ln.ml.null, p.M.given.y=list(post.M.ranked), 
+  
+  if (model.type=="tree"){
+    output <- c(output, list(decompose.tree=tree.decomposed))
+  }
+  
+  if (calc.lnBF){
+    if (model.type=="tree"){
+      output <- c(output, list(prior.M.list=prior.M.list))
+    }
+    output <- c(output, list(ln.ml=ln.ml, ln.BF=ln.ml-ln.ml.null))
+  }
+  
+  output <- c(output, results[names(results) != "post.hyperparameters"], p.M.given.y=list(post.M.ranked), 
               post.var.exp=list(results$post.phi.sq/(results$post.phi.sq + 1)), post.hap.effects=list(results$post.MCbeta+results$post.delta[,1]),
               p.K.given.y=list(table(results$post.K)/samples))
   output <- output[order(names(output))]
@@ -837,7 +1032,7 @@ ewenss.sampler <- function(samples, trees, prior.alpha, verbose=T){
   
   #optionally disable reporting
   if (verbose){
-    print("Iterating Ewens's sampling formula")
+    print("Iterating Ewens's sampling formula", quote=F)
   }
   
   #specify alpha or prior hyperparameters
@@ -1189,7 +1384,7 @@ decompose.tree <- function(tree){
   l <- l[c(l[1:length(l)-1]!=0, TRUE)]
   
   #return V and l
-  list(V=V, l=l)
+  list(V=V, l=l, edge.order=order(order.colSums.V)[tree$edge[,2]])
 }
 
 #' @keywords internal
@@ -1406,7 +1601,6 @@ TIMBR.consistent <- function(prior.M, M.ID){
 #' @param plot.height PNG plot height
 #' @param post.summary posterior summary for relative effect size; select from c("mean", "median", "mode")
 #' @param colors colors for heatmap of relative effect sizes
-#' @param color.res number of colors to use for the heatmap color ramp
 #' @param fixed.order vector of letters to specify plot order
 #'
 #' @return circos plot of pairwise partition probabilities
@@ -1424,7 +1618,7 @@ TIMBR.consistent <- function(prior.M, M.ID){
 #'
 #' @export
 TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot.height=480,
-                              post.summary="mean", colors=c("blue", "white", "red"), color.res=1000, fixed.order=NULL){
+                              post.summary="mean", colors=c("blue", "white", "red"), fixed.order=NULL){
   #calculate pairwise probabilities for haplotype groupings
   if (is.null(TIMBR.object$y)){
     E.MMt <- lapply(1:length(TIMBR.object$ln.probs), function(x){M <- M.matrix.from.ID(TIMBR.object$M.IDs[x]); exp(TIMBR.object$ln.probs[x])*tcrossprod(M)})
@@ -1491,8 +1685,8 @@ TIMBR.plot.circos <- function(TIMBR.object, file.path=NULL, plot.width=480, plot
   names(effects) <- LETTERS[1:J]
   
   #add effects and labels
-  colors <- colorRampPalette(colors)(color.res+1)
-  colors <- colors[round(color.res*(effects+1)/2)+1]
+  ramp <- colorRamp(colors)
+  colors <- rgb(ramp((effects+1)/2), maxColorValue=255)
   
   for (i in 1:J){
     circlize::circos.rect(0, 0, 1, 1, LETTERS[i], col=colors[i])
@@ -1598,7 +1792,7 @@ TIMBR.scan <- function(y, prior.D.all, prior.M, prior.phi.v=2, samples=100, samp
     i <- loci[j]
     
     if (verbose){
-      print(paste("Locus", j, "of", length(loci)))
+      print(paste("Locus", j, "of", length(loci)), quote=F)
     }
     
     prior.D$P <- P.all[,,i]
