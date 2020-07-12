@@ -1456,7 +1456,7 @@ ewenss.calc <- function(tree, prior.alpha, stop.on.error=F){
   ln.prob.and.M.ID.from.B.ID <- function(B.ID){
     #function to calculate probability of branch mutation configuration
     B <- as.logical(intToBits(B.ID-1)[1:(ncol(V)-1)])
-    M.ID <- m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1}))
+    M.ID <- M.ID.from.B(B, V)
     
     if (prior.alpha$type=="fixed"){
       ln.prob <- sum(ln.p[cbind(1:nrow(ln.p), as.integer(B)+1)])
@@ -1843,4 +1843,9 @@ approx.alpha.mle <- function(TIMBR.output, ln.BF.full=NULL){
   }
   
   optim(1, likelihood, lower=0, method="L-BFGS-B")$par
+}
+
+#' @keywords internal
+M.ID.from.B <- function(B, V){
+  m.rename(apply(V[, c(B, T), drop=F], 1, Position, f=function(x){x==1}))
 }
