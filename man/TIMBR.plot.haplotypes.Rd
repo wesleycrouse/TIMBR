@@ -19,7 +19,7 @@ TIMBR.plot.haplotypes(
   cex.axis = 1,
   cex.lab = 1,
   cex.main = 1,
-  font.main = 1
+  font.main = 2
 )
 }
 \arguments{
