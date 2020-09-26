@@ -1155,7 +1155,7 @@ additive.design <- function(J, type){
 #' @export
 TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960, plot.height=480, TIMBR.output.bkgrd=NULL,
                                   colors.bkgrd=NULL, transparency=c(0.7,0.4), hap.labels=NULL, x.lim=NULL, x.lab=NULL,
-                                  cex.axis=1, cex.lab=1, cex.main=1, font.main = 1){
+                                  cex.axis=1, cex.lab=1, cex.main=1, font.main = 2){
   densities <- apply(TIMBR.output$post.hap.effect, 2, density)
   J <- length(densities)
   
