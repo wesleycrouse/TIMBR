@@ -1134,6 +1134,10 @@ additive.design <- function(J, type){
 #' @param hap.labels optional labels for haplotypes
 #' @param x.lim optional limits for x axis
 #' @param x.lab optional label for x axis
+#' @param cex.axis graphical parameter for plot
+#' @param cex.lab graphical parameter for plot
+#' @param cex.main graphical parameter for plot
+#' @param font.main graphical parameter for plot
 #'
 #' @return plot of the posterior haplotype effect densities
 #' 
@@ -1150,7 +1154,8 @@ additive.design <- function(J, type){
 #'
 #' @export
 TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960, plot.height=480, TIMBR.output.bkgrd=NULL,
-                                  colors.bkgrd=NULL, transparency=c(0.7,0.4), hap.labels=NULL, x.lim=NULL, x.lab=NULL){
+                                  colors.bkgrd=NULL, transparency=c(0.7,0.4), hap.labels=NULL, x.lim=NULL, x.lab=NULL,
+                                  cex.axis=1, cex.lab=1, cex.main=1, font.main = 1){
   densities <- apply(TIMBR.output$post.hap.effect, 2, density)
   J <- length(densities)
   
@@ -1174,7 +1179,7 @@ TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plo
     max.x <- max(sapply(densities.bkgrd, function(x){max(x$x)}), max.x)
   }
   
-  par(cex.axis=1.1, cex.lab=1.1, cex.main=1.2, cex.sub=1.1)
+  par(cex.axis=cex.axis, cex.lab=cex.lab, cex.main=cex.main, font.main=font.main)
   
   if (!is.null(file.path)){
     png(file.path, height=plot.height, width=plot.width)

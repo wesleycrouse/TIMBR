@@ -15,7 +15,11 @@ TIMBR.plot.haplotypes(
   transparency = c(0.7, 0.4),
   hap.labels = NULL,
   x.lim = NULL,
-  x.lab = NULL
+  x.lab = NULL,
+  cex.axis = 1,
+  cex.lab = 1,
+  cex.main = 1,
+  font.main = 1
 )
 }
 \arguments{
@@ -40,6 +44,14 @@ TIMBR.plot.haplotypes(
 \item{x.lim}{optional limits for x axis}
 
 \item{x.lab}{optional label for x axis}
+
+\item{cex.axis}{graphical parameter for plot}
+
+\item{cex.lab}{graphical parameter for plot}
+
+\item{cex.main}{graphical parameter for plot}
+
+\item{font.main}{graphical parameter for plot}
 }
 \value{
 plot of the posterior haplotype effect densities
