@@ -1131,7 +1131,7 @@ additive.design <- function(J, type){
 #' @param TIMBR.output.bkgrd optional second results object for background plot
 #' @param colors.bkgrd optional colors for background plot
 #' @param transparency optional vector of transparencies for foreground and background plots, ignored if second results object is not specified
-#' @param ylab graphical parameter for plot
+#' @param y.lab graphical parameter for plot
 #' @param hap.labels optional labels for haplotypes
 #' @param x.lim optional limits for x axis
 #' @param x.lab optional label for x axis
@@ -1155,7 +1155,7 @@ additive.design <- function(J, type){
 #'
 #' @export
 TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plot.width=960, plot.height=480, TIMBR.output.bkgrd=NULL,
-                                  colors.bkgrd=NULL, transparency=c(0.7,0.4), ylab="Haplotype", hap.labels=NULL, x.lim=NULL, x.lab=NULL,
+                                  colors.bkgrd=NULL, transparency=c(0.7,0.4), y.lab="Haplotype", hap.labels=NULL, x.lim=NULL, x.lab=NULL,
                                   cex.axis=1, cex.lab=1, cex.main=1, font.main = 2){
   densities <- apply(TIMBR.output$post.hap.effect, 2, density)
   J <- length(densities)
@@ -1195,7 +1195,7 @@ TIMBR.plot.haplotypes <- function(TIMBR.output, colors=NULL, file.path=NULL, plo
     x.lab <- "Phenotype"
   }
   
-  plot(1, type="n", xlab=x.lab, ylab=ylab, xlim=c(min.x, max.x), ylim=c(0, scale.y*J), axes=FALSE)
+  plot(1, type="n", xlab=x.lab, ylab=y.lab, xlim=c(min.x, max.x), ylim=c(0, scale.y*J), axes=FALSE)
   Axis(side=2, at=scale.y*(0:(J-1)+0.5), labels=hap.labels, las=1, tick=F)
   Axis(side=1)
   

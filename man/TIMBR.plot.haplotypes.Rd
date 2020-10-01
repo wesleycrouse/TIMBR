@@ -13,7 +13,7 @@ TIMBR.plot.haplotypes(
   TIMBR.output.bkgrd = NULL,
   colors.bkgrd = NULL,
   transparency = c(0.7, 0.4),
-  ylab = "Haplotype",
+  y.lab = "Haplotype",
   hap.labels = NULL,
   x.lim = NULL,
   x.lab = NULL,
@@ -40,7 +40,7 @@ TIMBR.plot.haplotypes(
 
 \item{transparency}{optional vector of transparencies for foreground and background plots, ignored if second results object is not specified}
 
-\item{ylab}{graphical parameter for plot}
+\item{y.lab}{graphical parameter for plot}
 
 \item{hap.labels}{optional labels for haplotypes}
 
