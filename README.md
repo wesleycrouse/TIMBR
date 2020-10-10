@@ -1,7 +1,7 @@
 # TIMBR
-TIMBR is an R package for inferring an allelic series of haplotypes. 
+TIMBR is an R package for inferring an allelic series of haplotype effects. 
 
-Read the preprint on [bioRxiv](https://www.biorxiv.org/content/10.1101/2020.05.23.112326v2).
+Read the preprint on [bioRxiv](https://doi.org/10.1101/2020.05.23.112326).
 
 Get started:
 ```
