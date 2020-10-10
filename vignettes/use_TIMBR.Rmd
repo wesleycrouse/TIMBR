@@ -11,7 +11,7 @@ vignette: >
 
 ## Overview
 
-TIMBR is an R package for inferring an allelic series of haplotypes at a locus in a multiparental population. This vignette demonstrates how to get started using data from the first example in the [manuscript](https://www.biorxiv.org/content/10.1101/2020.05.23.112326v2).
+TIMBR is an R package for inferring an allelic series of haplotypes at a locus in a multiparental population. This vignette demonstrates how to get started using data from the first example in the [manuscript](https://doi.org/10.1101/2020.05.23.112326).
 
 ## Installing from GitHub
 
@@ -168,9 +168,7 @@ TIMBR.plot.haplotypes(results.biallelic, TIMBR.output.bkgrd=results.hap)
 ![](figure/effects-biallelic-1.png)
 </center>
 
-
 The posterior samples show that haplotype effects are now identical within alleles. The visualization shows that they are also estimated with more certainty because there are fewer effect parameters (two) than in the haplotype-based model (eight). We also calculate the lnBF in favor of this biallelic model against the previous haplotype-based model.
-
 
 ```r
 results.biallelic$ln.BF - results.hap$ln.BF
