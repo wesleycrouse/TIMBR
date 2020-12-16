@@ -11,7 +11,7 @@ vignette: >
 
 ## Overview
 
-TIMBR is an R package for inferring an allelic series of haplotypes at a locus in a multiparental population. This vignette demonstrates how to get started using data from the first example in the [manuscript](https://doi.org/10.1101/2020.05.23.112326).
+TIMBR is an R package for inferring an allelic series of haplotypes at a locus in a multiparental population. This vignette demonstrates how to get started using data from the first example in the [manuscript](https://doi.org/10.1534/genetics.120.303393).
 
 ## Installing from GitHub
 
@@ -115,9 +115,8 @@ set.seed(84627)
 results.hap <- TIMBR(y, prior.D, prior.M.hap, verbose=F)
 TIMBR.plot.haplotypes(results.hap)
 ```
-<center>
+
 ![](figure/effects-hap-1.png)
-</center>
 
 We also report the natural log Bayes factor (lnBF) in favor of this model against a null where all haplotypes are functionally identical (i.e. there is no genetic effect).
 
@@ -164,11 +163,11 @@ results.biallelic$post.hap.effects[1:10,]
 ```r
 TIMBR.plot.haplotypes(results.biallelic, TIMBR.output.bkgrd=results.hap)
 ```
-<center>
+
 ![](figure/effects-biallelic-1.png)
-</center>
 
 The posterior samples show that haplotype effects are now identical within alleles. The visualization shows that they are also estimated with more certainty because there are fewer effect parameters (two) than in the haplotype-based model (eight). We also calculate the lnBF in favor of this biallelic model against the previous haplotype-based model.
+
 
 ```r
 results.biallelic$ln.BF - results.hap$ln.BF
@@ -267,9 +266,7 @@ The biallelic contrast from earlier is now the top posterior allelic series with
 TIMBR.plot.haplotypes(results.crp, TIMBR.output.bkgrd=results.hap)
 ```
 
-<center>
 ![](figure/effects-crp-1.png)
-</center>
 
 The haplotype effects using the CRP are again more certain, but they retain long tails that span much of the range of the effect estimates from the haplotype-based model.
 
@@ -286,9 +283,7 @@ trees <- mcv.data$trees
 plot.phylo(trees[[1]])
 ```
 
-<center>
 ![](figure/tree-1.png)
-</center>
 
 The tree indicates that haplotypes B,D,E are more closely related to each other and then the other haplotypes. Based on this relationship, and before observing any additional phenotype data, we intuitively expect that haplotypes B,D,E are more likely to be functionally identical and distinct from the other haplotypes. Ewens's sampling formula formalizes this intuition by assuming that functional mutations occur on the tree in proportion to branch length. The function `ewenss.calc` enumerates all possible combinations of mutated tree branch, calculates prior probabilities, and returns a prior distribution over allelic series that is conditional on this tree. 
 
@@ -435,9 +430,7 @@ edge.color <- rgb(ramp(p.B.given.y), maxColorValue=255)
 plot.phylo(prior.M.tree$tree, edge.color=edge.color, edge.width=3, font=2, label.offset=0.02)
 ```
 
-<center>
 ![](figure/tree-post-1.png)
-</center>
 
 ## Visualizing the prior distribution of number of alleles
 
@@ -466,9 +459,7 @@ points(1:8, prior.number.alleles.uniform, pch=22, bg="darkcyan")
 legend(1, legend=c("Uniform", "CRP"), col=c("darkcyan", "orange"), lty=5)
 ```
 
-<center>
 ![](figure/prior-1.png)
-</center>
 
 ## Approximating Bayes factors for alternative prior distributions from previous results
 
