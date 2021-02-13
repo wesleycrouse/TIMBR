@@ -1859,7 +1859,7 @@ M.ID.from.B <- function(B, V){
 }
 
 #' @keywords internal
-TIMBR_ROP <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, Z=NULL, W=NULL, calc.lnBF=T, samples.ml=1000, verbose=T, stop.on.error=F){
+TIMBR.ROP <- function(y, prior.D, prior.M, prior.phi.v=2, samples=10000, Z=NULL, W=NULL, calc.lnBF=T, samples.ml=1000, verbose=T, stop.on.error=F){
   TIMBR.sampler <- function(iterations, calc.null.ml=T, update.M=T, update.alpha=T){
     
     nglm.hyperparameters.ml <- function(MC, calc.partial.ml=T){
