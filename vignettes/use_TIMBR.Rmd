@@ -89,6 +89,8 @@ prior.D$A[1:14,]
 
 The default order in 'qtl2' is different. To generate an additive design matrix for use with 'qtl2' data, use the function `additive.design`. The row and column names in `P` and `A` are for clarity; they are not used by TIMBR.
 
+If you don't have full diplotype state probabilities, and instead only have expected haplotype dosages, see the final section of this vignette.
+
 ## Haplotype-based association
 
 TIMBR requires a prior distribution for the allelic series. To begin, we implement a standard haplotype-based association model that assumes the allelic series is known and that all haplotypes are functionally distinct from one another. 
@@ -488,3 +490,33 @@ Note that this is only an approximation. In this case, most biallelic series are
 ## Other options
 
 The `TIMBR` function has several other useful options. Covariates can be specified using the `Z` matrix; just make sure that the first column of the matrix is a vector of ones. It is also possible to use strain means for `y` and specify the number of replicates using vector `W`. Finally, it is possible to control shrinkage in the allele effects by varying `prior.phi.v`; see the manuscript for a description of the hyperparameter $\nu$.
+
+## EXPERIMENTAL: Using TIMBR with expected haplotype dosages (i.e. regression on probabilities)
+
+TIMBR requires a full diplotype state probability matrix as input. During QTL mapping, this full matrix is often reduced in dimension to an additive design matrix of expected haplotype dosages. This matrix of dosages is frequently used in a "regression on probabilities" (ROP) approach for QTL mapping, also known as Haley-Knott regression. If you do not have the full diplotype state probability matrix, my recommendation is to run the haplotype reconstruction again, in order to use TIMBR as intended with the full diplotype state probabilities as input.
+
+That said, it is possible to run TIMBR in a ROP mode, specifying an additive design matrix of expected haplotype dosages as input. This experimental approach does not sample diplotype states, and it operates on expected prior dosages of haplotypes rather than posterior dosages. In the context of the model, it substitutes $\mathbf{X}=\mathbf{PA}=\mathbf{DA}$ and assumes that $\mathbf{X}$ is known. The ROP version of TIMBR is completely untested, and the following code is offered without any reassurance that its output is representative of using the TIMBR model as intended. We expect that the results from TIMBR using ROP may often be similar to those using diplotype probabilities but also sometimes quite different due to shortcomings of the ROP-based approach, as detailed in [Zhang, Wang & Valdar (2014)](https://doi.org/10.1534/genetics.114.166249).
+
+
+
+```r
+prior.D <- list(type="ROP", X=mcv.data$prior.D$P%*%mcv.data$prior.D$A)
+
+results.ROP <- TIMBR:::TIMBR.ROP(y, prior.D, prior.M.crp, verbose=F)
+
+as.matrix(head(results.ROP$p.M.given.y, 10))
+```
+
+```
+##                   [,1]
+## 0,1,0,1,1,0,0,0 0.5882
+## 0,1,0,1,1,2,0,0 0.0862
+## 0,1,2,1,1,2,0,0 0.0486
+## 0,1,0,1,2,0,0,0 0.0226
+## 0,1,0,2,1,0,0,0 0.0206
+## 0,1,0,1,1,0,2,2 0.0175
+## 0,1,0,2,2,0,0,0 0.0172
+## 0,1,0,1,1,0,2,0 0.0163
+## 0,1,2,1,1,0,0,0 0.0149
+## 0,1,0,1,1,0,0,2 0.0144
+```
